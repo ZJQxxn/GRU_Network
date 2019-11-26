@@ -19,5 +19,6 @@
   "need_train": 1,
   "need_validate": 1,
   "lesion": "",
-  "anlys_file": ""
+  "anlys_file": "",
+  "batch_size": 2
 }

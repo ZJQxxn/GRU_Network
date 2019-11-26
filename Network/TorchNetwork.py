@@ -14,6 +14,7 @@ import numpy as np
 
 from Network.net_tools import  readConfigures, validateConfigures
 from Network.net_tools import tensor2np, np2tensor, match_rate
+from Network.LogHelper import LogHelper
 
 
 class TorchNetwork:
@@ -51,47 +52,51 @@ class TorchNetwork:
             self.config_pars = validateConfigures(self.config_pars) # check validation of configurations
             self._resetNetwork() # initialize the network with a configuration file
         self.trained = False # denote whether the network has been trained
+        self.logHelper = LogHelper() # for writing logs TODO: set log helper by task setting
 
     def training(self, train_set, training_guide, truncate_iter = 1e800):
         '''
         Train the GRU  neural network.
-        :param train_set: Training dataset.
-        :param training_guide: Training reward.
+        :param train_set: Training dataset, should have shape (number of trials, time steps in a trial, feature dimension)
+        :param training_guide: Training reward, should have shape (number of trials, 2).
+                                training_guide[:,0] determines whether this trial is used for training;
+                                training_guide[:,1] determines how many first time steps in this trial is used. 
         :param truncate_iter: Truncated iteration. The network training stops when this number of trials are trained.
         :return: 
-            - train_loss(list0: Losses of every block.
+            - train_loss(list): Losses of every block.
             - train_correct_rate(list): Correct rates of every block.
         '''
         self.hidden = self._initHidden()
-        print("self.hidden:",self.hidden);
-        block_data = []
-        block_reward = []
+        print("self.hidden:",self.hidden)
+        batch_data = []
+        batch_reward = []
         train_loss = []
         train_correct_rate = []
+        batch_count = 1 # count the number of batches
         for step, trial in enumerate(train_set):
             # cease training when reaching at the truncate iteration
             if step >= (truncate_iter - 1):
                 break
             # Collect ``batch_size'' number of trials as training input
-            block_data.append(trial)
-            block_reward.append(training_guide[step])
+            batch_data.append(trial)
+            batch_reward.append(training_guide[step])
             # training for every batch
             if (step + 1) % self.network.batch_size == 0:
                 # reset hidden unit for next batch
                 if self.reset_hidden:
                     self.hidden = self._initHidden()
                 # train the network with current block of data
-                block_data = np.array(block_data).transpose([1, 0, 2])
-                #加入block_reward=np.array(block_reward)
-                block_reward = np.array(block_reward)# train_input: (time step, batch size, input number)
-                block_loss, block_correct_rate = self._trainBlock(block_data, block_reward)
-                block_data,block_reward=[],[]
-                train_loss.append(block_loss)
-                train_correct_rate.append(block_correct_rate)
+                batch_data = np.array(batch_data).transpose([1, 0, 2])
+                batch_reward = np.array(batch_reward)
+                batch_loss, batch_correct_rate = self._trainBatch(batch_data, batch_reward)
+                batch_data,batch_reward=[],[]
+                train_loss.append(batch_loss)
+                train_correct_rate.append(batch_correct_rate)
                 # TODO: print out or write into log file?
-                print("Network loss is : ", block_loss)
-                print("Correct rate is : ", block_correct_rate)
-                print('=' * 20)
+                print('=' * 15, " {}-th batch ".format(batch_count), '=' * 15)
+                print("Network loss is : ", batch_loss)
+                print("Correct rate is : ", batch_correct_rate)
+                batch_count = batch_count + 1
             else:
                 # Continue collecting training input trials
                 continue
@@ -136,38 +141,39 @@ class TorchNetwork:
         self.network.load_state_dict(pars)
         self.trained = True
 
-    def _trainBlock(self, block_data, block_reward):
+    def _trainBatch(self, batch_data, batch_reward):
         '''
-        Train the network with a block of data.
-        :param block_data: A block of trials. 
-        :param block_reward: The reward of this block of data.
+        Train the network with a batch of data.
+        :param batch_data: A batch of trials. 
+        :param batch_reward: The reward of this batch of data.
         :return: 
-            - total_loss.item(): The loss of this block.
-            - correct_rate(float): Correct rate of predictions of this block of data.
+            - total_loss.item(): The loss of this batch.
+            - correct_rate(float): Correct rate of predictions of this batch of data.
         '''
+        # TODO: set default value of block_reward
         self.network.zero_grad()
         # Initialization
         total_loss = 0
-        block_size = block_data.shape[0] - 1 # in case data is truncated
-        #
-        predicted_trial = np.zeros((block_size, self.network.batch_size,self.network.in_dim))
-        raw_prediction = np.zeros((block_size, self.network.batch_size, self.network.in_dim))
-        hidden_sequence = np.zeros((block_size, self.network.batch_size, self.network.hid_dim))
-        reward_guide = np.tile(block_reward[:, 0], (block_data.shape[2], 1))
-        reward_guide = np.tile(reward_guide, (block_data.shape[0], 1, 1)).transpose(0, 2, 1)
+        times_num = batch_data.shape[0] - 1 # the number of time steps in this batch
+        predicted_trial = np.zeros((times_num, self.network.batch_size,self.network.in_dim))
+        raw_prediction = np.zeros((times_num, self.network.batch_size, self.network.in_dim))
+        hidden_sequence = np.zeros((times_num, self.network.batch_size, self.network.hid_dim))
+        reward_guide = np.tile(batch_reward[:, 0], (batch_data.shape[2], 1))
+        reward_guide = np.tile(reward_guide, (batch_data.shape[0], 1, 1)).transpose(0, 2, 1) # TODO: with shape of (number of time steps, number of trials in the block, number of inputs)
+        # determine how many trials are used for training
         for i in range(self.network.batch_size):
-            reward_guide[block_reward[i, 1]:, i, :] = 0
+            reward_guide[batch_reward[i, 1]:, i, :] = 0
         reward_guide = torch.tensor(reward_guide, dtype = torch.float, requires_grad=True)##########################
         reward_guide = reward_guide.cuda() if self.cuda_enabled else reward_guide
         # Train the network with each trial
-        for i in range(block_size):
-            cur_trial = np2tensor(block_data[i, :, :], block_size = self.network.batch_size, cuda_enabled = self.cuda_enabled)
-            trial_reward = reward_guide[i]
-            n_put = np2tensor(block_data[i + 1, :, :], gradient_required=True) # TODO: The meaning of n_put
-            loss, raw_output, copied_hidden = self._trainTrial(cur_trial, trial_reward, n_put)
+        for i in range(times_num):
+            cur_time = np2tensor(batch_data[i:i+1, :, :], cuda_enabled = self.cuda_enabled) # each time step in the batch
+            time_reward = reward_guide[i]
+            next_time = np2tensor(batch_data[i+1:i+2, :, :], gradient_required=True) # next time step; used for computing loss
+            loss, raw_output, copied_hidden = self._trainTimeStep(cur_time, time_reward, next_time)
             total_loss = total_loss + loss
             # Collect training results for each trial
-            predicted_trial[i, :, :] = np.around(raw_output) # prediction is 1 if raw_output >= 0.5, else 0
+            predicted_trial[i, :, :] = np.around(raw_output) # prediction is 1 if raw_output >= 0.5, else 0 TODO: only deal with binary output
             raw_prediction[i, :, :] = raw_output
             hidden_sequence[i, :, :] = copied_hidden
         # Backward passing
@@ -175,31 +181,30 @@ class TorchNetwork:
         torch.nn.utils.clip_grad_norm_(self.network.parameters(), self.gradient_clip)
         # Gradient descent
         self.network.optimizer.step()
-        # Compute correct rate of training prediction
-        # TODO: use a user defined match rate function. Necessary for every task actually?
-        correct_rate = match_rate(block_data[1:, :, :], predicted_trial) #TODO: predicted_trial has shape (26, 1, 10)
+        # Compute correction rate: the prediction[0] is estimation of trial[0], hence compare with trial[1]
+        correct_rate = match_rate(batch_data[1:, :, :], predicted_trial)
         return total_loss.item(), correct_rate
 
-    def _trainTrial(self, cur_trial, trial_reward, n_put):
+    def _trainTimeStep(self, cur_time, time_reward, next_time):
         '''
         Train the network with a single trial.
-        :param cur_trial: Current trial.
-        :param trial_reward: Reward of this trial.
-        :param n_put: TODO: the meaning of n_put.
+        :param cur_time: Current time step.
+        :param trial_reward: Reward of this time step.
+        :param next_time: Next time step.
         :return: 
             - loss(float): Loss of prediction of this trial.
             - raw_output: Raw predicted output of this trial.
             - copied_hidden: Current hidden units value after training with this trial.
         '''
-        #下面两句为添加内容，将数据转为tensor.float32 #TODO: float32 or float64
-        cur_trial = torch.tensor(cur_trial, dtype=torch.float32,requires_grad=True)
+        #TODO: float32 or float64
+        cur_time = torch.tensor(cur_time, dtype=torch.float32,requires_grad=True)
         self.hidden=torch.tensor(self.hidden, dtype=torch.float32,requires_grad=True)
-        output, self.hidden = self.network(cur_trial, self.hidden)
-        n_put = torch.tensor(n_put, dtype=torch.double,requires_grad=True)
-        trial_reward=torch.tensor(trial_reward, dtype=torch.double,requires_grad=True) # TODO: the reward should be a parameter of network
+        output, self.hidden = self.network(cur_time, self.hidden)
+        next_time = torch.tensor(next_time, dtype=torch.double,requires_grad=True)
+        time_reward=torch.tensor(time_reward, dtype=torch.double,requires_grad=True)
         output=torch.tensor(output, dtype=torch.double,requires_grad=True)
-        loss = self.network.criterion((trial_reward * output).reshape([1, -1])[0],
-                         (trial_reward * n_put).reshape([1, -1])[0])
+        loss = self.network.criterion((time_reward * output).reshape([1, -1])[0],
+                         (time_reward * next_time).reshape([1, -1])[0])
         raw_output = tensor2np(output, cuda_enabled = self.cuda_enabled)
         copied_hidden =tensor2np(self.hidden, cuda_enabled = self.cuda_enabled)
         return loss, raw_output, copied_hidden
@@ -212,8 +217,6 @@ class TorchNetwork:
         '''
         weight = next(self.network.parameters()).data
         # for pertubation
-
-        #self.network.in_dim改为self.network.hid_dim
         noise = torch.randn(self.network.nlayers, self.network.batch_size, self.network.hid_dim,requires_grad=True) * self.init_noise_amp
         new_hidden = torch.tensor(
             weight.new(self.network.nlayers, self.network.batch_size, self.network.hid_dim).zero_() + noise
@@ -229,11 +232,12 @@ class TorchNetwork:
         Precondition: A feasible configuration dict is already loaded as self.config_pars. 
         :return: VOID
         '''
-        self.network = _GRUNetwork(self.config_pars['in_dim'])
+        self.network = _GRUNetwork(self.config_pars['in_dim'], self.config_pars['batch_size'])
         self.cuda_enabled = self.config_pars['cuda_enabled']
         self.init_noise_amp = self.config_pars['init_noise_amp']
         self.reset_hidden = self.config_pars['reset_hidden']
         self.gradient_clip = self.config_pars['gradient_clip']
+        # TODO: determine whether need a log or not
 
 ########################################################################################################################
 ########################################################################################################################
@@ -306,7 +310,6 @@ class _GRUNetwork(nn.Module):
             - output: Output value at this passing.
             - hidden: Hidden unit value at this passing.
         '''
-        # TODO: shape of input, shape of hidden
         output, hidden = self.rnn(input, hidden)
         hidden = self.relu(hidden)
         output = self.relu(output)

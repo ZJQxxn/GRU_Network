@@ -15,7 +15,7 @@ class DataProcessor(ABC):
     Functions:
         __init__: Initialization.
         prepareTrainingData: Prepare training data.
-        prepareTestingData: Prepare testing data.
+        prepareValidatingData: Prepare validating data.
     '''
 
     def __init__(self):
@@ -32,9 +32,9 @@ class DataProcessor(ABC):
         pass
 
     @abstractmethod
-    def prepareTestingData(self):
+    def prepareValidatingData(self):
         '''
-        Prepare testing dataset.
+        Prepare validating dataset.
         '''
         pass
 

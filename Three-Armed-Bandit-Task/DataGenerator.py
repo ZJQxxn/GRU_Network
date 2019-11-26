@@ -139,9 +139,9 @@ class TrainingGenerate:
         # ================ GENERATE TRIALS ===================
         self.choices = []  # the choice of stimulus of all the trials, 0 for A, 1 for B, and 2 for C
         self.rewards = []  # the reward of all the trials, 1 for reward and 0 for no reward
-        #prev_trial = np.zeros((self.input_dim, self.time_step_num))  # previous trial
+        prev_trial = np.zeros((self.input_dim, self.time_step_num))  # previous trial
         for nTrial in range(self.numTrials):
-            trial = np.zeros((self.input_dim, self.time_step_num))
+            trial = np.zeros((self.input_dim, self.time_step_num + 1)) # add an extra time step for computing loss when training
             # At 0 and 1 time steps, see nothing and do nothing
             trial[3, 0:2] = trial[7, 0:2] = 1
             # At 2, 3, and 4 time steps, see three stimulus and do nothing
@@ -163,12 +163,15 @@ class TrainingGenerate:
             trial[8 + is_rewarded, 9:12] = 1
             # At 12 and 13 time steps, see nothing and do nothing
             trial[3, 12:14] = trial[7, 12:14] = 1
-            # TODO: combine current and previous trials
-            self.training_set.append(trial)
-            # # concatenate two trials
+            # The extra time step should be the first step at next trial
+            trial[3, 14] = trial[7, 14] = 1
+            # Append this trial into training set
+            self.training_set.append(trial.T)
+            # concatenate two trials
             # if nTrial > 0:
             #     self.training_set.append([np.hstack((prev_trial, trial)).T])
             # prev_trial = trial
+        self.training_guide = np.vstack((self.rewards, np.tile(self.time_step_num, self.numTrials))).T
         print('Finished generating {} trials'.format(self.numTrials-1))
         # ================ SHOW TRIAL ===================
         sbn.set(font_scale=1.6)
@@ -186,6 +189,7 @@ class TrainingGenerate:
         info = {'NumTrials': self.numTrials - 1, 'reward_probability': self.reward_probability,
                 'block_size': self.block_size,'input_dim': self.input_dim, 'time_step_num': self.time_step_num}
         # ================ SAVE TRAINING SET ===================
+        #TODO: reorganize each keys and information
         training_descrip = {'choices': self.choices, 'rewards': self.rewards, 'info': info}
         pathname = "./data/"
         file_name = datetime.datetime.now().strftime("%Y_%m_%d")
@@ -197,7 +201,8 @@ class TrainingGenerate:
             if not os.path.isfile(pathname + data_name + '-' + str(n) + '.mat'):
                 sio.savemat(pathname + data_name + '-' + str(n) + '.mat',
                             {'training_set': self.training_set,
-                             'training_descrip': training_descrip})
+                             'training_descrip': training_descrip,
+                             'training_guide':self.training_guide})
                 print("_" * 36)
                 print("training file for simplified two step task is saved")
                 print("file name:" + pathname + data_name + '-' + str(n) + '.mat')

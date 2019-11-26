@@ -41,7 +41,7 @@ def tensor2np(torch_tensor, cuda_enabled = False):
     else:
         return torch_tensor.data.numpy()
 
-def np2tensor(nparray, block_size = 1, cuda_enabled = False, gradient_required = True):
+def np2tensor(nparray, cuda_enabled = False, gradient_required = True):
     '''
     Convert a Numpy ndarray to a Pytorch tensor.
     :param nparray: A numpy ndarray.
@@ -51,9 +51,9 @@ def np2tensor(nparray, block_size = 1, cuda_enabled = False, gradient_required =
     :return: A Pytorch tensor with shape of (1, block_size, -1).
     '''
     if cuda_enabled:
-        return torch.tensor(torch.tensor(nparray).view(1, block_size, -1).cuda(), requires_grad=gradient_required)
+        return torch.tensor(torch.tensor(nparray).cuda(), requires_grad=gradient_required)
     else:
-        return torch.tensor(torch.tensor(nparray).view(1, block_size, -1), requires_grad=gradient_required)
+        return torch.tensor(torch.tensor(nparray), requires_grad=gradient_required)
 
 def match_rate(t1, t2):
     '''
