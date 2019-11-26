@@ -176,6 +176,7 @@ class TorchNetwork:
         # Gradient descent
         self.network.optimizer.step()
         # Compute correct rate of training prediction
+        # TODO: use a user defined match rate function. Necessary for every task actually?
         correct_rate = match_rate(block_data[1:, :, :], predicted_trial) #TODO: predicted_trial has shape (26, 1, 10)
         return total_loss.item(), correct_rate
 
@@ -190,12 +191,12 @@ class TorchNetwork:
             - raw_output: Raw predicted output of this trial.
             - copied_hidden: Current hidden units value after training with this trial.
         '''
-        #下面两句为添加内容，将数据转为tensor.float32
+        #下面两句为添加内容，将数据转为tensor.float32 #TODO: float32 or float64
         cur_trial = torch.tensor(cur_trial, dtype=torch.float32,requires_grad=True)
         self.hidden=torch.tensor(self.hidden, dtype=torch.float32,requires_grad=True)
         output, self.hidden = self.network(cur_trial, self.hidden)
         n_put = torch.tensor(n_put, dtype=torch.double,requires_grad=True)
-        trial_reward=torch.tensor(trial_reward, dtype=torch.double,requires_grad=True)
+        trial_reward=torch.tensor(trial_reward, dtype=torch.double,requires_grad=True) # TODO: the reward should be a parameter of network
         output=torch.tensor(output, dtype=torch.double,requires_grad=True)
         loss = self.network.criterion((trial_reward * output).reshape([1, -1])[0],
                          (trial_reward * n_put).reshape([1, -1])[0])
