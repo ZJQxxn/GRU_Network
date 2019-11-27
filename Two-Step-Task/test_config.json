@@ -8,7 +8,7 @@
   "data_file": "./data/SimpTwo_TrainingSet-2019_11_19-1.mat",
   "data_attr": "data_ST",
   "data_brief": "data_ST_Brief",
-  "validation_data_file": "./data/SimpTwo_TrainingSet-2019_11_19-1.mat",
+  "validation_data_file": "./data/SimpTwo_TestingSet-2019_09_28-1.mat",
   "log_path": "./log_m/ST/",
   "model_path": "./save_m/ST/model-sp_ts_",
   "load_model": "",
@@ -20,5 +20,5 @@
   "need_validate": 1,
   "lesion": "",
   "anlys_file": "",
-  "batch_size": 2
+  "batch_size": 1
 }

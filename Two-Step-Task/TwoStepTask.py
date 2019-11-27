@@ -1,0 +1,243 @@
+from Network.Task import Task
+from Network.TorchNetwork import TorchNetwork
+from Network.net_tools import np2tensor, tensor2np, match_rate
+from Network.net_tools import readConfigures #TODO: change this
+from TwoStepDataProcessor import TwoStepDataProcessor
+import copy
+import numpy as np
+import torch
+
+class TwoStepTask(Task):
+
+    def __init__(self, config_file):
+        super(TwoStepTask, self).__init__()
+        self.model = TorchNetwork(config_file)
+        cofig_pars = readConfigures(config_file) #TODO: change this
+        self.data_helper = TwoStepDataProcessor(cofig_pars['data_file'], cofig_pars['validation_data_file'])
+
+    def train(self):
+        print('='*40)
+        print('START TRAINING...')
+        self.train_data, self.train_guide = self.data_helper.prepareTrainingData()
+        train_loss, train_correct_rate = self.model.training(self.train_data, self.train_guide)
+        return train_loss, train_correct_rate
+
+    def validate(self):
+        if not self.model.trained:
+            raise ValueError('Untrained network: the network should be trained first or read from a .pt file!')
+        print('=' * 40)
+        print('START VALIDATING...')
+        # Initialization
+        self.validate_data, self.validate_data_attr = self.data_helper.prepareValidatingData()
+        self.task_validate_attr = { # attributes for validating
+            'trial_length':12,
+            'block' : self.validate_data_attr['block'][0][0],
+            'trans_probs' : self.validate_data_attr['trans_probs'][0][0],
+            'reward_prob_1' : self.validate_data_attr['reward_prob_1'][0][0],
+            'action_step' : [5,6],
+            'about_state'  : [2,3], # index of states
+            'about_choice' : [5,6,7], # index of choices
+            'about_reward' : [8,9], # index of reward
+            'interrupt_states' : [[0, 0, 0, 0, 1, 0, 0, 1, 0, 1]],
+            'chosen_states' : [
+                [0, 0, 0, 0, 1, 0, 0, 0, 0, 1],
+                [0, 0, 0, 0, 1, 0, 0, 0, 0, 1],
+                [0, 0, 0, 0, 0, 1, 0, 0, 0, 1],
+                [0, 0, 0, 0, 0, 1, 0, 0, 0, 1],
+                [0, 0, 0, 0, 0, 1, 0, 0, 0, 1],
+                [0, 0, 0, 0, 1, 1, 0, 0, 0, 0],
+                [0, 0, 0, 0, 1, 1, 0, 0, 0, 0],
+                [0, 0, 0, 0, 1, 1, 0, 0, 0, 1],
+                ]
+        }
+        self._resetTrialRecords()
+
+        wining_counts, completed_counts, trial_counts = 0, 0, 0
+        total_loss, total_correct_rate = 0, 0
+        t_interval = 1000 # TODO: change name; set by user
+        # Validating
+        for step, trial in enumerate(self.validate_data):
+            if step >= 1e800:
+                break
+            trial_reward_prob = {
+                'trans_probs': self.task_validate_attr['trans_probs'][:,step],
+                'reward_prob_1':self.task_validate_attr['reward_prob_1'][:,step]
+            }
+            tmp_loss, tmp_correct_rate, raw_rec, wining, completed = self._trialValidate(trial, trial_reward_prob)
+            trial_counts = trial_counts + 1
+            wining_counts = wining_counts + wining
+            completed_counts = completed_counts + completed
+            total_loss = total_loss + tmp_loss
+            total_correct_rate = total_correct_rate + tmp_correct_rate
+            # Print out intermediate result: loss and correct rate
+            if (step + 1) % t_interval == 0 and step > 0:
+                print(
+                    "(Validate)STEP: {:6d} | AVERAGE CORRECT RATE: {:6f} | AVERAGE LOSS(without loss): {:.6f} ".format(
+                        step + 1,
+                        total_correct_rate / t_interval,
+                        total_loss / t_interval))
+                total_loss = 0
+                total_correct_rate = 0
+        print('-'*40)
+        print('Winning rate : {},  Completed rate : {}'.format(wining_counts / trial_counts, completed_counts / trial_counts))
+
+    def _nextInput(self, action, trial_reward_prob):
+        #TODO: understand the logic of this function
+        time_step = self.validate_records['time_step'] + 1
+        states_pool = self.validate_records['states_pool']
+        if len(action) != 1 or not (action[0] in (0, 1, 2)):
+            states_pool = copy.deepcopy(self.task_validate_attr['interrupt_states'])
+        else:
+            action = action[0]
+            if not (time_step in self.task_validate_attr['action_step']):  # choice has not been made
+                if action == 0:  # fixate, keep silent
+                    pass
+                else:
+                    states_pool = copy.deepcopy(self.task_validate_attr['interrupt_states'])
+
+            elif time_step == self.task_validate_attr['action_step'][0]:  # choice has not been made
+                if action == 0:  # fixate, keep silent
+                    states_pool = copy.deepcopy(self.task_validate_attr['interrupt_states'])
+                elif action == 1:
+                    state = 1 if trial_reward_prob['trans_probs'] > np.random.rand() else 2
+                elif action == 2:
+                    state = 1 if (1 - trial_reward_prob['trans_probs']) > np.random.rand() else 2
+
+                if action != 0:
+                    # print("block: {:6f} | choice: {:6f} | reward: {:.6f} ".format(self.block,action,reward))
+                    reward = trial_reward_prob['reward_prob_1'] > np.random.rand() if state == 1 \
+                        else (1 - trial_reward_prob['reward_prob_1']) > np.random.rand()
+                    self.validate_records.update({
+                        'common': state == action,
+                        'state':state,
+                        'choice':action,
+                        'reward':reward,
+                        'chose':True})
+                    state_ = copy.deepcopy(self.task_validate_attr['chosen_states'])
+                    state_[0][self.task_validate_attr['about_choice'][action]] = 1
+                    state_[1][self.task_validate_attr['about_choice'][action]] = 1
+                    state_[2][self.task_validate_attr['about_state'][state - 1]] = 1
+                    state_[3][self.task_validate_attr['about_state'][state - 1]] = 1
+                    state_[4][self.task_validate_attr['about_state'][state - 1]] = 1
+                    state_[5][self.task_validate_attr['about_reward'][1 - int(reward)]] = 1
+                    state_[6][self.task_validate_attr['about_reward'][1 - int(reward)]] = 1
+                    states_pool = copy.deepcopy(state_)
+
+            elif time_step == self.task_validate_attr['action_step'][1]:  # choice has not been made
+                if action == self.validate_records['choice']:
+                    pass
+                else:
+                    states_pool = copy.deepcopy(self.task_validate_attr['interrupt_states'])
+            else:
+                raise BaseException("Wrong time step index!")
+        try:
+            next_sensory_inputs = states_pool.pop(0)
+            trial_end = self.validate_records['trial_end']
+            completed = self.validate_records['completed']
+            reward = self.validate_records['reward']
+            if len(states_pool) == 0:
+                trial_end = True
+                if time_step == self.task_validate_attr['trial_length']:
+                    completed = True
+                else:
+                    reward = None
+            self.validate_records.update({
+                'states_pool':states_pool,
+                'trial_end':trial_end,
+                'completed':completed,
+                'reward':reward,
+                'time_step':time_step})
+            return trial_end, next_sensory_inputs
+        except IndexError:
+            print("Wrong States Pool!")
+
+    def _estimateAction(self,sensory_inputs):
+        hidden = self.validate_records['hidden']
+        #processed_input = np2tensor(sensory_inputs, gradient_required=False)
+        processed_input = torch.tensor(sensory_inputs).type(torch.FloatTensor).view(1, self.model.network.batch_size, -1).requires_grad_(True) #TODO: change this; cuda enabled
+        output, hidden = self.model.network(processed_input, hidden)
+
+        action_options = output[0, self.task_validate_attr['about_choice']]
+        action_options = action_options.cpu().detach().numpy() if self.model.cuda_enabled else action_options.detach().numpy() #TODO: what if the model is in the GPU bu validate in CPU
+
+        pro_soft = self._softmax(action_options)
+        idx = torch.tensor(np.random.choice(pro_soft.size, 1, p=pro_soft))
+        selected_action = [idx.data.item()]  # 0: fixation point, 1: left, 2: right, 3: other position
+        # update validation records
+        self.validate_records['hidden'] = hidden
+        self.validate_records['raw_records'].append(tensor2np(output).reshape(-1))
+        self.validate_records['hidden_records'].append(tensor2np(hidden))
+        self.validate_records['sensory_sequence'].append(sensory_inputs)
+        return selected_action
+
+    def _softmax(self,x, beta=8): # TODO: move this to another location
+        """Compute softmax values for each sets of scores in x."""
+        return np.exp(beta * x) / np.sum(np.exp(beta * x), axis=0)
+
+    def _resetTrialRecords(self):
+        self.validate_records = {'raw_records': [],
+                                 'hidden_records': [],
+                                 'sensory_sequence': [],
+                                 'time_step': -1,
+                                 'states_pool': [],
+                                 'completed': None,
+                                 'trial_end': False,
+                                 'block': [],
+                                 'reward': None,
+                                 'choice': None,
+                                 'chosen': None,
+                                 'state': None,
+                                 'hidden': self.model._initHidden()
+                                 }
+
+    def _trialValidate(self, trial, trial_reward_prob):
+        raw_rec = {}
+        self._resetTrialRecords() # TODO: reset record
+        self.validate_records.update({'states_pool': trial.tolist(), 'trial_end': False})
+        action = [0]  # init action: fixate on fixation point
+        planaction_record = []  # TODO: add this into validation record?
+        while not self.validate_records['trial_end']:
+            trial_end, sensory_inputs = self._nextInput(action, trial_reward_prob)  # compute the input
+            action = self._estimateAction(sensory_inputs)
+            planaction_record.append(action)
+        # Convert tensor to numpy TODO: already converted in _estimatedAction
+        predicted_trial = np.around(self.validate_records['raw_records']).astype(np.int)
+        for i in range(predicted_trial.shape[0]):
+            if len(planaction_record[i]) != 0:
+                action = planaction_record[i][0]
+                predicted_trial[i, self.task_validate_attr['about_choice']] = 0
+                predicted_trial[i, self.task_validate_attr['about_choice'][0] + action] = 1
+            elif len(planaction_record[i]) == 0:
+                predicted_trial[i, self.task_validate_attr['about_choice']] = 0
+
+        raw_rec["sensory_sequence"] = copy.deepcopy(self.validate_records['sensory_sequence'])  # validation set
+        raw_rec["predicted_trial"] = copy.deepcopy(predicted_trial)  # predicted set
+        raw_rec["raw_records"] = copy.deepcopy(self.validate_records['raw_records'])  # raw output
+        raw_rec["hidden_records"] = copy.deepcopy(self.validate_records['hidden_records'])  # raw hidden
+        # Compute correct rate; when calculate correct ratio, we need to truncate the trial
+        tmp_correct_rate = match_rate(np.array(self.validate_records['sensory_sequence'])[1:, :],
+                                      predicted_trial[:-1, :])
+        tmp_loss = np.sum(np.power(
+            np.array(self.validate_records['sensory_sequence'])[1:] - np.array(self.validate_records['raw_records'])[
+                                                                      :-1], 2)) / (
+                       np.array(self.validate_records['sensory_sequence']).shape[0] *
+                       np.array(self.validate_records['sensory_sequence']).shape[1])
+        wining = 1 if self.validate_records['reward'] else 0
+        completed = 1 if self.validate_records['completed'] else 0
+        #TODO: rearrange computing loss into a function
+        return tmp_loss, tmp_correct_rate, raw_rec, wining, completed
+
+
+    def saveModel(self): #TODO: save model
+        pass
+
+    def loadModel(self, filename, config_file): # TODO: read model; set isTrained to TRUE
+        self.model.loadModel(filename, config_file)
+        self.model.network.eval()
+
+
+if __name__ == '__main__':
+    t = TwoStepTask("test_config.json")
+    #t.train()
+    t.loadModel('./save_m/ST/model-sp_ts_250000-20190702_0553-2.pt', 'test_config.json')
+    t.validate()

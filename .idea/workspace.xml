@@ -2,15 +2,25 @@
 <project version="4">
   <component name="ChangeListManager">
     <list default="true" id="e9fb2dfd-b63c-47e0-ae1f-c30e2fd45f40" name="Default" comment="">
-      <change type="NEW" beforePath="" afterPath="$PROJECT_DIR$/Network/LogHelper.py" />
+      <change type="NEW" beforePath="" afterPath="$PROJECT_DIR$/Analyzer/Analyzer.py" />
+      <change type="NEW" beforePath="" afterPath="$PROJECT_DIR$/Two-Step-Task/DataGenerator.py" />
+      <change type="NEW" beforePath="" afterPath="$PROJECT_DIR$/Two-Step-Task/TwoStepDataProcessor.py" />
+      <change type="NEW" beforePath="" afterPath="$PROJECT_DIR$/Two-Step-Task/TwoStepTask.py" />
+      <change type="DELETED" beforePath="$PROJECT_DIR$/Two-Step-Task/data_util.py" afterPath="" />
+      <change type="DELETED" beforePath="$PROJECT_DIR$/Two-Step-Task/getData.py" afterPath="" />
+      <change type="DELETED" beforePath="$PROJECT_DIR$/Two-Step-Task/implementDataProcessor.py" afterPath="" />
+      <change type="DELETED" beforePath="$PROJECT_DIR$/Two-Step-Task/tasks/__init__.py" afterPath="" />
+      <change type="DELETED" beforePath="$PROJECT_DIR$/Two-Step-Task/tasks/mult_int.py" afterPath="" />
+      <change type="DELETED" beforePath="$PROJECT_DIR$/Two-Step-Task/tasks/reaction_shape_lr.py" afterPath="" />
+      <change type="DELETED" beforePath="$PROJECT_DIR$/Two-Step-Task/tasks/smp_ts.py" afterPath="" />
+      <change type="DELETED" beforePath="$PROJECT_DIR$/Two-Step-Task/tasks/sure_task.py" afterPath="" />
+      <change type="DELETED" beforePath="$PROJECT_DIR$/Two-Step-Task/tasks/tools.py" afterPath="" />
+      <change type="DELETED" beforePath="$PROJECT_DIR$/Two-Step-Task/train.py" afterPath="" />
+      <change type="DELETED" beforePath="$PROJECT_DIR$/Two-Step-Task/validate.py" afterPath="" />
+      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/.gitignore" afterPath="$PROJECT_DIR$/.gitignore" />
       <change type="MODIFICATION" beforePath="$PROJECT_DIR$/.idea/workspace.xml" afterPath="$PROJECT_DIR$/.idea/workspace.xml" />
-      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/Network/DataProcessor.py" afterPath="$PROJECT_DIR$/Network/DataProcessor.py" />
-      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/Network/Task.py" afterPath="$PROJECT_DIR$/Network/Task.py" />
       <change type="MODIFICATION" beforePath="$PROJECT_DIR$/Network/TorchNetwork.py" afterPath="$PROJECT_DIR$/Network/TorchNetwork.py" />
-      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/Network/net_tools.py" afterPath="$PROJECT_DIR$/Network/net_tools.py" />
-      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/Three-Armed-Bandit-Task/DataGenerator.py" afterPath="$PROJECT_DIR$/Three-Armed-Bandit-Task/DataGenerator.py" />
       <change type="MODIFICATION" beforePath="$PROJECT_DIR$/Two-Step-Task/test_config.json" afterPath="$PROJECT_DIR$/Two-Step-Task/test_config.json" />
-      <change type="MOVED" beforePath="$PROJECT_DIR$/Network/TfNetwork.py" afterPath="$PROJECT_DIR$/Network/TFNetwork.py" />
     </list>
     <option name="EXCLUDED_CONVERTED_TO_IGNORED" value="true" />
     <option name="TRACKING_ENABLED" value="true" />
@@ -22,14 +32,31 @@
   <component name="ExecutionTargetManager" SELECTED_TARGET="default_target" />
   <component name="FileEditorManager">
     <leaf SIDE_TABS_SIZE_LIMIT_KEY="375">
-      <file leaf-file-name="train.py" pinned="false" current-in-tab="true">
-        <entry file="file://$PROJECT_DIR$/Two-Step-Task/train.py">
+      <file leaf-file-name="TwoStepTask.py" pinned="false" current-in-tab="true">
+        <entry file="file://$PROJECT_DIR$/Two-Step-Task/TwoStepTask.py">
           <provider selected="true" editor-type-id="text-editor">
-            <state relative-caret-position="533">
-              <caret line="24" column="0" lean-forward="true" selection-start-line="24" selection-start-column="0" selection-end-line="24" selection-end-column="0" />
+            <state relative-caret-position="625">
+              <caret line="241" column="4" lean-forward="false" selection-start-line="241" selection-start-column="4" selection-end-line="241" selection-end-column="4" />
               <folding>
-                <element signature="e#0#45#0" expanded="true" />
+                <element signature="e#0#29#0" expanded="true" />
+                <element signature="e#3931#7641#0" expanded="false" />
+                <element signature="e#7697#8896#0" expanded="false" />
+                <element signature="e#8978#9103#0" expanded="false" />
+                <element signature="e#9147#9853#0" expanded="false" />
+                <element signature="e#9919#12405#0" expanded="false" />
+                <element signature="e#12459#12463#0" expanded="false" />
+                <element signature="e#12563#12640#0" expanded="false" />
               </folding>
+            </state>
+          </provider>
+        </entry>
+      </file>
+      <file leaf-file-name="test_config.json" pinned="false" current-in-tab="false">
+        <entry file="file://$PROJECT_DIR$/Two-Step-Task/test_config.json">
+          <provider selected="true" editor-type-id="text-editor">
+            <state relative-caret-position="161">
+              <caret line="7" column="55" lean-forward="false" selection-start-line="7" selection-start-column="55" selection-end-line="7" selection-end-column="55" />
+              <folding />
             </state>
           </provider>
         </entry>
@@ -49,17 +76,25 @@
   <component name="IdeDocumentHistory">
     <option name="CHANGED_PATHS">
       <list>
-        <option value="$PROJECT_DIR$/Two-Step-Task/getData.py" />
-        <option value="$PROJECT_DIR$/Two-Step-Task/train.py" />
-        <option value="$PROJECT_DIR$/Two-Step-Task/validate.py" />
         <option value="$PROJECT_DIR$/Network/TFNetwork.py" />
         <option value="$PROJECT_DIR$/Network/net_tools.py" />
-        <option value="$PROJECT_DIR$/Two-Step-Task/test_config.json" />
         <option value="$PROJECT_DIR$/Network/LogHelper.py" />
         <option value="$PROJECT_DIR$/Network/Task.py" />
         <option value="$PROJECT_DIR$/Network/DataProcessor.py" />
-        <option value="$PROJECT_DIR$/Network/TorchNetwork.py" />
         <option value="$PROJECT_DIR$/Three-Armed-Bandit-Task/DataGenerator.py" />
+        <option value="$PROJECT_DIR$/Analyzer/Analyzer.py" />
+        <option value="$PROJECT_DIR$/Two-Step-Task/DataHelper.py" />
+        <option value="$PROJECT_DIR$/Two-Step-Task/train.py" />
+        <option value="$PROJECT_DIR$/Two-Step-Task/DataGenerator.py" />
+        <option value="$PROJECT_DIR$/Two-Step-Task/config_st.py" />
+        <option value="$PROJECT_DIR$/Two-Step-Task/getData.py" />
+        <option value="$PROJECT_DIR$/Two-Step-Task/tasks/smp_ts.py" />
+        <option value="$PROJECT_DIR$/Two-Step-Task/evaluator.py" />
+        <option value="$PROJECT_DIR$/Two-Step-Task/validate.py" />
+        <option value="$PROJECT_DIR$/Two-Step-Task/TwoStepDataProcessor.py" />
+        <option value="$PROJECT_DIR$/Network/TorchNetwork.py" />
+        <option value="$PROJECT_DIR$/Two-Step-Task/test_config.json" />
+        <option value="$PROJECT_DIR$/Two-Step-Task/TwoStepTask.py" />
       </list>
     </option>
   </component>
@@ -98,8 +133,6 @@
       <foldersAlwaysOnTop value="true" />
     </navigator>
     <panes>
-      <pane id="Scratches" />
-      <pane id="Scope" />
       <pane id="ProjectPane">
         <subPane>
           <PATH>
@@ -156,6 +189,8 @@
           </PATH>
         </subPane>
       </pane>
+      <pane id="Scope" />
+      <pane id="Scratches" />
     </panes>
   </component>
   <component name="PropertiesComponent">
@@ -190,7 +225,7 @@
       </list>
     </option>
   </component>
-  <component name="RunManager" selected="Python.DataGenerator">
+  <component name="RunManager" selected="Python.TwoStepTask">
     <configuration default="false" name="train" type="PythonConfigurationType" factoryName="Python" temporary="true">
       <option name="INTERPRETER_OPTIONS" value="" />
       <option name="PARENT_ENVS" value="true" />
@@ -214,8 +249,8 @@
       <option name="INTERPRETER_OPTIONS" value="" />
       <option name="PARENT_ENVS" value="true" />
       <envs>
-        <env name="PATH" value="D:\\Miniconda3;D:\\Miniconda3\\Library\\mingw-w64\\bin;D:\\Miniconda3\\Library\\usr\\bin;D:\\Miniconda3\\Library\\bin;D:\\Miniconda3\\Scripts;D:\\Miniconda3\\bin;D:\\Miniconda3\\condabin;D:\\Miniconda3;D:\\Miniconda3\\Library\\mingw-w64\\bin;D:\\Miniconda3\\Library\\usr\\bin;D:\\Miniconda3\\Library\\bin;D:\\Miniconda3\\Scripts;C:\\windows\\system32;C:\\windows;C:\\windows\\System32\\Wbem;C:\\windows\\System32\\WindowsPowerShell\\v1.0;C:\\Program Files\\Git\\cmd;C:\\Program Files\\Java\\jdk1.8.0_171\\bin;C:\\Program Files\\Java\\jdk1.8.0_171\\jre\\bin;D:\\MATLAB\\bin;D:\\Microsoft VS Code\\bin;C:\\Users\\Dell\\AppData\\Local\\Microsoft\\WindowsApps;D:\\Microsoft VS Code\\bin;C:\\texlive\\2018\\bin\\win32;D:\\apache-maven-3.5.4\\bin;D:\\spark-2.1.3-bin-hadoop2.7\\bin;D:\\hadoop-2.8.4\\bin;D:\\apache-storm-1.1.3\\bin;D:\\zookeeper-3.4.10\\bin;D:\\Miniconda3;D:\\R\\R-3.5.1\\bin\\x64;D:\\mingw-w64\\mingw64\\bin;D:\\Git\\bin\\bash.exe;C:\\Users\\Dell\\AppData\\Local\\GitHubDesktop\\bin;D:\\cmder_mini" />
         <env name="PYTHONUNBUFFERED" value="1" />
+        <env name="PATH" value="D:\\Miniconda3;D:\\Miniconda3\\Library\\mingw-w64\\bin;D:\\Miniconda3\\Library\\usr\\bin;D:\\Miniconda3\\Library\\bin;D:\\Miniconda3\\Scripts;D:\\Miniconda3\\bin;D:\\Miniconda3\\condabin;D:\\Miniconda3;D:\\Miniconda3\\Library\\mingw-w64\\bin;D:\\Miniconda3\\Library\\usr\\bin;D:\\Miniconda3\\Library\\bin;D:\\Miniconda3\\Scripts;C:\\windows\\system32;C:\\windows;C:\\windows\\System32\\Wbem;C:\\windows\\System32\\WindowsPowerShell\\v1.0;C:\\Program Files\\Git\\cmd;C:\\Program Files\\Java\\jdk1.8.0_171\\bin;C:\\Program Files\\Java\\jdk1.8.0_171\\jre\\bin;D:\\MATLAB\\bin;D:\\Microsoft VS Code\\bin;C:\\Users\\Dell\\AppData\\Local\\Microsoft\\WindowsApps;D:\\Microsoft VS Code\\bin;C:\\texlive\\2018\\bin\\win32;D:\\apache-maven-3.5.4\\bin;D:\\spark-2.1.3-bin-hadoop2.7\\bin;D:\\hadoop-2.8.4\\bin;D:\\apache-storm-1.1.3\\bin;D:\\zookeeper-3.4.10\\bin;D:\\Miniconda3;D:\\R\\R-3.5.1\\bin\\x64;D:\\mingw-w64\\mingw64\\bin;D:\\Git\\bin\\bash.exe;C:\\Users\\Dell\\AppData\\Local\\GitHubDesktop\\bin;D:\\cmder_mini" />
       </envs>
       <option name="SDK_HOME" value="" />
       <option name="WORKING_DIRECTORY" value="$PROJECT_DIR$/Three-Armed-Bandit-Task" />
@@ -224,6 +259,63 @@
       <option name="ADD_SOURCE_ROOTS" value="true" />
       <module name="GRU_Network" />
       <option name="SCRIPT_NAME" value="$PROJECT_DIR$/Three-Armed-Bandit-Task/DataGenerator.py" />
+      <option name="PARAMETERS" value="" />
+      <option name="SHOW_COMMAND_LINE" value="false" />
+      <option name="EMULATE_TERMINAL" value="false" />
+      <method />
+    </configuration>
+    <configuration default="false" name="TwoStepDataProcessor" type="PythonConfigurationType" factoryName="Python" temporary="true">
+      <option name="INTERPRETER_OPTIONS" value="" />
+      <option name="PARENT_ENVS" value="true" />
+      <envs>
+        <env name="PYTHONUNBUFFERED" value="1" />
+        <env name="PATH" value="D:\\Miniconda3;D:\\Miniconda3\\Library\\mingw-w64\\bin;D:\\Miniconda3\\Library\\usr\\bin;D:\\Miniconda3\\Library\\bin;D:\\Miniconda3\\Scripts;D:\\Miniconda3\\bin;D:\\Miniconda3\\condabin;D:\\Miniconda3;D:\\Miniconda3\\Library\\mingw-w64\\bin;D:\\Miniconda3\\Library\\usr\\bin;D:\\Miniconda3\\Library\\bin;D:\\Miniconda3\\Scripts;C:\\windows\\system32;C:\\windows;C:\\windows\\System32\\Wbem;C:\\windows\\System32\\WindowsPowerShell\\v1.0;C:\\Program Files\\Git\\cmd;C:\\Program Files\\Java\\jdk1.8.0_171\\bin;C:\\Program Files\\Java\\jdk1.8.0_171\\jre\\bin;D:\\MATLAB\\bin;D:\\Microsoft VS Code\\bin;C:\\Users\\Dell\\AppData\\Local\\Microsoft\\WindowsApps;D:\\Microsoft VS Code\\bin;C:\\texlive\\2018\\bin\\win32;D:\\apache-maven-3.5.4\\bin;D:\\spark-2.1.3-bin-hadoop2.7\\bin;D:\\hadoop-2.8.4\\bin;D:\\apache-storm-1.1.3\\bin;D:\\zookeeper-3.4.10\\bin;D:\\Miniconda3;D:\\R\\R-3.5.1\\bin\\x64;D:\\mingw-w64\\mingw64\\bin;D:\\Git\\bin\\bash.exe;C:\\Users\\Dell\\AppData\\Local\\GitHubDesktop\\bin;D:\\cmder_mini" />
+      </envs>
+      <option name="SDK_HOME" value="" />
+      <option name="WORKING_DIRECTORY" value="$PROJECT_DIR$/Two-Step-Task" />
+      <option name="IS_MODULE_SDK" value="true" />
+      <option name="ADD_CONTENT_ROOTS" value="true" />
+      <option name="ADD_SOURCE_ROOTS" value="true" />
+      <module name="GRU_Network" />
+      <option name="SCRIPT_NAME" value="$PROJECT_DIR$/Two-Step-Task/TwoStepDataProcessor.py" />
+      <option name="PARAMETERS" value="" />
+      <option name="SHOW_COMMAND_LINE" value="false" />
+      <option name="EMULATE_TERMINAL" value="false" />
+      <method />
+    </configuration>
+    <configuration default="false" name="TwoStepTask" type="PythonConfigurationType" factoryName="Python" temporary="true">
+      <option name="INTERPRETER_OPTIONS" value="" />
+      <option name="PARENT_ENVS" value="true" />
+      <envs>
+        <env name="PYTHONUNBUFFERED" value="1" />
+        <env name="PATH" value="D:\\Miniconda3;D:\\Miniconda3\\Library\\mingw-w64\\bin;D:\\Miniconda3\\Library\\usr\\bin;D:\\Miniconda3\\Library\\bin;D:\\Miniconda3\\Scripts;D:\\Miniconda3\\bin;D:\\Miniconda3\\condabin;D:\\Miniconda3;D:\\Miniconda3\\Library\\mingw-w64\\bin;D:\\Miniconda3\\Library\\usr\\bin;D:\\Miniconda3\\Library\\bin;D:\\Miniconda3\\Scripts;C:\\windows\\system32;C:\\windows;C:\\windows\\System32\\Wbem;C:\\windows\\System32\\WindowsPowerShell\\v1.0;C:\\Program Files\\Git\\cmd;C:\\Program Files\\Java\\jdk1.8.0_171\\bin;C:\\Program Files\\Java\\jdk1.8.0_171\\jre\\bin;D:\\MATLAB\\bin;D:\\Microsoft VS Code\\bin;C:\\Users\\Dell\\AppData\\Local\\Microsoft\\WindowsApps;D:\\Microsoft VS Code\\bin;C:\\texlive\\2018\\bin\\win32;D:\\apache-maven-3.5.4\\bin;D:\\spark-2.1.3-bin-hadoop2.7\\bin;D:\\hadoop-2.8.4\\bin;D:\\apache-storm-1.1.3\\bin;D:\\zookeeper-3.4.10\\bin;D:\\Miniconda3;D:\\R\\R-3.5.1\\bin\\x64;D:\\mingw-w64\\mingw64\\bin;D:\\Git\\bin\\bash.exe;C:\\Users\\Dell\\AppData\\Local\\GitHubDesktop\\bin;D:\\cmder_mini" />
+      </envs>
+      <option name="SDK_HOME" value="" />
+      <option name="WORKING_DIRECTORY" value="$PROJECT_DIR$/Two-Step-Task" />
+      <option name="IS_MODULE_SDK" value="true" />
+      <option name="ADD_CONTENT_ROOTS" value="true" />
+      <option name="ADD_SOURCE_ROOTS" value="true" />
+      <module name="GRU_Network" />
+      <option name="SCRIPT_NAME" value="$PROJECT_DIR$/Two-Step-Task/TwoStepTask.py" />
+      <option name="PARAMETERS" value="" />
+      <option name="SHOW_COMMAND_LINE" value="false" />
+      <option name="EMULATE_TERMINAL" value="false" />
+      <method />
+    </configuration>
+    <configuration default="false" name="validate" type="PythonConfigurationType" factoryName="Python" temporary="true">
+      <option name="INTERPRETER_OPTIONS" value="" />
+      <option name="PARENT_ENVS" value="true" />
+      <envs>
+        <env name="PYTHONUNBUFFERED" value="1" />
+        <env name="PATH" value="D:\\Miniconda3;D:\\Miniconda3\\Library\\mingw-w64\\bin;D:\\Miniconda3\\Library\\usr\\bin;D:\\Miniconda3\\Library\\bin;D:\\Miniconda3\\Scripts;D:\\Miniconda3\\bin;D:\\Miniconda3\\condabin;D:\\Miniconda3;D:\\Miniconda3\\Library\\mingw-w64\\bin;D:\\Miniconda3\\Library\\usr\\bin;D:\\Miniconda3\\Library\\bin;D:\\Miniconda3\\Scripts;C:\\windows\\system32;C:\\windows;C:\\windows\\System32\\Wbem;C:\\windows\\System32\\WindowsPowerShell\\v1.0;C:\\Program Files\\Git\\cmd;C:\\Program Files\\Java\\jdk1.8.0_171\\bin;C:\\Program Files\\Java\\jdk1.8.0_171\\jre\\bin;D:\\MATLAB\\bin;D:\\Microsoft VS Code\\bin;C:\\Users\\Dell\\AppData\\Local\\Microsoft\\WindowsApps;D:\\Microsoft VS Code\\bin;C:\\texlive\\2018\\bin\\win32;D:\\apache-maven-3.5.4\\bin;D:\\spark-2.1.3-bin-hadoop2.7\\bin;D:\\hadoop-2.8.4\\bin;D:\\apache-storm-1.1.3\\bin;D:\\zookeeper-3.4.10\\bin;D:\\Miniconda3;D:\\R\\R-3.5.1\\bin\\x64;D:\\mingw-w64\\mingw64\\bin;D:\\Git\\bin\\bash.exe;C:\\Users\\Dell\\AppData\\Local\\GitHubDesktop\\bin;D:\\cmder_mini" />
+      </envs>
+      <option name="SDK_HOME" value="" />
+      <option name="WORKING_DIRECTORY" value="$PROJECT_DIR$/Two-Step-Task" />
+      <option name="IS_MODULE_SDK" value="true" />
+      <option name="ADD_CONTENT_ROOTS" value="true" />
+      <option name="ADD_SOURCE_ROOTS" value="true" />
+      <module name="GRU_Network" />
+      <option name="SCRIPT_NAME" value="$PROJECT_DIR$/Two-Step-Task/validate.py" />
       <option name="PARAMETERS" value="" />
       <option name="SHOW_COMMAND_LINE" value="false" />
       <option name="EMULATE_TERMINAL" value="false" />
@@ -293,14 +385,20 @@
       <option name="_new_targetType" value="&quot;PATH&quot;" />
       <method />
     </configuration>
-    <list size="2">
+    <list size="5">
       <item index="0" class="java.lang.String" itemvalue="Python.train" />
       <item index="1" class="java.lang.String" itemvalue="Python.DataGenerator" />
+      <item index="2" class="java.lang.String" itemvalue="Python.TwoStepDataProcessor" />
+      <item index="3" class="java.lang.String" itemvalue="Python.TwoStepTask" />
+      <item index="4" class="java.lang.String" itemvalue="Python.validate" />
     </list>
     <recent_temporary>
-      <list size="2">
-        <item index="0" class="java.lang.String" itemvalue="Python.DataGenerator" />
-        <item index="1" class="java.lang.String" itemvalue="Python.train" />
+      <list size="5">
+        <item index="0" class="java.lang.String" itemvalue="Python.TwoStepTask" />
+        <item index="1" class="java.lang.String" itemvalue="Python.validate" />
+        <item index="2" class="java.lang.String" itemvalue="Python.TwoStepDataProcessor" />
+        <item index="3" class="java.lang.String" itemvalue="Python.DataGenerator" />
+        <item index="4" class="java.lang.String" itemvalue="Python.train" />
       </list>
     </recent_temporary>
   </component>
@@ -328,20 +426,18 @@
   </component>
   <component name="ToolWindowManager">
     <frame x="-9" y="-9" width="1938" height="1048" extended-state="7" />
-    <editor active="true" />
     <layout>
       <window_info id="TODO" active="false" anchor="bottom" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" show_stripe_button="true" weight="0.09635723" sideWeight="0.5" order="6" side_tool="false" content_ui="tabs" />
       <window_info id="DB Browser" active="false" anchor="left" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" show_stripe_button="true" weight="0.33" sideWeight="0.5" order="2" side_tool="false" content_ui="tabs" />
       <window_info id="DB Execution Console" active="false" anchor="bottom" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" show_stripe_button="true" weight="0.33" sideWeight="0.5" order="7" side_tool="false" content_ui="tabs" />
       <window_info id="Event Log" active="false" anchor="bottom" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" show_stripe_button="true" weight="0.33" sideWeight="0.5" order="7" side_tool="true" content_ui="tabs" />
-      <window_info id="Run" active="false" anchor="bottom" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" show_stripe_button="true" weight="0.1386604" sideWeight="0.5" order="2" side_tool="false" content_ui="tabs" />
+      <window_info id="Run" active="false" anchor="bottom" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="true" show_stripe_button="true" weight="0.0" sideWeight="0.5" order="2" side_tool="false" content_ui="tabs" />
       <window_info id="Version Control" active="false" anchor="bottom" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" show_stripe_button="true" weight="0.33" sideWeight="0.5" order="7" side_tool="false" content_ui="tabs" />
       <window_info id="Python Console" active="false" anchor="bottom" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" show_stripe_button="true" weight="0.32902467" sideWeight="0.5" order="7" side_tool="false" content_ui="tabs" />
       <window_info id="Terminal" active="false" anchor="bottom" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" show_stripe_button="true" weight="0.33" sideWeight="0.5" order="7" side_tool="false" content_ui="tabs" />
-      <window_info id="Project" active="false" anchor="left" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="true" show_stripe_button="true" weight="0.17274678" sideWeight="0.5" order="0" side_tool="false" content_ui="combo" />
-      <window_info id="Find" active="false" anchor="bottom" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" show_stripe_button="true" weight="0.33" sideWeight="0.5" order="1" side_tool="false" content_ui="tabs" />
+      <window_info id="Project" active="true" anchor="left" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="true" show_stripe_button="true" weight="0.30740345" sideWeight="0.5" order="0" side_tool="false" content_ui="combo" />
       <window_info id="Structure" active="false" anchor="left" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" show_stripe_button="true" weight="0.25" sideWeight="0.5" order="1" side_tool="false" content_ui="tabs" />
-      <window_info id="Debug" active="false" anchor="bottom" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="true" show_stripe_button="true" weight="0.06227967" sideWeight="0.5" order="3" side_tool="false" content_ui="tabs" />
+      <window_info id="Debug" active="false" anchor="bottom" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" show_stripe_button="true" weight="0.17038777" sideWeight="0.5" order="3" side_tool="false" content_ui="tabs" />
       <window_info id="Favorites" active="false" anchor="left" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" show_stripe_button="true" weight="0.33" sideWeight="0.5" order="2" side_tool="true" content_ui="tabs" />
       <window_info id="Data View" active="false" anchor="right" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" show_stripe_button="true" weight="0.33" sideWeight="0.5" order="3" side_tool="false" content_ui="tabs" />
       <window_info id="Cvs" active="false" anchor="bottom" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" show_stripe_button="true" weight="0.25" sideWeight="0.5" order="4" side_tool="false" content_ui="tabs" />
@@ -349,34 +445,243 @@
       <window_info id="Commander" active="false" anchor="right" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" show_stripe_button="true" weight="0.4" sideWeight="0.5" order="0" side_tool="false" content_ui="tabs" />
       <window_info id="Inspection" active="false" anchor="bottom" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" show_stripe_button="true" weight="0.4" sideWeight="0.5" order="5" side_tool="false" content_ui="tabs" />
       <window_info id="Hierarchy" active="false" anchor="right" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" show_stripe_button="true" weight="0.25" sideWeight="0.5" order="2" side_tool="false" content_ui="combo" />
+      <window_info id="Find" active="false" anchor="bottom" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" show_stripe_button="true" weight="0.22914219" sideWeight="0.5" order="1" side_tool="false" content_ui="tabs" />
       <window_info id="Ant Build" active="false" anchor="right" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" show_stripe_button="true" weight="0.25" sideWeight="0.5" order="1" side_tool="false" content_ui="tabs" />
     </layout>
+    <layout-to-restore>
+      <window_info id="TODO" active="false" anchor="bottom" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" show_stripe_button="true" weight="0.09635723" sideWeight="0.5" order="6" side_tool="false" content_ui="tabs" />
+      <window_info id="Cvs" active="false" anchor="bottom" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" show_stripe_button="true" weight="0.25" sideWeight="0.5" order="4" side_tool="false" content_ui="tabs" />
+      <window_info id="DB Browser" active="false" anchor="left" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" show_stripe_button="true" weight="0.33" sideWeight="0.5" order="2" side_tool="false" content_ui="tabs" />
+      <window_info id="Message" active="false" anchor="bottom" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" show_stripe_button="true" weight="0.33" sideWeight="0.5" order="0" side_tool="false" content_ui="tabs" />
+      <window_info id="DB Execution Console" active="false" anchor="bottom" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" show_stripe_button="true" weight="0.33" sideWeight="0.5" order="7" side_tool="false" content_ui="tabs" />
+      <window_info id="Commander" active="false" anchor="right" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" show_stripe_button="true" weight="0.4" sideWeight="0.5" order="0" side_tool="false" content_ui="tabs" />
+      <window_info id="Event Log" active="false" anchor="bottom" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" show_stripe_button="true" weight="0.33" sideWeight="0.5" order="8" side_tool="true" content_ui="tabs" />
+      <window_info id="Inspection" active="false" anchor="bottom" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" show_stripe_button="true" weight="0.4" sideWeight="0.5" order="5" side_tool="false" content_ui="tabs" />
+      <window_info id="Run" active="false" anchor="bottom" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" show_stripe_button="true" weight="0.29494712" sideWeight="0.5" order="2" side_tool="false" content_ui="tabs" />
+      <window_info id="Version Control" active="false" anchor="bottom" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" show_stripe_button="true" weight="0.33" sideWeight="0.5" order="9" side_tool="false" content_ui="tabs" />
+      <window_info id="Python Console" active="false" anchor="bottom" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" show_stripe_button="true" weight="0.32902467" sideWeight="0.5" order="10" side_tool="false" content_ui="tabs" />
+      <window_info id="Terminal" active="false" anchor="bottom" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" show_stripe_button="true" weight="0.33" sideWeight="0.5" order="11" side_tool="false" content_ui="tabs" />
+      <window_info id="Project" active="false" anchor="left" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="true" show_stripe_button="true" weight="0.23390558" sideWeight="0.5" order="0" side_tool="false" content_ui="combo" />
+      <window_info id="Hierarchy" active="false" anchor="right" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" show_stripe_button="true" weight="0.25" sideWeight="0.5" order="2" side_tool="false" content_ui="combo" />
+      <window_info id="Find" active="false" anchor="bottom" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" show_stripe_button="true" weight="0.33" sideWeight="0.5" order="1" side_tool="false" content_ui="tabs" />
+      <window_info id="Structure" active="false" anchor="left" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" show_stripe_button="true" weight="0.25" sideWeight="0.5" order="1" side_tool="false" content_ui="tabs" />
+      <window_info id="Ant Build" active="false" anchor="right" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" show_stripe_button="true" weight="0.25" sideWeight="0.5" order="1" side_tool="false" content_ui="tabs" />
+      <window_info id="Debug" active="false" anchor="bottom" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="true" show_stripe_button="true" weight="0.03760282" sideWeight="0.5" order="3" side_tool="false" content_ui="tabs" />
+      <window_info id="Favorites" active="false" anchor="left" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" show_stripe_button="true" weight="0.33" sideWeight="0.5" order="3" side_tool="true" content_ui="tabs" />
+      <window_info id="Data View" active="false" anchor="right" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" show_stripe_button="true" weight="0.33" sideWeight="0.5" order="3" side_tool="false" content_ui="tabs" />
+    </layout-to-restore>
   </component>
   <component name="VcsContentAnnotationSettings">
     <option name="myLimit" value="2678400000" />
   </component>
   <component name="XDebuggerManager">
     <breakpoint-manager>
-      <option name="time" value="10" />
+      <breakpoints>
+        <line-breakpoint enabled="true" suspend="THREAD" type="python-line">
+          <url>file://$PROJECT_DIR$/Two-Step-Task/tasks/smp_ts.py</url>
+          <line>111</line>
+          <option name="timeStamp" value="52" />
+        </line-breakpoint>
+      </breakpoints>
+      <default-breakpoints>
+        <breakpoint type="python-exception">
+          <properties notifyOnTerminate="true" exception="BaseException">
+            <option name="notifyOnTerminate" value="true" />
+          </properties>
+        </breakpoint>
+      </default-breakpoints>
+      <option name="time" value="59" />
     </breakpoint-manager>
-    <watches-manager />
+    <watches-manager>
+      <configuration name="PythonConfigurationType">
+        <watch expression="model.optimizer" />
+      </configuration>
+    </watches-manager>
   </component>
   <component name="editorHistoryManager">
-    <entry file="file://$PROJECT_DIR$/Two-Step-Task/train.py">
+    <entry file="file://$PROJECT_DIR$/Two-Step-Task/tasks/smp_ts.py">
       <provider selected="true" editor-type-id="text-editor">
-        <state relative-caret-position="414">
-          <caret line="24" column="0" lean-forward="false" selection-start-line="24" selection-start-column="0" selection-end-line="24" selection-end-column="0" />
+        <state relative-caret-position="1541">
+          <caret line="67" column="24" lean-forward="true" selection-start-line="67" selection-start-column="24" selection-end-line="67" selection-end-column="24" />
+          <folding />
+        </state>
+      </provider>
+    </entry>
+    <entry file="file://$PROJECT_DIR$/Network/TorchNetwork.py">
+      <provider selected="true" editor-type-id="text-editor">
+        <state relative-caret-position="1564">
+          <caret line="85" column="54" lean-forward="false" selection-start-line="85" selection-start-column="54" selection-end-line="85" selection-end-column="54" />
           <folding>
-            <element signature="e#0#45#0" expanded="true" />
+            <element signature="e#2635#5139#0" expanded="false" />
+            <element signature="e#5185#5761#0" expanded="false" />
+            <element signature="e#5806#6095#0" expanded="false" />
+            <element signature="e#6158#6947#0" expanded="false" />
+            <element signature="e#7010#9715#0" expanded="false" />
+            <element signature="e#9789#11086#0" expanded="false" />
+            <element signature="e#11790#12371#0" expanded="false" />
+            <element signature="e#12650#16345#0" expanded="false" />
           </folding>
         </state>
       </provider>
     </entry>
+    <entry file="file://$PROJECT_DIR$/Two-Step-Task/TwoStepTask.py">
+      <provider selected="true" editor-type-id="text-editor">
+        <state relative-caret-position="161">
+          <caret line="10" column="67" lean-forward="true" selection-start-line="10" selection-start-column="67" selection-end-line="10" selection-end-column="67" />
+          <folding>
+            <element signature="e#0#29#0" expanded="true" />
+            <element signature="e#3931#7641#0" expanded="false" />
+            <element signature="e#7697#8896#0" expanded="false" />
+            <element signature="e#8978#9103#0" expanded="false" />
+            <element signature="e#9147#9853#0" expanded="false" />
+            <element signature="e#9919#12405#0" expanded="false" />
+            <element signature="e#12459#12463#0" expanded="false" />
+            <element signature="e#12563#12640#0" expanded="false" />
+          </folding>
+        </state>
+      </provider>
+    </entry>
+    <entry file="file://$PROJECT_DIR$/Two-Step-Task/validate.py">
+      <provider selected="true" editor-type-id="text-editor">
+        <state relative-caret-position="4393">
+          <caret line="200" column="32" lean-forward="false" selection-start-line="200" selection-start-column="27" selection-end-line="200" selection-end-column="32" />
+          <folding />
+        </state>
+      </provider>
+    </entry>
+    <entry file="file://$PROJECT_DIR$/Two-Step-Task/tasks/smp_ts.py">
+      <provider selected="true" editor-type-id="text-editor">
+        <state relative-caret-position="3243">
+          <caret line="146" column="35" lean-forward="false" selection-start-line="146" selection-start-column="24" selection-end-line="146" selection-end-column="35" />
+          <folding />
+        </state>
+      </provider>
+    </entry>
+    <entry file="file://$PROJECT_DIR$/Two-Step-Task/evaluator.py">
+      <provider selected="true" editor-type-id="text-editor">
+        <state relative-caret-position="1426">
+          <caret line="150" column="61" lean-forward="true" selection-start-line="150" selection-start-column="61" selection-end-line="150" selection-end-column="61" />
+          <folding />
+        </state>
+      </provider>
+    </entry>
+    <entry file="file://$PROJECT_DIR$/Network/TorchNetwork.py">
+      <provider selected="true" editor-type-id="text-editor">
+        <state relative-caret-position="1564">
+          <caret line="85" column="54" lean-forward="false" selection-start-line="85" selection-start-column="54" selection-end-line="85" selection-end-column="54" />
+          <folding>
+            <element signature="e#2635#5139#0" expanded="false" />
+            <element signature="e#5185#5761#0" expanded="false" />
+            <element signature="e#5806#6095#0" expanded="false" />
+            <element signature="e#6158#6947#0" expanded="false" />
+            <element signature="e#7010#9715#0" expanded="false" />
+            <element signature="e#9789#11086#0" expanded="false" />
+            <element signature="e#11790#12371#0" expanded="false" />
+            <element signature="e#12650#16345#0" expanded="false" />
+          </folding>
+        </state>
+      </provider>
+    </entry>
+    <entry file="file://$PROJECT_DIR$/Two-Step-Task/TwoStepTask.py">
+      <provider selected="true" editor-type-id="text-editor">
+        <state relative-caret-position="115">
+          <caret line="8" column="43" lean-forward="false" selection-start-line="8" selection-start-column="43" selection-end-line="8" selection-end-column="43" />
+          <folding>
+            <element signature="e#0#29#0" expanded="true" />
+            <element signature="e#3931#7641#0" expanded="false" />
+            <element signature="e#7697#8896#0" expanded="false" />
+            <element signature="e#8978#9103#0" expanded="false" />
+            <element signature="e#9147#9853#0" expanded="false" />
+            <element signature="e#9919#12405#0" expanded="false" />
+            <element signature="e#12459#12463#0" expanded="false" />
+            <element signature="e#12563#12640#0" expanded="false" />
+          </folding>
+        </state>
+      </provider>
+    </entry>
+    <entry file="file://$PROJECT_DIR$/Two-Step-Task/data_util.py">
+      <provider selected="true" editor-type-id="text-editor">
+        <state relative-caret-position="1748">
+          <caret line="200" column="18" lean-forward="false" selection-start-line="200" selection-start-column="8" selection-end-line="200" selection-end-column="18" />
+        </state>
+      </provider>
+    </entry>
+    <entry file="file://$PROJECT_DIR$/Two-Step-Task/evaluator.py">
+      <provider selected="true" editor-type-id="text-editor">
+        <state relative-caret-position="1449">
+          <caret line="212" column="17" lean-forward="true" selection-start-line="212" selection-start-column="17" selection-end-line="212" selection-end-column="17" />
+          <folding />
+        </state>
+      </provider>
+    </entry>
+    <entry file="file://$PROJECT_DIR$/Two-Step-Task/tasks/smp_ts.py">
+      <provider selected="true" editor-type-id="text-editor">
+        <state relative-caret-position="2231">
+          <caret line="102" column="75" lean-forward="true" selection-start-line="102" selection-start-column="75" selection-end-line="102" selection-end-column="75" />
+          <folding />
+        </state>
+      </provider>
+    </entry>
+    <entry file="file://$PROJECT_DIR$/Two-Step-Task/test_config.json">
+      <provider selected="true" editor-type-id="text-editor">
+        <state relative-caret-position="46">
+          <caret line="2" column="7" lean-forward="true" selection-start-line="2" selection-start-column="7" selection-end-line="2" selection-end-column="7" />
+          <folding />
+        </state>
+      </provider>
+    </entry>
+    <entry file="file://$PROJECT_DIR$/Two-Step-Task/validate.py">
+      <provider selected="true" editor-type-id="text-editor">
+        <state relative-caret-position="4347">
+          <caret line="198" column="75" lean-forward="true" selection-start-line="198" selection-start-column="75" selection-end-line="198" selection-end-column="75" />
+          <folding />
+        </state>
+      </provider>
+    </entry>
+    <entry file="file://$PROJECT_DIR$/Two-Step-Task/TwoStepTask.py">
+      <provider selected="true" editor-type-id="text-editor">
+        <state relative-caret-position="460">
+          <caret line="22" column="13" lean-forward="false" selection-start-line="22" selection-start-column="13" selection-end-line="22" selection-end-column="13" />
+          <folding>
+            <element signature="e#0#29#0" expanded="true" />
+            <element signature="e#3931#7641#0" expanded="false" />
+            <element signature="e#7697#8896#0" expanded="false" />
+            <element signature="e#8978#9103#0" expanded="false" />
+            <element signature="e#9147#9853#0" expanded="false" />
+            <element signature="e#9919#12405#0" expanded="false" />
+            <element signature="e#12459#12463#0" expanded="false" />
+            <element signature="e#12563#12640#0" expanded="false" />
+          </folding>
+        </state>
+      </provider>
+    </entry>
+    <entry file="file://$PROJECT_DIR$/Two-Step-Task/getData.py">
+      <provider selected="true" editor-type-id="text-editor">
+        <state relative-caret-position="1081">
+          <caret line="51" column="30" lean-forward="true" selection-start-line="42" selection-start-column="8" selection-end-line="51" selection-end-column="30" />
+        </state>
+      </provider>
+    </entry>
+    <entry file="file://$PROJECT_DIR$/Two-Step-Task/test_config.json">
+      <provider selected="true" editor-type-id="text-editor">
+        <state relative-caret-position="207">
+          <caret line="9" column="30" lean-forward="false" selection-start-line="9" selection-start-column="17" selection-end-line="9" selection-end-column="30" />
+          <folding />
+        </state>
+      </provider>
+    </entry>
+    <entry file="file://$PROJECT_DIR$/Two-Step-Task/TwoStepDataProcessor.py">
+      <provider selected="true" editor-type-id="text-editor">
+        <state relative-caret-position="690">
+          <caret line="30" column="30" lean-forward="false" selection-start-line="30" selection-start-column="30" selection-end-line="30" selection-end-column="30" />
+        </state>
+      </provider>
+    </entry>
+    <entry file="file://$PROJECT_DIR$/Two-Step-Task/train.py" />
     <entry file="file://$PROJECT_DIR$/Network/net_tools.py">
       <provider selected="true" editor-type-id="text-editor">
         <state relative-caret-position="943">
           <caret line="43" column="157" lean-forward="false" selection-start-line="43" selection-start-column="157" selection-end-line="43" selection-end-column="157" />
-          <folding />
         </state>
       </provider>
     </entry>
@@ -385,30 +690,19 @@
         <state relative-caret-position="3749">
           <caret line="163" column="70" lean-forward="false" selection-start-line="163" selection-start-column="70" selection-end-line="163" selection-end-column="70" />
           <folding>
-            <element signature="e#180#191#0" expanded="true" />
-            <element signature="e#1759#2494#0" expanded="false" />
-            <element signature="e#5111#5687#0" expanded="false" />
-            <element signature="e#5732#6021#0" expanded="false" />
-            <element signature="e#6066#6487#0" expanded="false" />
-            <element signature="e#6550#9255#0" expanded="false" />
-            <element signature="e#9329#10626#0" expanded="false" />
-            <element signature="e#10663#11301#0" expanded="false" />
-            <element signature="e#11340#11921#0" expanded="false" />
-            <element signature="e#12200#15895#0" expanded="false" />
+            <element signature="e#2635#5139#0" expanded="false" />
+            <element signature="e#5185#5761#0" expanded="false" />
+            <element signature="e#5806#6095#0" expanded="false" />
+            <element signature="e#6158#6947#0" expanded="false" />
+            <element signature="e#7010#9715#0" expanded="false" />
+            <element signature="e#9789#11086#0" expanded="false" />
+            <element signature="e#11790#12371#0" expanded="false" />
+            <element signature="e#12650#16345#0" expanded="false" />
           </folding>
         </state>
       </provider>
     </entry>
-    <entry file="file://$PROJECT_DIR$/Two-Step-Task/train.py">
-      <provider selected="true" editor-type-id="text-editor">
-        <state relative-caret-position="0">
-          <caret line="0" column="0" lean-forward="false" selection-start-line="0" selection-start-column="0" selection-end-line="0" selection-end-column="0" />
-          <folding>
-            <element signature="e#0#45#0" expanded="true" />
-          </folding>
-        </state>
-      </provider>
-    </entry>
+    <entry file="file://$PROJECT_DIR$/Two-Step-Task/train.py" />
     <entry file="file://D:/Miniconda3/Lib/site-packages/scipy/io/matlab/mio.py">
       <provider selected="true" editor-type-id="text-editor">
         <state relative-caret-position="197">
@@ -417,40 +711,10 @@
       </provider>
     </entry>
     <entry file="file://$PROJECT_DIR$/Two-Step-Task.py" />
-    <entry file="file://$PROJECT_DIR$/Two-Step-Task/getData.py">
-      <provider selected="true" editor-type-id="text-editor">
-        <state relative-caret-position="0">
-          <caret line="0" column="28" lean-forward="false" selection-start-line="0" selection-start-column="28" selection-end-line="0" selection-end-column="28" />
-        </state>
-      </provider>
-    </entry>
-    <entry file="file://$PROJECT_DIR$/Two-Step-Task/validate.py">
-      <provider selected="true" editor-type-id="text-editor">
-        <state relative-caret-position="293">
-          <caret line="19" column="28" lean-forward="false" selection-start-line="19" selection-start-column="18" selection-end-line="19" selection-end-column="28" />
-        </state>
-      </provider>
-    </entry>
-    <entry file="file://$PROJECT_DIR$/Two-Step-Task/data_util.py">
-      <provider selected="true" editor-type-id="text-editor">
-        <state relative-caret-position="-5760">
-          <caret line="0" column="0" lean-forward="false" selection-start-line="0" selection-start-column="0" selection-end-line="0" selection-end-column="0" />
-        </state>
-      </provider>
-    </entry>
     <entry file="file://D:/Miniconda3/Lib/json/decoder.py">
       <provider selected="true" editor-type-id="text-editor">
         <state relative-caret-position="389">
           <caret line="356" column="0" lean-forward="false" selection-start-line="356" selection-start-column="0" selection-end-line="356" selection-end-column="0" />
-          <folding />
-        </state>
-      </provider>
-    </entry>
-    <entry file="file://$PROJECT_DIR$/Two-Step-Task/test_config.json">
-      <provider selected="true" editor-type-id="text-editor">
-        <state relative-caret-position="529">
-          <caret line="23" column="1" lean-forward="false" selection-start-line="23" selection-start-column="1" selection-end-line="23" selection-end-column="1" />
-          <folding />
         </state>
       </provider>
     </entry>
@@ -458,37 +722,6 @@
       <provider selected="true" editor-type-id="text-editor">
         <state relative-caret-position="23">
           <caret line="1" column="28" lean-forward="false" selection-start-line="1" selection-start-column="28" selection-end-line="1" selection-end-column="28" />
-          <folding />
-        </state>
-      </provider>
-    </entry>
-    <entry file="file://$PROJECT_DIR$/Network/Task.py">
-      <provider selected="true" editor-type-id="text-editor">
-        <state relative-caret-position="279">
-          <caret line="16" column="42" lean-forward="false" selection-start-line="16" selection-start-column="42" selection-end-line="16" selection-end-column="42" />
-          <folding />
-        </state>
-      </provider>
-    </entry>
-    <entry file="file://$PROJECT_DIR$/Network/net_tools.py">
-      <provider selected="true" editor-type-id="text-editor">
-        <state relative-caret-position="345">
-          <caret line="43" column="71" lean-forward="false" selection-start-line="43" selection-start-column="71" selection-end-line="43" selection-end-column="71" />
-          <folding>
-            <element signature="e#179#469#0" expanded="false" />
-            <element signature="e#512#970#0" expanded="false" />
-            <element signature="e#1027#1404#0" expanded="false" />
-            <element signature="e#1482#2164#0" expanded="false" />
-            <element signature="e#2194#2611#0" expanded="false" />
-          </folding>
-        </state>
-      </provider>
-    </entry>
-    <entry file="file://$PROJECT_DIR$/Network/DataProcessor.py">
-      <provider selected="true" editor-type-id="text-editor">
-        <state relative-caret-position="25">
-          <caret line="17" column="49" lean-forward="false" selection-start-line="17" selection-start-column="49" selection-end-line="17" selection-end-column="49" />
-          <folding />
         </state>
       </provider>
     </entry>
@@ -496,7 +729,6 @@
       <provider selected="true" editor-type-id="text-editor">
         <state relative-caret-position="299">
           <caret line="15" column="8" lean-forward="false" selection-start-line="15" selection-start-column="8" selection-end-line="15" selection-end-column="8" />
-          <folding />
         </state>
       </provider>
     </entry>
@@ -504,37 +736,191 @@
       <provider selected="true" editor-type-id="text-editor">
         <state relative-caret-position="218">
           <caret line="191" column="51" lean-forward="false" selection-start-line="191" selection-start-column="51" selection-end-line="191" selection-end-column="51" />
+        </state>
+      </provider>
+    </entry>
+    <entry file="file://$PROJECT_DIR$/Network/Task.py">
+      <provider selected="true" editor-type-id="text-editor">
+        <state relative-caret-position="368">
+          <caret line="16" column="42" lean-forward="false" selection-start-line="16" selection-start-column="42" selection-end-line="16" selection-end-column="42" />
+        </state>
+      </provider>
+    </entry>
+    <entry file="file://$PROJECT_DIR$/Analyzer/__init__.py" />
+    <entry file="file://$PROJECT_DIR$/Analyzer/Analyzer.py">
+      <provider selected="true" editor-type-id="text-editor">
+        <state relative-caret-position="0">
+          <caret line="0" column="55" lean-forward="false" selection-start-line="0" selection-start-column="55" selection-end-line="0" selection-end-column="55" />
+        </state>
+      </provider>
+    </entry>
+    <entry file="file://$PROJECT_DIR$/Network/DataProcessor.py">
+      <provider selected="true" editor-type-id="text-editor">
+        <state relative-caret-position="99">
+          <caret line="17" column="49" lean-forward="false" selection-start-line="17" selection-start-column="49" selection-end-line="17" selection-end-column="49" />
+        </state>
+      </provider>
+    </entry>
+    <entry file="file://$PROJECT_DIR$/Two-Step-Task/implementDataProcessor.py" />
+    <entry file="file://$PROJECT_DIR$/Two-Step-Task/train.py" />
+    <entry file="file://$PROJECT_DIR$/Two-Step-Task/config_st.py">
+      <provider selected="true" editor-type-id="text-editor">
+        <state relative-caret-position="389">
+          <caret line="29" column="15" lean-forward="false" selection-start-line="29" selection-start-column="9" selection-end-line="29" selection-end-column="15" />
+        </state>
+      </provider>
+    </entry>
+    <entry file="file://$PROJECT_DIR$/Two-Step-Task/lesion.py">
+      <provider selected="true" editor-type-id="text-editor">
+        <state relative-caret-position="230">
+          <caret line="10" column="30" lean-forward="true" selection-start-line="10" selection-start-column="30" selection-end-line="10" selection-end-column="30" />
+        </state>
+      </provider>
+    </entry>
+    <entry file="file://D:/Miniconda3/Lib/site-packages/torch/nn/modules/rnn.py">
+      <provider selected="true" editor-type-id="text-editor">
+        <state relative-caret-position="161">
+          <caret line="148" column="0" lean-forward="false" selection-start-line="148" selection-start-column="0" selection-end-line="148" selection-end-column="0" />
+        </state>
+      </provider>
+    </entry>
+    <entry file="file://$PROJECT_DIR$/Network/net_tools.py">
+      <provider selected="true" editor-type-id="text-editor">
+        <state relative-caret-position="210">
+          <caret line="43" column="49" lean-forward="false" selection-start-line="43" selection-start-column="49" selection-end-line="43" selection-end-column="49" />
           <folding>
-            <element signature="e#3872#6883#0" expanded="false" />
+            <element signature="e#1027#1404#0" expanded="false" />
+            <element signature="e#1482#2164#0" expanded="false" />
           </folding>
+        </state>
+      </provider>
+    </entry>
+    <entry file="file://$PROJECT_DIR$/Two-Step-Task/getData.py">
+      <provider selected="true" editor-type-id="text-editor">
+        <state relative-caret-position="388">
+          <caret line="43" column="49" lean-forward="true" selection-start-line="43" selection-start-column="25" selection-end-line="43" selection-end-column="49" />
+          <folding />
+        </state>
+      </provider>
+    </entry>
+    <entry file="file://$PROJECT_DIR$/Two-Step-Task/DataGenerator.py">
+      <provider selected="true" editor-type-id="text-editor">
+        <state relative-caret-position="59">
+          <caret line="184" column="0" lean-forward="true" selection-start-line="184" selection-start-column="0" selection-end-line="184" selection-end-column="0" />
+          <folding />
+        </state>
+      </provider>
+    </entry>
+    <entry file="file://$PROJECT_DIR$/Two-Step-Task/tasks/__init__.py">
+      <provider selected="true" editor-type-id="text-editor">
+        <state relative-caret-position="0">
+          <caret line="0" column="0" lean-forward="false" selection-start-line="0" selection-start-column="0" selection-end-line="0" selection-end-column="0" />
+          <folding />
+        </state>
+      </provider>
+    </entry>
+    <entry file="file://$PROJECT_DIR$/Two-Step-Task/tasks/reaction_shape_lr.py">
+      <provider selected="true" editor-type-id="text-editor">
+        <state relative-caret-position="-5865">
+          <caret line="0" column="0" lean-forward="false" selection-start-line="0" selection-start-column="0" selection-end-line="0" selection-end-column="0" />
+          <folding />
+        </state>
+      </provider>
+    </entry>
+    <entry file="file://$PROJECT_DIR$/Two-Step-Task/tasks/tools.py">
+      <provider selected="true" editor-type-id="text-editor">
+        <state relative-caret-position="253">
+          <caret line="12" column="54" lean-forward="true" selection-start-line="12" selection-start-column="54" selection-end-line="12" selection-end-column="54" />
+          <folding />
+        </state>
+      </provider>
+    </entry>
+    <entry file="file://$PROJECT_DIR$/Two-Step-Task/tasks/smp_ts.py">
+      <provider selected="true" editor-type-id="text-editor">
+        <state relative-caret-position="-2406">
+          <caret line="111" column="52" lean-forward="false" selection-start-line="111" selection-start-column="42" selection-end-line="111" selection-end-column="52" />
+          <folding />
+        </state>
+      </provider>
+    </entry>
+    <entry file="file://D:/Miniconda3/Lib/codecs.py">
+      <provider selected="true" editor-type-id="text-editor">
+        <state relative-caret-position="184">
+          <caret line="308" column="0" lean-forward="false" selection-start-line="308" selection-start-column="0" selection-end-line="308" selection-end-column="0" />
+          <folding />
+        </state>
+      </provider>
+    </entry>
+    <entry file="file://$PROJECT_DIR$/Two-Step-Task/evaluator.py">
+      <provider selected="true" editor-type-id="text-editor">
+        <state relative-caret-position="500">
+          <caret line="174" column="30" lean-forward="false" selection-start-line="174" selection-start-column="15" selection-end-line="174" selection-end-column="30" />
+          <folding />
+        </state>
+      </provider>
+    </entry>
+    <entry file="file://$PROJECT_DIR$/Two-Step-Task/validate.py">
+      <provider selected="true" editor-type-id="text-editor">
+        <state relative-caret-position="161">
+          <caret line="58" column="0" lean-forward="false" selection-start-line="58" selection-start-column="0" selection-end-line="58" selection-end-column="0" />
+          <folding />
+        </state>
+      </provider>
+    </entry>
+    <entry file="file://$PROJECT_DIR$/Two-Step-Task/TwoStepDataProcessor.py">
+      <provider selected="true" editor-type-id="text-editor">
+        <state relative-caret-position="355">
+          <caret line="24" column="0" lean-forward="false" selection-start-line="24" selection-start-column="0" selection-end-line="24" selection-end-column="0" />
+          <folding />
+        </state>
+      </provider>
+    </entry>
+    <entry file="file://$PROJECT_DIR$/Two-Step-Task/data_util.py">
+      <provider selected="true" editor-type-id="text-editor">
+        <state relative-caret-position="773">
+          <caret line="200" column="18" lean-forward="false" selection-start-line="200" selection-start-column="18" selection-end-line="200" selection-end-column="18" />
+          <folding />
         </state>
       </provider>
     </entry>
     <entry file="file://$PROJECT_DIR$/Network/TorchNetwork.py">
       <provider selected="true" editor-type-id="text-editor">
-        <state relative-caret-position="413">
-          <caret line="71" column="25" lean-forward="true" selection-start-line="71" selection-start-column="25" selection-end-line="71" selection-end-column="25" />
+        <state relative-caret-position="215">
+          <caret line="225" column="12" lean-forward="false" selection-start-line="225" selection-start-column="12" selection-end-line="225" selection-end-column="12" />
           <folding>
-            <element signature="e#180#191#0" expanded="true" />
-            <element signature="e#1759#2494#0" expanded="false" />
-            <element signature="e#5111#5687#0" expanded="false" />
-            <element signature="e#5732#6021#0" expanded="false" />
-            <element signature="e#6066#6487#0" expanded="false" />
-            <element signature="e#6550#9255#0" expanded="false" />
-            <element signature="e#9329#10626#0" expanded="false" />
-            <element signature="e#10663#11301#0" expanded="false" />
-            <element signature="e#11340#11921#0" expanded="false" />
-            <element signature="e#12200#15895#0" expanded="false" />
+            <element signature="e#2635#5139#0" expanded="false" />
+            <element signature="e#5185#5761#0" expanded="false" />
+            <element signature="e#5806#6095#0" expanded="false" />
+            <element signature="e#6158#6947#0" expanded="false" />
+            <element signature="e#7010#9715#0" expanded="false" />
+            <element signature="e#9789#11086#0" expanded="false" />
+            <element signature="e#11790#12371#0" expanded="false" />
+            <element signature="e#12650#16345#0" expanded="false" />
           </folding>
         </state>
       </provider>
     </entry>
-    <entry file="file://$PROJECT_DIR$/Two-Step-Task/train.py">
+    <entry file="file://$PROJECT_DIR$/Two-Step-Task/test_config.json">
       <provider selected="true" editor-type-id="text-editor">
-        <state relative-caret-position="533">
-          <caret line="24" column="0" lean-forward="true" selection-start-line="24" selection-start-column="0" selection-end-line="24" selection-end-column="0" />
+        <state relative-caret-position="161">
+          <caret line="7" column="55" lean-forward="false" selection-start-line="7" selection-start-column="55" selection-end-line="7" selection-end-column="55" />
+          <folding />
+        </state>
+      </provider>
+    </entry>
+    <entry file="file://$PROJECT_DIR$/Two-Step-Task/TwoStepTask.py">
+      <provider selected="true" editor-type-id="text-editor">
+        <state relative-caret-position="625">
+          <caret line="241" column="4" lean-forward="false" selection-start-line="241" selection-start-column="4" selection-end-line="241" selection-end-column="4" />
           <folding>
-            <element signature="e#0#45#0" expanded="true" />
+            <element signature="e#0#29#0" expanded="true" />
+            <element signature="e#3931#7641#0" expanded="false" />
+            <element signature="e#7697#8896#0" expanded="false" />
+            <element signature="e#8978#9103#0" expanded="false" />
+            <element signature="e#9147#9853#0" expanded="false" />
+            <element signature="e#9919#12405#0" expanded="false" />
+            <element signature="e#12459#12463#0" expanded="false" />
+            <element signature="e#12563#12640#0" expanded="false" />
           </folding>
         </state>
       </provider>

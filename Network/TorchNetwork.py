@@ -47,20 +47,20 @@ class TorchNetwork:
         Initialize the GRU network. If no configuration file is provided, the model will be loaded through a .pt file.
         :param config_file: Name of the configuration file, should be a JSON file name of srting type ("" by default).
         '''
-        if config_file is not "":
+        if config_file is not "": # TODO: instead of initializing with file, init with a dict
             self.config_pars = readConfigures(config_file) # read configurations from file
             self.config_pars = validateConfigures(self.config_pars) # check validation of configurations
             self._resetNetwork() # initialize the network with a configuration file
         self.trained = False # denote whether the network has been trained
         self.logHelper = LogHelper() # for writing logs TODO: set log helper by task setting
 
-    def training(self, train_set, training_guide, truncate_iter = 1e800):
+    def training(self, train_set, train_guide, truncate_iter = 1e800):
         '''
         Train the GRU  neural network.
         :param train_set: Training dataset, should have shape (number of trials, time steps in a trial, feature dimension)
-        :param training_guide: Training reward, should have shape (number of trials, 2).
-                                training_guide[:,0] determines whether this trial is used for training;
-                                training_guide[:,1] determines how many first time steps in this trial is used. 
+        :param train_guide: Training reward, should have shape (number of trials, 2).
+                                train_guide[:,0] determines whether this trial is used for training;
+                                train_guide[:,1] determines how many first time steps in this trial is used. 
         :param truncate_iter: Truncated iteration. The network training stops when this number of trials are trained.
         :return: 
             - train_loss(list): Losses of every block.
@@ -79,11 +79,11 @@ class TorchNetwork:
                 break
             # Collect ``batch_size'' number of trials as training input
             batch_data.append(trial)
-            batch_reward.append(training_guide[step])
+            batch_reward.append(train_guide[step])
             # training for every batch
             if (step + 1) % self.network.batch_size == 0:
                 # reset hidden unit for next batch
-                if self.reset_hidden:
+                if self.reset_hidden: #TODO: where to reset hidden
                     self.hidden = self._initHidden()
                 # train the network with current block of data
                 batch_data = np.array(batch_data).transpose([1, 0, 2])
@@ -128,7 +128,7 @@ class TorchNetwork:
         pars['configurations'] = self.config_pars
         torch.save(pars, filename)
 
-    def loadModel(self, filename):
+    def loadModel(self, filename, config_file = ''):
         '''
         Load Pytorch network from .pt file, with all the network training configurations.
         :param filename: Filename of .py file.
@@ -136,7 +136,11 @@ class TorchNetwork:
         '''
         #TODO: What if no configurations in the .pt file
         pars = torch.load(filename)
-        self.config_pars = pars.pop('configurations')
+        if 'configurations' in pars:
+            self.config_pars = pars.pop('configurations')
+        else: #TODO: delete the configurations from the initialization; this should be tasks for users? Or resave current models
+            self.config_pars = readConfigures(config_file)  # read configurations from file
+            self.config_pars = validateConfigures(self.config_pars)  # check validation of configurations
         self._resetNetwork()
         self.network.load_state_dict(pars)
         self.trained = True
@@ -218,9 +222,8 @@ class TorchNetwork:
         weight = next(self.network.parameters()).data
         # for pertubation
         noise = torch.randn(self.network.nlayers, self.network.batch_size, self.network.hid_dim,requires_grad=True) * self.init_noise_amp
-        new_hidden = torch.tensor(
-            weight.new(self.network.nlayers, self.network.batch_size, self.network.hid_dim).zero_() + noise
-        ,requires_grad=True)
+        new_hidden = (weight.new(self.network.nlayers, self.network.batch_size, self.network.hid_dim).zero_() + noise)\
+            .clone().requires_grad_(True)
         if self.cuda_enabled:
             return new_hidden.cuda()
         else:
