@@ -17,12 +17,24 @@ class Task(ABC):
         validate: Validating on this task.
     '''
     def __init__(self, config_file = ""):
+        '''
+        Initialization.
+        :param config_file: Configuration filename, should be a JSON file.
+        '''
         super(Task, self).__init__()
 
     @abstractmethod
     def train(self):
+        '''
+        Training.
+        :return: VOID 
+        '''
         pass
 
     @abstractmethod
     def validate(self):
+        '''
+        Validating.
+        :return: VOID
+        '''
         pass

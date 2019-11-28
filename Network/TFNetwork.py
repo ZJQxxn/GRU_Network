@@ -1,8 +1,8 @@
 '''
-TfNetwork.py: Implementation of the class for our gated neural unit (GRU) network with Tendorflow.
+TfNetwork.py: Implementation of the class for our gated neural unit (GRU) network with Tensorflow.
 
 Author: Jiaqi Zhang <zjqseu@gmail.com>
-Date: Nov. 15 2019
+Date: 
 
 Reference: 
 

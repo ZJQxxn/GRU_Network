@@ -10,7 +10,7 @@
   "data_brief": "data_ST_Brief",
   "validation_data_file": "./data/SimpTwo_TestingSet-2019_09_28-1.mat",
   "log_path": "./log_m/ST/",
-  "model_path": "./save_m/ST/model-sp_ts_",
+  "model_path": "./save_m/model-sp_ts_",
   "load_model": "",
   "train_num": 7.5e5,
   "reset_hidden": 1,

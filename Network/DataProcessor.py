@@ -1,5 +1,5 @@
 '''
-DataProcessor.py: Abstract class for data preprocessing.
+DataProcessor.py: Abstract class for data preprocessing. Prepare training data and validating data.
 
 Author: Jiaqi Zhang <zjqseu@gmail.com.
 Date: Nov. 16 2019

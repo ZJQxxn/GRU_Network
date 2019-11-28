@@ -20,6 +20,12 @@ def readConfigures(filename):
     return config_pars
 
 def validateConfigures(config_pars):
+    '''
+    Check configuratins and update it with defaul configurations.
+    :param config_pars: A dict of configurations. 
+    :return: 
+        config_pars(dict): Configuration dict.
+    '''
     # check require configuration settings
     if 'in_dim' not in config_pars:
         raise ValueError('Miss in_dim as the dimensionality of input layer.')

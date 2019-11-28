@@ -7,14 +7,12 @@ Date: Nov. 15 2019
 Reference: 
 
 '''
-import time
 import torch
 import torch.nn as nn
 import numpy as np
 
 from Network.net_tools import  readConfigures, validateConfigures
 from Network.net_tools import tensor2np, np2tensor, match_rate
-from Network.LogHelper import LogHelper
 
 
 class TorchNetwork:
@@ -44,15 +42,14 @@ class TorchNetwork:
 
     def __init__(self, config_file = ""):
         '''
-        Initialize the GRU network. If no configuration file is provided, the model will be loaded through a .pt file.
+        Initialize the GRU network model. 
         :param config_file: Name of the configuration file, should be a JSON file name of srting type ("" by default).
         '''
-        if config_file is not "": # TODO: instead of initializing with file, init with a dict
+        if config_file is not "": # TODO: init with a dict
             self.config_pars = readConfigures(config_file) # read configurations from file
             self.config_pars = validateConfigures(self.config_pars) # check validation of configurations
             self._resetNetwork() # initialize the network with a configuration file
         self.trained = False # denote whether the network has been trained
-        self.logHelper = LogHelper() # for writing logs TODO: set log helper by task setting
 
     def training(self, train_set, train_guide, truncate_iter = 1e800):
         '''
@@ -124,6 +121,7 @@ class TorchNetwork:
         :param filename: The filename of loaded network.
         :return: VOID
         '''
+        #TODO: modify this; do not save configuration
         pars = self.network.state_dict()
         pars['configurations'] = self.config_pars
         torch.save(pars, filename)
@@ -134,11 +132,11 @@ class TorchNetwork:
         :param filename: Filename of .py file.
         :return: VOID
         '''
-        #TODO: What if no configurations in the .pt file
+        #TODO: modify this; no need to read configurations
         pars = torch.load(filename)
         if 'configurations' in pars:
             self.config_pars = pars.pop('configurations')
-        else: #TODO: delete the configurations from the initialization; this should be tasks for users? Or resave current models
+        else:
             self.config_pars = readConfigures(config_file)  # read configurations from file
             self.config_pars = validateConfigures(self.config_pars)  # check validation of configurations
         self._resetNetwork()
