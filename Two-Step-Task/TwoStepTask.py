@@ -140,7 +140,7 @@ class TwoStepTask(Task):
                 self.log_writer.appendRecord(raw_rec)
 
             # Print out intermediate validating result: loss and correct rate
-            if (step + 1) % t_interval == 0 and step > 0:
+            if (step + 1) % t_interval == 0 or step == (len(self.validate_data) - 1):
                 print(
                     "(Validate)STEP: {:6d} | AVERAGE CORRECT RATE: {:6f} | AVERAGE LOSS(without loss): {:.6f} ".format(
                         step + 1,

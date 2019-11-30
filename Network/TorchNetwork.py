@@ -121,9 +121,7 @@ class TorchNetwork:
         :param filename: The filename of loaded network.
         :return: VOID
         '''
-        #TODO: modify this; do not save configuration
         pars = self.network.state_dict()
-        pars['configurations'] = self.config_pars
         torch.save(pars, filename)
 
     def loadModel(self, filename, config_file = ''):
@@ -132,13 +130,9 @@ class TorchNetwork:
         :param filename: Filename of .py file.
         :return: VOID
         '''
-        #TODO: modify this; no need to read configurations
         pars = torch.load(filename)
-        if 'configurations' in pars:
-            self.config_pars = pars.pop('configurations')
-        else:
-            self.config_pars = readConfigures(config_file)  # read configurations from file
-            self.config_pars = validateConfigures(self.config_pars)  # check validation of configurations
+        self.config_pars = readConfigures(config_file)  # read configurations from file
+        self.config_pars = validateConfigures(self.config_pars)  # check validation of configurations
         self._resetNetwork()
         self.network.load_state_dict(pars)
         self.trained = True
