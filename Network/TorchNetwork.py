@@ -7,12 +7,14 @@ Date: Nov. 15 2019
 Reference: 
 
 '''
+import sys
 import torch
 import torch.nn as nn
 import numpy as np
 
-from Network.net_tools import  readConfigures, validateConfigures
-from Network.net_tools import tensor2np, np2tensor, match_rate
+sys.path.append('./')
+from net_tools import  readConfigures, validateConfigures
+from net_tools import tensor2np, np2tensor, match_rate
 
 
 class TorchNetwork:
@@ -81,7 +83,7 @@ class TorchNetwork:
             if (step + 1) % self.network.batch_size == 0:
                 # reset hidden unit for next batch
                 if self.reset_hidden: #TODO: where to reset hidden
-                    self.hidden = self._initHidden()
+                   self.hidden = self._initHidden()
                 # train the network with current block of data
                 batch_data = np.array(batch_data).transpose([1, 0, 2])
                 batch_reward = np.array(batch_reward)

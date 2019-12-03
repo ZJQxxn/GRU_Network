@@ -5,10 +5,12 @@ Author: Jiaqi Zhang <zjqseu@gmail.com>
 Date: Nov. 27 2019
 '''
 
-from Network.ValidateLogWriter import ValidateLogWriter
-
+import sys
 import tables
 import numpy as np
+sys.path.append('../Network/')
+
+from ValidateLogWriter import ValidateLogWriter
 
 
 class ThreeArmedValidateLogWriter(ValidateLogWriter):
@@ -44,13 +46,13 @@ class ThreeArmedValidateLogWriter(ValidateLogWriter):
         '''
         self.hdf5file = tables.open_file(self.filename, mode='w')
         content_type = tables.Float64Atom()
-        index_dtype = tables.UInt64Atom()
+        index_dtype = tables.UInt64Atom() # TODO: these two functions
         neuron_shape = data_shape['neuron_shape']
         behavior_shape = data_shape['behavior_shape']
         label_shape = (0, 1, 2)
         neuron_shape.insert(0, 0)
         behavior_shape.insert(0, 0)
-        self.behavior_storage = self.hdf5file.create_earray(self.hdf5file.root, 'behavior', content_type,
+        self.input_storage = self.hdf5file.create_earray(self.hdf5file.root, 'input', content_type,
                                                                 shape=behavior_shape)
         self.prediction_storage = self.hdf5file.create_earray(self.hdf5file.root, 'prediction', content_type,
                                                                   shape=behavior_shape)
@@ -60,6 +62,10 @@ class ThreeArmedValidateLogWriter(ValidateLogWriter):
                                                               shape=neuron_shape)
         self.index_storage = self.hdf5file.create_earray(self.hdf5file.root, 'index', index_dtype,
                                                              shape=label_shape)
+        self.choice_storage = self.hdf5file.create_earray(self.hdf5file.root, 'choice', index_dtype,
+                                                         shape= (0, 1))
+        self.reward_storage = self.hdf5file.create_earray(self.hdf5file.root, 'reward', index_dtype,
+                                                          shape=(0, 1))
 
     def appendRecord(self, record):
         '''
@@ -68,18 +74,20 @@ class ThreeArmedValidateLogWriter(ValidateLogWriter):
         :return: VOID
         '''
         # Extract record
-        behavior_data = np.array(record["sensory_sequence"])
+        input_data = np.array(record["sensory_sequence"])
         prediction_data = np.array(record["predicted_trial"])
         raw_output = np.array(record["raw_records"])
         neuron_data = np.array(record["hidden_records"])
-        tmp_high = self.low + behavior_data.shape[0]
+        tmp_high = self.low + input_data.shape[0]
         index_data = np.array([self.low, tmp_high]).reshape(1, 1, 2)
         # Append record into log file
-        self.behavior_storage.append(behavior_data)
+        self.input_storage.append(input_data)
         self.prediction_storage.append(prediction_data)
         self.rawoutput_storage.append(raw_output)
         self.neuron_storage.append(neuron_data)
         self.index_storage.append(index_data)
+        self.choice_storage.append(np.array([record['choice']]).reshape(1,1))
+        self.reward_storage.append(np.array([record['reward']]).reshape(1,1))
         self.low = tmp_high
 
     def closeHdf5File(self):

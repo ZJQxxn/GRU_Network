@@ -4,3 +4,5 @@
 *.xml
 *.yaml
 *.iml
+*.mat
+*.hdf5

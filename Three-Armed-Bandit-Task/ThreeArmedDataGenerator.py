@@ -193,12 +193,12 @@ class DataGenerate:
         # store weight coefficients for each input of each trial
         self.training_guide = np.vstack((self.rewards, np.tile(self.time_step_num, self.train_trial_num))).T
         # ================ SHOW TRIAL ===================
-        sbn.set(font_scale=1.6)
-        y_lables = ['see A', 'see B', 'see C', 'see nothing', 'choose A', 'choose B', 'choose C', 'do nothing',
-                    'reward', 'no reward']
-        show_test = self.training_set[0].T
-        sbn.heatmap(show_test[:, 0:14], cmap="YlGnBu", linewidths=0.5, yticklabels=y_lables)
-        plt.show()
+        # sbn.set(font_scale=1.6)
+        # y_lables = ['see A', 'see B', 'see C', 'see nothing', 'choose A', 'choose B', 'choose C', 'do nothing',
+        #             'reward', 'no reward']
+        # show_test = self.training_set[0].T
+        # sbn.heatmap(show_test[:, 0:14], cmap="YlGnBu", linewidths=0.5, yticklabels=y_lables)
+        # plt.show()
 
     def _generateValidating(self):
         '''
@@ -216,12 +216,12 @@ class DataGenerate:
             trial[0:3, 2:5] = trial[7, 2:5] = 1
             self.validating_set.append(trial.T)
         # ================ SHOW TRIAL ===================
-        sbn.set(font_scale=1.6)
-        y_lables = ['see A', 'see B', 'see C', 'see nothing', 'choose A', 'choose B', 'choose C', 'do nothing',
-                    'reward', 'no reward']
-        show_test = self.validating_set[0].T
-        sbn.heatmap(show_test[:, 0:5], cmap="YlGnBu", linewidths=0.5, yticklabels=y_lables)
-        plt.show()
+        # sbn.set(font_scale=1.6)
+        # y_lables = ['see A', 'see B', 'see C', 'see nothing', 'choose A', 'choose B', 'choose C', 'do nothing',
+        #             'reward', 'no reward']
+        # show_test = self.validating_set[0].T
+        # sbn.heatmap(show_test[:, 0:5], cmap="YlGnBu", linewidths=0.5, yticklabels=y_lables)
+        # plt.show()
 
     def save2Mat(self):
         '''
@@ -274,6 +274,6 @@ class DataGenerate:
 
 
 if __name__ == '__main__':
-    g = DataGenerate(train_trial_num=900, validate_trial_num= 5000)
+    g = DataGenerate(train_trial_num=500, validate_trial_num= 100)
     g.generating('reverse')
     g.save2Mat()

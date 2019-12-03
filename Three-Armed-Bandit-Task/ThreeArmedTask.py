@@ -4,17 +4,19 @@ ThreeArmedTask.py: Implement the three-armed bandit task, including the training
 Author: Jiaqi Zhang <zjqseu@gmail.com>
 Date: Nov. 29 2019
 '''
-
-from Network.Task import Task
-from Network.TorchNetwork import TorchNetwork
-from Network.net_tools import np2tensor, tensor2np, match_rate
-from Network.net_tools import readConfigures #TODO: change this
-from ThreeArmedDataProcessor import ThreeArmedDataProcessor
-from ThreeArmedValidateLogWriter import ThreeArmedValidateLogWriter
-
 import copy
 import numpy as np
 import torch
+import sys
+
+sys.path.append('../Network/')
+from Task import Task
+from TorchNetwork import TorchNetwork
+from net_tools import np2tensor, tensor2np, match_rate
+from net_tools import readConfigures #TODO: change this
+from ThreeArmedDataProcessor import ThreeArmedDataProcessor
+from ThreeArmedValidateLogWriter import ThreeArmedValidateLogWriter
+
 
 class ThreeArmedTask(Task):
     '''
@@ -56,6 +58,7 @@ class ThreeArmedTask(Task):
         self.model = TorchNetwork(config_file) # TODO: change to initialize with dict rather than the file
         cofig_pars = readConfigures(config_file)
         self.data_helper = ThreeArmedDataProcessor(cofig_pars['data_file'], cofig_pars['validation_data_file'])
+        np.random.seed()
 
     def train(self):
         '''
@@ -67,8 +70,11 @@ class ThreeArmedTask(Task):
         print('='*40)
         print('START TRAINING...')
         self.train_data, self.train_guide = self.data_helper.prepareTrainingData()
-
-        train_loss, train_correct_rate = self.model.training(self.train_data, self.train_guide)
+        try:
+            train_loss, train_correct_rate = self.model.training(self.train_data, self.train_guide)
+        except KeyboardInterrupt:
+            self.saveModel('interrupted_model.pt')
+            return
         return train_loss, train_correct_rate
 
     def validate(self, log_filename = ''):
@@ -174,7 +180,6 @@ class ThreeArmedTask(Task):
             next_time_step = self._estimateNextTimeStep(cur_time_step)
             cur_time_step = next_time_step
 
-        #TODO: determine thether the choice will be rewarded
         # Convert tensor to numpy
         predicted_trial = np.around(self.validate_records['raw_records']).astype(np.int)
 
@@ -182,6 +187,8 @@ class ThreeArmedTask(Task):
         raw_rec["predicted_trial"] = copy.deepcopy(predicted_trial)  # predicted set
         raw_rec["raw_records"] = copy.deepcopy(self.validate_records['raw_records'])  # raw output
         raw_rec["hidden_records"] = copy.deepcopy(self.validate_records['hidden_records'])  # raw hidden
+        raw_rec['choice'] = self.validate_records['choice']
+        raw_rec['reward'] = 1- self.validate_records['reward'] # in records, 0 stands for reward wihle 1 stands for no reward
         # Compute correct rate; when calculate correct ratio, we need to truncate the trial
         sensory_sequence = raw_rec["sensory_sequence"]
         raw_records = raw_rec["raw_records"]
@@ -230,6 +237,7 @@ class ThreeArmedTask(Task):
                 # action_options = action_options.cpu().detach().numpy() if self.model.cuda_enabled else action_options.detach().numpy()
                 pro_soft = self._softmax(action_options)
                 idx = torch.tensor(np.random.choice(pro_soft.size, 1, p=pro_soft))  # choose a stimulus depends on the estimated probability
+                # idx = torch.tensor(np.argmax(pro_soft))
                 selected_stimulus = idx.data.item()  # 0 is choose A; 1 is choose B; 2 is choose C
                 time_step_input = np.round(time_step_input)
                 time_step_input[:, self.task_validate_attr['choice_index']] = 0
@@ -321,10 +329,10 @@ class ThreeArmedTask(Task):
 if __name__ == '__main__':
     config_file = "ThreeArmed_Config.json"
     configs = readConfigures(config_file)
-    model_name = './save_m/model-three-armed-'+ configs['data_file'].split('-')[2] +'.pt'
+    model_name = './save_m/model-three-armed-'+ configs['data_file'].split('-')[2] +'.pt' # TODO: deal with multiple models
 
     t = ThreeArmedTask(config_file)
     # t.train()
     # t.saveModel(model_name)
-    t.loadModel('./save_m/model-three-armed-2019_11_29.pt', 'ThreeArmed_Config.json')
-    t.validate('validate_record-three-armed-2019_11_29.hdf5')
+    t.loadModel('./save_m/model-three-armed-2019_12_03.pt', 'ThreeArmed_Config.json')
+    t.validate('validate_record-three-armed-2019_12_03.hdf5')

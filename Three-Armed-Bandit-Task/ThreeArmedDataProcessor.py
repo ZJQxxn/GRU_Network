@@ -4,8 +4,9 @@ ThreeArmedDataProcessor.py: Data processor for the three-armed bandit task.
 Author: Jiaqi Zhang <zjqseu@gmail.com>
 Date: Nov. 29 2019
 '''
-
-from Network.DataProcessor import DataProcessor
+import sys
+sys.path.append('../Network/')
+from DataProcessor import DataProcessor
 from scipy.io import loadmat
 
 class ThreeArmedDataProcessor(DataProcessor):
