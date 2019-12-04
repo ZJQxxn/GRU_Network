@@ -4,8 +4,10 @@ TwoStepDataProcessor.py: Data processor for the two-step task.
 Author: Jiaqi Zhang <zjqseu@gmail.com>
 Date: Nov. 27 2019
 '''
+import sys
+sys.path.append('../Network')
 
-from Network.DataProcessor import DataProcessor
+from DataProcessor import DataProcessor
 from scipy.io import loadmat
 
 class TwoStepDataProcessor(DataProcessor):

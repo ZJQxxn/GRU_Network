@@ -73,8 +73,8 @@ class TaskAnalyzer:
         return choice, reward
 
     def _getBlockRewrdProbability(self):
-        mat = loadmat('./data/ThreeArmedBandit_TestingSet-reverse-2019_12_04-2.mat') #TODO: cahnge this
-        reward_prob = mat['info']['reward_probability'][0, 0]
+        mat = loadmat('./data/ThreeArmedBandit_TestingSet-fixed-2019_12_04-1.mat') #TODO: cahnge this
+        reward_prob = mat['info']['reward_probability'][0, 0][:,:300]
         del mat
         return reward_prob
 
@@ -100,7 +100,7 @@ class TaskAnalyzer:
         # extract the stimulus choices of all the trials
         trial_choice = self.logFile['choice']
         choice_count = [0, 0, 0]
-        for each in trial_choice[751:900]:
+        for each in trial_choice[151:300]:
             choice_count[each[0]] += 1
         trial_num = trial_choice.shape[0]
         block_num = trial_num // (self.block_size * 2)
@@ -158,7 +158,7 @@ class TaskAnalyzer:
 
 
 if __name__ == '__main__':
-    analyzer = TaskAnalyzer('validate_record-three-armed-2019_12_04-5e4-without_init.hdf5')
+    analyzer = TaskAnalyzer('validate_record-three-armed-2019_12_04-fixed-without_init.hdf5')
     analyzer.behaviorAnalysis()
     analyzer.plotFigures()
     # analyzer.influenceAnalysis()

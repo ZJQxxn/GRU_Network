@@ -5,7 +5,10 @@ Author: Jiaqi Zhang <zjqseu@gmail.com>
 Date: Nov. 27 2019
 '''
 
-from Network.ValidateLogWriter import ValidateLogWriter
+import sys
+sys.path.append('../Network')
+
+from ValidateLogWriter import ValidateLogWriter
 
 import tables
 import numpy as np

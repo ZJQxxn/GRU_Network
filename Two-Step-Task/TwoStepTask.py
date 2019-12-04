@@ -5,10 +5,13 @@ Author: Jiaqi Zhang <zjqseu@gmail.com>
 Date: Nov. 27 2019
 '''
 
-from Network.Task import Task
-from Network.TorchNetwork import TorchNetwork
-from Network.net_tools import np2tensor, tensor2np, match_rate
-from Network.net_tools import readConfigures #TODO: change this
+import sys
+sys.path.append('../Network')
+
+from Task import Task
+from TorchNetwork import TorchNetwork
+from net_tools import np2tensor, tensor2np, match_rate
+from net_tools import readConfigures #TODO: change this
 from TwoStepDataProcessor import TwoStepDataProcessor
 from TwoStepValidateLogWriter import TwoStepValidateLogWriter
 
@@ -362,6 +365,7 @@ class TwoStepTask(Task):
 
 if __name__ == '__main__':
     t = TwoStepTask("test_config.json")
-    #t.train()
-    t.loadModel('./save_m/model-sp_ts_250000-20190702_0553-2.pt', 'test_config.json')
+    # t.train()
+    # t.saveModel('./save_m/test.pt')
+    t.loadModel('./save_m/test.pt', 'test_config.json')
     t.validate('test.hdf5')

@@ -160,7 +160,7 @@ class TorchNetwork:
         raw_prediction = np.zeros((times_num, self.network.batch_size, self.network.in_dim))
         hidden_sequence = np.zeros((times_num, self.network.batch_size, self.network.hid_dim))
         reward_guide = np.tile(batch_reward[:, 0], (batch_data.shape[2], 1))
-        reward_guide = np.tile(reward_guide, (batch_data.shape[0], 1, 1)).transpose(0, 2, 1) # TODO: with shape of (number of time steps, number of trials in the block, number of inputs)
+        reward_guide = np.tile(reward_guide, (batch_data.shape[0], 1, 1)).transpose(0, 2, 1)
         # determine how many trials are used for training
         for i in range(self.network.batch_size):
             reward_guide[batch_reward[i, 1]:, i, :] = 0
@@ -292,7 +292,7 @@ class _GRUNetwork(nn.Module):
         self.out_dim  = in_dim
         self.hid_dim = 128
         self.nlayers = 1
-        self.batch_size = batch_size #TODO: why define here? Omit from this class
+        self.batch_size = batch_size
         #self.bg_noise_amp = bg_noise_amp
         self.cuda_enabled = cuda_enabled
         self.lr = lr

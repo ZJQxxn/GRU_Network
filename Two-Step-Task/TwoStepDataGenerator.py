@@ -19,7 +19,7 @@ def generateTraining(filename):
     :param filename: Name of the .mat file, where you want to save the training dataset. 
     :return: VOID
     '''
-    NumTrials = int(7.5e2 + 1)
+    NumTrials = int(5e5 + 1)
     trans_prob = 0.8  # from A1-B1, from A2-B2
     reward_prob = 0.8
     block_size = 50
@@ -186,7 +186,7 @@ def generateTesting(filename):
 
 
 if __name__ == '__main__':
-    pathname = "../data/"
+    pathname = "./data/"
     file_name = datetime.datetime.now().strftime("%Y_%m_%d")
     training_file_name = 'SimpTwo_TrainingingSet-' + file_name
     testing_file_name = 'SimpTwo_TestingSet-' + file_name
