@@ -190,5 +190,5 @@ if __name__ == '__main__':
     file_name = datetime.datetime.now().strftime("%Y_%m_%d")
     training_file_name = 'SimpTwo_TrainingingSet-' + file_name
     testing_file_name = 'SimpTwo_TestingSet-' + file_name
-    # generateTraining(training_file_name)
+    generateTraining(training_file_name)
     # generateTesting(testing_file_name)

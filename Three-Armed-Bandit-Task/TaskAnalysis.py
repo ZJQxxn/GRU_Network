@@ -73,7 +73,7 @@ class TaskAnalyzer:
         return choice, reward
 
     def _getBlockRewrdProbability(self):
-        mat = loadmat('./data/ThreeArmedBandit_TestingSet-reverse-2019_12_03-1.mat')
+        mat = loadmat('./data/ThreeArmedBandit_TestingSet-reverse-2019_12_04-2.mat') #TODO: cahnge this
         reward_prob = mat['info']['reward_probability'][0, 0]
         del mat
         return reward_prob
@@ -96,9 +96,12 @@ class TaskAnalyzer:
         return np.array(objective_highest)
 
     def _getExperiencedRewardProb(self):
-        # TODO: poor result; change to use moving window (20 trials)
+        # # TODO: poor result; change to use moving window (20 trials)
         # extract the stimulus choices of all the trials
         trial_choice = self.logFile['choice']
+        choice_count = [0, 0, 0]
+        for each in trial_choice[751:900]:
+            choice_count[each[0]] += 1
         trial_num = trial_choice.shape[0]
         block_num = trial_num // (self.block_size * 2)
         # Experienced reward probability os a (number of trials in one block, number of blocks) matrix
@@ -107,8 +110,11 @@ class TaskAnalyzer:
             index_in_block = index % (2*self.block_size)
             block_index = index // (2*self.block_size)
             choice_reward_prob[index_in_block, block_index] = self.block_reward_prob[choice[0], index_in_block]
-        # # TODO: there are 17 blocks in total, take the 16-th block
+        # TODO: moving window ;there are 17 blocks in total, take the 16-th block
         # trial_choice = self.logFile['choice']
+        # sti_count = [0, 0, 0]
+        # for each in trial_choice:
+        #     sti_count[each[0]] += 1
         # trial_num = trial_choice.shape[0]
         # block_num = trial_num // (self.block_size * 2)
         # choice_reward_prob = []
@@ -118,7 +124,7 @@ class TaskAnalyzer:
         #     temp_choice = trial_choice[cur_trial_index-10:cur_trial_index+10,:].squeeze()
         #     temp_reward = np.array([self.block_reward_prob[temp_choice[i], within_index] for i in range(20)])
         #     choice_reward_prob.append([np.mean(temp_reward), sem(temp_reward)])
-        #     #print()
+        # # #     #print()
         return np.array(choice_reward_prob)
 
     def plotFigures(self):
@@ -152,7 +158,7 @@ class TaskAnalyzer:
 
 
 if __name__ == '__main__':
-    analyzer = TaskAnalyzer('validate_record-three-armed-2019_12_03.hdf5')
-    # analyzer.behaviorAnalysis()
-    # analyzer.plotFigures()
-    analyzer.influenceAnalysis()
+    analyzer = TaskAnalyzer('validate_record-three-armed-2019_12_04-5e4-without_init.hdf5')
+    analyzer.behaviorAnalysis()
+    analyzer.plotFigures()
+    # analyzer.influenceAnalysis()

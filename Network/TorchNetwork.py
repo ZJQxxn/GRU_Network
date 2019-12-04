@@ -16,6 +16,7 @@ sys.path.append('./')
 from net_tools import  readConfigures, validateConfigures
 from net_tools import tensor2np, np2tensor, match_rate
 
+import copy
 
 class TorchNetwork:
     '''
@@ -65,13 +66,14 @@ class TorchNetwork:
             - train_loss(list): Losses of every block.
             - train_correct_rate(list): Correct rates of every block.
         '''
-        self.hidden = self._initHidden()
-        print("self.hidden:",self.hidden)
+        print('Reset hidden {}'.format(self.reset_hidden))
         batch_data = []
         batch_reward = []
         train_loss = []
         train_correct_rate = []
         batch_count = 1 # count the number of batches
+        self.hidden = self._initHidden()
+        # print("self.hidden:", self.hidden)
         for step, trial in enumerate(train_set):
             # cease training when reaching at the truncate iteration
             if step >= (truncate_iter - 1):
@@ -82,7 +84,7 @@ class TorchNetwork:
             # training for every batch
             if (step + 1) % self.network.batch_size == 0:
                 # reset hidden unit for next batch
-                if self.reset_hidden: #TODO: where to reset hidden
+                if self.reset_hidden:
                    self.hidden = self._initHidden()
                 # train the network with current block of data
                 batch_data = np.array(batch_data).transpose([1, 0, 2])
@@ -153,6 +155,7 @@ class TorchNetwork:
         # Initialization
         total_loss = 0
         times_num = batch_data.shape[0] - 1 # the number of time steps in this batch
+        save_step = int(batch_data.shape[0]/2-1)
         predicted_trial = np.zeros((times_num, self.network.batch_size,self.network.in_dim))
         raw_prediction = np.zeros((times_num, self.network.batch_size, self.network.in_dim))
         hidden_sequence = np.zeros((times_num, self.network.batch_size, self.network.hid_dim))
@@ -164,14 +167,26 @@ class TorchNetwork:
         reward_guide = torch.tensor(reward_guide, dtype = torch.float, requires_grad=True)##########################
         reward_guide = reward_guide.cuda() if self.cuda_enabled else reward_guide
         # Train the network with each trial
+        hidden = torch.tensor(self.hidden, dtype=torch.float32, requires_grad=True)
         for i in range(times_num):
-            cur_time = np2tensor(batch_data[i:i+1, :, :], cuda_enabled = self.cuda_enabled) # each time step in the batch
+            cur_time = np2tensor(batch_data[i:i+1, :, :], cuda_enabled = self.cuda_enabled) # current time step in the batch
             time_reward = reward_guide[i]
             next_time = np2tensor(batch_data[i+1:i+2, :, :], gradient_required=True) # next time step; used for computing loss
-            loss, raw_output, copied_hidden = self._trainTimeStep(cur_time, time_reward, next_time)
+            # Train with current time step
+            cur_time = torch.tensor(cur_time, dtype=torch.float32, requires_grad=True)
+            output, hidden = self.network(cur_time, hidden)
+            if i == save_step:  # TODO: not elegant, it is only for two step task
+                self.hidden = copy.deepcopy(torch.tensor(hidden, dtype=torch.float32, requires_grad=True))
+            # Compute  loss
+            time_reward = torch.tensor(time_reward, dtype=torch.double, requires_grad=True)
+            output = torch.tensor(output, dtype=torch.double, requires_grad=True)
+            loss = self.network.criterion((time_reward * output).reshape([1, -1])[0],
+                                          (time_reward * next_time).reshape([1, -1])[0])
+            raw_output = tensor2np(output, cuda_enabled=self.cuda_enabled)
+            copied_hidden = tensor2np(hidden, cuda_enabled=self.cuda_enabled)
             total_loss = total_loss + loss
             # Collect training results for each trial
-            predicted_trial[i, :, :] = np.around(raw_output) # prediction is 1 if raw_output >= 0.5, else 0 TODO: only deal with binary output
+            predicted_trial[i, :, :] = np.around(raw_output) # prediction is 1 if raw_output >= 0.5, else 0
             raw_prediction[i, :, :] = raw_output
             hidden_sequence[i, :, :] = copied_hidden
         # Backward passing
@@ -194,10 +209,9 @@ class TorchNetwork:
             - raw_output: Raw predicted output of this trial.
             - copied_hidden: Current hidden units value after training with this trial.
         '''
-        #TODO: float32 or float64
         cur_time = torch.tensor(cur_time, dtype=torch.float32,requires_grad=True)
         self.hidden=torch.tensor(self.hidden, dtype=torch.float32,requires_grad=True)
-        output, self.hidden = self.network(cur_time, self.hidden)
+        output, hidden = self.network(cur_time, self.hidden)
         next_time = torch.tensor(next_time, dtype=torch.double,requires_grad=True)
         time_reward=torch.tensor(time_reward, dtype=torch.double,requires_grad=True)
         output=torch.tensor(output, dtype=torch.double,requires_grad=True)

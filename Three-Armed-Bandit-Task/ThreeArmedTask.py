@@ -334,5 +334,5 @@ if __name__ == '__main__':
     t = ThreeArmedTask(config_file)
     # t.train()
     # t.saveModel(model_name)
-    t.loadModel('./save_m/model-three-armed-2019_12_03.pt', 'ThreeArmed_Config.json')
-    t.validate('validate_record-three-armed-2019_12_03.hdf5')
+    t.loadModel('./save_m/model-three-armed-2019_12_04-5e4-without_init.pt', 'ThreeArmed_Config.json')
+    t.validate('validate_record-three-armed-2019_12_04-5e4-without_init.hdf5')

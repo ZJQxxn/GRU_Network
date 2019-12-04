@@ -83,6 +83,7 @@ class DataGenerate:
         if self.train_block_num % 2 == 1: # make the number of blocks be a even number
             self.train_block_num = self.train_block_num + 1
         self.train_trial_num = self.train_block_num * self.block_size
+        self.train_trial_num += 1 # TODO: explain
             # =============== FOR VALIDATING DATA ==================
         # Add some trials to make a complete block in the tail.
         self.validate_block_num = validate_trial_num // self.block_size
@@ -161,6 +162,7 @@ class DataGenerate:
         # ================ GENERATE TRIALS ===================
         self.choices = []  # the choice of stimulus of all the trials, 0 for A, 1 for B, and 2 for C
         self.rewards = []  # the reward of all the trials, 1 for reward and 0 for no reward
+        prev_trial = np.zeros((self.input_dim, self.time_step_num))
         for nTrial in range(self.train_trial_num):
             trial = np.zeros(
                 (self.input_dim, self.time_step_num + 1))  # add an extra time step for computing loss when training
@@ -188,10 +190,12 @@ class DataGenerate:
             trial[3, 12:14] = trial[7, 12:14] = 1
             # The extra time step should be the first step at next trial
             trial[3, 14] = trial[7, 14] = 1
-            # Append this trial into training set
-            self.training_set.append(trial.T)
+            if nTrial>0:
+                # Append this trial into training set
+                self.training_set.append(np.hstack((prev_trial, trial)).T)
+            prev_trial = trial
         # store weight coefficients for each input of each trial
-        self.training_guide = np.vstack((self.rewards, np.tile(self.time_step_num, self.train_trial_num))).T
+        self.training_guide = np.vstack((self.rewards[1:], np.tile(2*self.time_step_num, self.train_trial_num-1))).T
         # ================ SHOW TRIAL ===================
         # sbn.set(font_scale=1.6)
         # y_lables = ['see A', 'see B', 'see C', 'see nothing', 'choose A', 'choose B', 'choose C', 'do nothing',
@@ -274,6 +278,6 @@ class DataGenerate:
 
 
 if __name__ == '__main__':
-    g = DataGenerate(train_trial_num=500, validate_trial_num= 100)
+    g = DataGenerate(train_trial_num=50, validate_trial_num= 5000)
     g.generating('reverse')
     g.save2Mat()
