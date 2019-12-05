@@ -327,7 +327,7 @@ class ThreeArmedTask(Task):
 
 
 if __name__ == '__main__':
-    reward_type = 'sudden-reverse'
+    reward_type = 'reverse'
     config_file = "ThreeArmed_Config.json"
     configs = readConfigures(config_file)
     model_name = './save_m/model-three-armed-'+ configs['data_file'].split('-')[2] + '-' + reward_type +'.pt' # TODO: deal with multiple models
@@ -335,5 +335,5 @@ if __name__ == '__main__':
     t = ThreeArmedTask(config_file)
     # t.train()
     # t.saveModel(model_name)
-    t.loadModel('./save_m/model-three-armed-2019_12_04-sudden-reverse-without_init.pt', 'ThreeArmed_Config.json')
-    t.validate('validate_record-three-armed-2019_12_04-sudden-reverse-without_init.hdf5')
+    t.loadModel('./save_m/model-three-armed-2019_12_03-reverse.pt', 'ThreeArmed_Config.json')
+    t.validate('validate_record-three-armed-2019_12_03-reverse.hdf5')

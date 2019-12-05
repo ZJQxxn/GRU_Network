@@ -141,7 +141,7 @@ class DataGenerate:
             second_block = second_block + np.random.uniform(-0.1, 0.1, (3, self.block_size - 20))
             reward_probability = np.concatenate((first_block, transit_first_part, transit_second_part, second_block), axis = 1)
             #reward_probability = np.tile(reward_probability, self.train_block_num // 2)
-        elif 'sudden-reverse' == reward_type:
+        elif 'sudden_reverse' == reward_type:
             # For the trials of the first block, reward probability of A varies based on 0.6,
             # of B varies based on 0.2, and of C is fixed to 0. It is a stable reverse, which means though the
             # perturbation exists, the reward probability of A is no less than B.
@@ -291,5 +291,5 @@ class DataGenerate:
 
 if __name__ == '__main__':
     g = DataGenerate(train_trial_num=500000, validate_trial_num= 5000)
-    g.generating('sudden-reverse')
+    g.generating('sudden_reverse')
     g.save2Mat()

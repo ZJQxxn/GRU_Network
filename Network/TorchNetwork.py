@@ -164,22 +164,25 @@ class TorchNetwork:
         # determine how many trials are used for training
         for i in range(self.network.batch_size):
             reward_guide[batch_reward[i, 1]:, i, :] = 0
-        reward_guide = torch.tensor(reward_guide, dtype = torch.float, requires_grad=True)##########################
+        reward_guide = torch.tensor(reward_guide, dtype = torch.float, requires_grad=False)##########################
         reward_guide = reward_guide.cuda() if self.cuda_enabled else reward_guide
         # Train the network with each trial
-        hidden = torch.tensor(self.hidden, dtype=torch.float32, requires_grad=True)
+        # hidden = torch.tensor(self.hidden, dtype=torch.float32, requires_grad=True)
+        hidden = torch.tensor(self.hidden, dtype=torch.float32)
         for i in range(times_num):
             cur_time = np2tensor(batch_data[i:i+1, :, :], cuda_enabled = self.cuda_enabled) # current time step in the batch
             time_reward = reward_guide[i]
-            next_time = np2tensor(batch_data[i+1:i+2, :, :], gradient_required=True) # next time step; used for computing loss
+            next_time = np2tensor(batch_data[i+1:i+2, :, :], gradient_required=False) # next time step; used for computing loss
             # Train with current time step
+            #TODO: Explain require gradients
             cur_time = torch.tensor(cur_time, dtype=torch.float32, requires_grad=True)
+            next_time = torch.tensor(next_time, dtype=torch.float32, requires_grad=False)
             output, hidden = self.network(cur_time, hidden)
             if i == save_step:  # TODO: not elegant, it is only for two step task
-                self.hidden = copy.deepcopy(torch.tensor(hidden, dtype=torch.float32, requires_grad=True))
+                self.hidden = copy.deepcopy(torch.tensor(hidden))
             # Compute  loss
-            time_reward = torch.tensor(time_reward, dtype=torch.double, requires_grad=True)
-            output = torch.tensor(output, dtype=torch.double, requires_grad=True)
+            #time_reward = torch.tensor(time_reward, dtype=torch.double, requires_grad=True)
+            # output = torch.tensor(output, dtype=torch.double, requires_grad = False)
             loss = self.network.criterion((time_reward * output).reshape([1, -1])[0],
                                           (time_reward * next_time).reshape([1, -1])[0])
             raw_output = tensor2np(output, cuda_enabled=self.cuda_enabled)
@@ -198,28 +201,28 @@ class TorchNetwork:
         correct_rate = match_rate(batch_data[1:, :, :], predicted_trial)
         return total_loss.item(), correct_rate
 
-    def _trainTimeStep(self, cur_time, time_reward, next_time):
-        '''
-        Train the network with a single trial.
-        :param cur_time: Current time step.
-        :param trial_reward: Reward of this time step.
-        :param next_time: Next time step.
-        :return: 
-            - loss(float): Loss of prediction of this trial.
-            - raw_output: Raw predicted output of this trial.
-            - copied_hidden: Current hidden units value after training with this trial.
-        '''
-        cur_time = torch.tensor(cur_time, dtype=torch.float32,requires_grad=True)
-        self.hidden=torch.tensor(self.hidden, dtype=torch.float32,requires_grad=True)
-        output, hidden = self.network(cur_time, self.hidden)
-        next_time = torch.tensor(next_time, dtype=torch.double,requires_grad=True)
-        time_reward=torch.tensor(time_reward, dtype=torch.double,requires_grad=True)
-        output=torch.tensor(output, dtype=torch.double,requires_grad=True)
-        loss = self.network.criterion((time_reward * output).reshape([1, -1])[0],
-                         (time_reward * next_time).reshape([1, -1])[0])
-        raw_output = tensor2np(output, cuda_enabled = self.cuda_enabled)
-        copied_hidden =tensor2np(self.hidden, cuda_enabled = self.cuda_enabled)
-        return loss, raw_output, copied_hidden
+    # def _trainTimeStep(self, cur_time, time_reward, next_time):
+    #     '''
+    #     Train the network with a single trial.
+    #     :param cur_time: Current time step.
+    #     :param trial_reward: Reward of this time step.
+    #     :param next_time: Next time step.
+    #     :return:
+    #         - loss(float): Loss of prediction of this trial.
+    #         - raw_output: Raw predicted output of this trial.
+    #         - copied_hidden: Current hidden units value after training with this trial.
+    #     '''
+    #     cur_time = torch.tensor(cur_time, dtype=torch.float32,requires_grad=True)
+    #     self.hidden=torch.tensor(self.hidden, dtype=torch.float32,requires_grad=True)
+    #     output, hidden = self.network(cur_time, self.hidden)
+    #     next_time = torch.tensor(next_time, dtype=torch.double,requires_grad=True)
+    #     time_reward=torch.tensor(time_reward, dtype=torch.double,requires_grad=True)
+    #     output=torch.tensor(output, dtype=torch.double,requires_grad=True)
+    #     loss = self.network.criterion((time_reward * output).reshape([1, -1])[0],
+    #                      (time_reward * next_time).reshape([1, -1])[0])
+    #     raw_output = tensor2np(output, cuda_enabled = self.cuda_enabled)
+    #     copied_hidden =tensor2np(self.hidden, cuda_enabled = self.cuda_enabled)
+    #     return loss, raw_output, copied_hidden
 
     def _initHidden(self):
         '''
