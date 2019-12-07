@@ -207,7 +207,7 @@ class ThreeArmedTask(Task):
         self.validate_records['time_step'] += 1
         hidden = self.validate_records['hidden']
         cur_time_step = torch.tensor(cur_time_step).clone().detach().type(torch.FloatTensor)\
-            .view(1, self.model.network.batch_size,-1).requires_grad_(True)
+            .view(1, self.model.network.batch_size,-1)
         output, hidden = self.model.network(cur_time_step, hidden)
         # Determine whether need to update the trial
         if self.validate_records['time_step'] >= self.task_validate_attr['validate_trial_length']:
@@ -333,7 +333,7 @@ if __name__ == '__main__':
     model_name = './save_m/model-three-armed-'+ configs['data_file'].split('-')[2] + '-' + reward_type +'.pt' # TODO: deal with multiple models
 
     t = ThreeArmedTask(config_file)
-    # t.train()
+    t.train()
     # t.saveModel(model_name)
-    t.loadModel('./save_m/model-three-armed-2019_12_03-reverse.pt', 'ThreeArmed_Config.json')
-    t.validate('validate_record-three-armed-2019_12_03-reverse.hdf5')
+    # t.loadModel('./save_m/model-three-armed-2019_12_05-sudden_reverse.pt', 'ThreeArmed_Config.json')
+    t.validate('validate_record-three-armed-2019_12_05-reverse-min.hdf5')

@@ -194,6 +194,14 @@ class TwoStepTask(Task):
         raw_rec["predicted_trial"] = copy.deepcopy(predicted_trial)  # predicted set
         raw_rec["raw_records"] = copy.deepcopy(self.validate_records['raw_records'])  # raw output
         raw_rec["hidden_records"] = copy.deepcopy(self.validate_records['hidden_records'])  # raw hidden
+
+        if self.validate_records['reward'] != None:
+            raw_rec['choice'] = self.validate_records['choice']
+            raw_rec['reward'] = self.validate_records['reward'][0]
+        else:
+            raw_rec['choice'] = -1
+            raw_rec['reward'] = -1
+
         # Compute correct rate; when calculate correct ratio, we need to truncate the trial
         tmp_correct_rate = match_rate(np.array(self.validate_records['sensory_sequence'])[1:, :],
                                       predicted_trial[:-1, :])
@@ -366,6 +374,6 @@ class TwoStepTask(Task):
 if __name__ == '__main__':
     t = TwoStepTask("test_config.json")
     # t.train()
-    # t.saveModel('./save_m/test.pt')
-    t.loadModel('./save_m/test.pt', 'test_config.json')
-    t.validate('test.hdf5')
+    # t.saveModel('./save_m/model-two-step.pt')
+    t.loadModel('./save_m/model-sp_ts_250000-20190702_0553-2.pt', 'test_config.json')
+    t.validate('validation-previous.hdf5')

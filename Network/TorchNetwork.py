@@ -175,14 +175,14 @@ class TorchNetwork:
             next_time = np2tensor(batch_data[i+1:i+2, :, :], gradient_required=False) # next time step; used for computing loss
             # Train with current time step
             #TODO: Explain require gradients
-            cur_time = torch.tensor(cur_time, dtype=torch.float32, requires_grad=True)
+            # cur_time = torch.tensor(cur_time, dtype=torch.float32, requires_grad=True)
+            cur_time = torch.tensor(cur_time, dtype=torch.float32, requires_grad=False) # TODO: donot require gradient still get solution
             next_time = torch.tensor(next_time, dtype=torch.float32, requires_grad=False)
             output, hidden = self.network(cur_time, hidden)
             if i == save_step:  # TODO: not elegant, it is only for two step task
                 self.hidden = copy.deepcopy(torch.tensor(hidden))
             # Compute  loss
             #time_reward = torch.tensor(time_reward, dtype=torch.double, requires_grad=True)
-            # output = torch.tensor(output, dtype=torch.double, requires_grad = False)
             loss = self.network.criterion((time_reward * output).reshape([1, -1])[0],
                                           (time_reward * next_time).reshape([1, -1])[0])
             raw_output = tensor2np(output, cuda_enabled=self.cuda_enabled)

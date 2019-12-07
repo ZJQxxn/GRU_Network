@@ -117,8 +117,8 @@ class DataGenerate:
         # return a (3, 2 * block size) matrix
         if 'fixed' == reward_type:
             reward_probability = [[0.8], [0.5], [0.1]]  # reward probability is A (0.8), B (0.5), and C (0.1)
-            reward_probability = np.tile(reward_probability, self.train_trial_num-1)
-            reward_probability += np.random.uniform(-0.1, 0.1, (3, self.train_trial_num-1))
+            reward_probability = np.tile(reward_probability, 2*self.block_size)
+            reward_probability += np.random.uniform(-0.1, 0.1, (3, 2*self.block_size))
         elif 'reverse' == reward_type:
             # For the trials of the first block, reward probability of A varies based on 0.6,
             # of B varies based on 0.2, and of C is fixed to 0. It is a stable reverse, which means though the
@@ -153,15 +153,26 @@ class DataGenerate:
             second_block = np.tile(second_base, self.block_size)
             second_block = second_block + np.random.uniform(-0.1, 0.1, (3, self.block_size))
             reward_probability = np.concatenate((first_block, second_block), axis = 1)
+        elif 'slow_reverse' == reward_type:
+            first_base = [[0.6], [0.2], [0.0]]
+            second_base = [[0.1], [0.4], [0.8]]
+            first_block = [np.linspace(start=first_base[0][0], stop=second_base[0][0], num=self.block_size),
+                           np.linspace(start=first_base[1][0], stop=second_base[1][0], num=self.block_size),
+                           np.linspace(start=first_base[2][0], stop=second_base[2][0], num=self.block_size)]
+            second_block = [np.linspace(start=second_base[0][0], stop=first_block[0][0], num=self.block_size),
+                           np.linspace(start=second_base[1][0], stop=first_block[1][0], num=self.block_size),
+                           np.linspace(start=second_base[2][0], stop=first_block[2][0], num=self.block_size)]
+            reward_probability = np.concatenate((first_block, second_block), axis=1)
+            reward_probability = reward_probability + np.random.uniform(-0.1, 0.1, (3, 2*self.block_size))
         else:
             raise ValueError('Unsupported reward probability type!')
 
-        # # show for test
-        # plt.plot(np.arange(0, self.block_size * 2), reward_probability[0, :], 'o-r', label='stimulus A')
-        # plt.plot(np.arange(0, self.block_size * 2), reward_probability[1, :], 'o-b', label='stimulus B')
-        # plt.plot(np.arange(0, self.block_size * 2), reward_probability[2, :], 'o-g', label='stimulus C')
-        # plt.legend(fontsize=20)
-        # plt.show()
+        # show for test
+        plt.plot(np.arange(0, self.block_size * 2), reward_probability[0, :], 'o-r', label='stimulus A')
+        plt.plot(np.arange(0, self.block_size * 2), reward_probability[1, :], 'o-b', label='stimulus B')
+        plt.plot(np.arange(0, self.block_size * 2), reward_probability[2, :], 'o-g', label='stimulus C')
+        plt.legend(fontsize=20)
+        plt.show()
 
         self.reward_type = reward_type
         return reward_probability
@@ -290,6 +301,6 @@ class DataGenerate:
 
 
 if __name__ == '__main__':
-    g = DataGenerate(train_trial_num=500000, validate_trial_num= 5000)
-    g.generating('sudden_reverse')
+    g = DataGenerate(train_trial_num=100, validate_trial_num= 5000)
+    g.generating('reverse')
     g.save2Mat()

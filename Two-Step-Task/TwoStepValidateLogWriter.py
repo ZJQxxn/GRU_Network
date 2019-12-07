@@ -63,6 +63,10 @@ class TwoStepValidateLogWriter(ValidateLogWriter):
                                                               shape=neuron_shape)
         self.index_storage = self.hdf5file.create_earray(self.hdf5file.root, 'index', index_dtype,
                                                              shape=label_shape)
+        self.choice_storage = self.hdf5file.create_earray(self.hdf5file.root, 'choice', index_dtype,
+                                                          shape=(0, 1))
+        self.reward_storage = self.hdf5file.create_earray(self.hdf5file.root, 'reward', index_dtype,
+                                                          shape=(0, 1))
 
     def appendRecord(self, record):
         '''
@@ -83,6 +87,8 @@ class TwoStepValidateLogWriter(ValidateLogWriter):
         self.rawoutput_storage.append(raw_output)
         self.neuron_storage.append(neuron_data)
         self.index_storage.append(index_data)
+        self.choice_storage.append(np.array([record['choice']]).reshape(1, 1))
+        self.reward_storage.append(np.array([record['reward']]).reshape(1, 1))
         self.low = tmp_high
 
     def closeHdf5File(self):
