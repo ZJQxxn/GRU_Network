@@ -76,22 +76,8 @@ class DataGenerate:
         self.time_step_num = 14  # The number of time steps of a trial
         self.validate_time_step_num = 5 # The number of time steps for validating trial,
                                         # only first 5 time steps because we only need validating trial to show stimulus
-        # =============== FOR TRAINING DATA =======================
-        # Add some trials to make a complete block in the tail.
-        self.train_block_num = train_trial_num // self.block_size
-        self.train_block_num = (self.train_block_num + 1) if train_trial_num % self.block_size != 0 else self.train_block_num # complete the last block
-        if self.train_block_num % 2 == 1: # make the number of blocks be a even number
-            self.train_block_num = self.train_block_num + 1
-        self.train_trial_num = self.train_block_num * self.block_size
-        self.train_trial_num += 1 # TODO: explain
-            # =============== FOR VALIDATING DATA ==================
-        # Add some trials to make a complete block in the tail.
-        self.validate_block_num = validate_trial_num // self.block_size
-        self.validate_block_num = (
-        self.validate_block_num + 1) if validate_trial_num % self.block_size != 0 else self.validate_block_num  # complete the last block
-        if self.validate_block_num % 2 == 1:  # make the number of blocks be a even number
-            self.validate_block_num = self.validate_block_num + 1
-        self.validate_trial_num = self.validate_block_num * self.block_size
+        self.train_trial_num = train_trial_num
+        self.validate_trial_num = validate_trial_num
 
     def generating(self, reward_type = 'reverse'):
         '''
@@ -99,10 +85,29 @@ class DataGenerate:
         :param reward_type: The type of reward probability, either 'fixed' or 'reverse'.
         :return: VOID
         '''
+        # =============== COMPUTE TRIAL REWARD PROBABILITY ========
         self.training_set = []
         self.validating_set = []
         self.reward_probability = self._generateRewardProbability(reward_type)
         print('Finished generating reward probability at each trial.')
+        # =============== FOR TRAINING DATA =======================
+        # Add some trials to make a complete block in the tail.
+        self.train_block_num = self.train_trial_num // self.block_size
+        self.train_block_num = (
+        self.train_block_num + 1) if self.train_trial_num % self.block_size != 0 else self.train_block_num  # complete the last block
+        if self.train_block_num % 2 == 1:  # make the number of blocks be a even number
+            self.train_block_num = self.train_block_num + 1
+        self.train_trial_num = self.train_block_num * self.block_size
+        self.train_trial_num += 1  # TODO: explain
+        # =============== FOR VALIDATING DATA ==================
+        # Add some trials to make a complete block in the tail.
+        self.validate_block_num = self.validate_trial_num // self.block_size
+        self.validate_block_num = (
+            self.validate_block_num + 1) if self.validate_trial_num % self.block_size != 0 else self.validate_block_num  # complete the last block
+        if self.validate_block_num % 2 == 1:  # make the number of blocks be a even number
+            self.validate_block_num = self.validate_block_num + 1
+        self.validate_trial_num = self.validate_block_num * self.block_size
+        # =============== GENERATING TRIALS =======================
         self._generateTraining()
         print('Finished generating {} training data.'.format(self.train_trial_num))
         self._generateValidating()
@@ -116,13 +121,15 @@ class DataGenerate:
         '''
         # return a (3, 2 * block size) matrix
         if 'fixed' == reward_type:
+            # The reward probability is basically fixed among trials, with some noise added.
             reward_probability = [[0.8], [0.5], [0.1]]  # reward probability is A (0.8), B (0.5), and C (0.1)
             reward_probability = np.tile(reward_probability, 2*self.block_size)
             reward_probability += np.random.uniform(-0.1, 0.1, (3, 2*self.block_size))
         elif 'reverse' == reward_type:
             # For the trials of the first block, reward probability of A varies based on 0.6,
             # of B varies based on 0.2, and of C is fixed to 0. It is a stable reverse, which means though the
-            # perturbation exists, the reward probability of A is no less than B.
+            # perturbation exists, the reward probability of A is no less than B. The reversing process is completed
+            # slowly.
             first_base = [[0.6], [0.2], [0.0]]
             first_block = np.tile(first_base, self.block_size-10)
             first_block[0:2,:] = first_block[0:2,:] + np.random.uniform(-0.15, 0.15, (2, self.block_size - 10))
@@ -140,11 +147,11 @@ class DataGenerate:
             second_block = np.tile(second_base, self.block_size-20)
             second_block = second_block + np.random.uniform(-0.1, 0.1, (3, self.block_size - 20))
             reward_probability = np.concatenate((first_block, transit_first_part, transit_second_part, second_block), axis = 1)
-            #reward_probability = np.tile(reward_probability, self.train_block_num // 2)
         elif 'sudden_reverse' == reward_type:
             # For the trials of the first block, reward probability of A varies based on 0.6,
             # of B varies based on 0.2, and of C is fixed to 0. It is a stable reverse, which means though the
-            # perturbation exists, the reward probability of A is no less than B.
+            # perturbation exists, the reward probability of A is no less than B. Moreover, the reversing process completed
+            # suddenly.
             first_base = [[0.6], [0.2], [0.0]]
             first_block = np.tile(first_base, self.block_size)
             first_block[0:2,:] = first_block[0:2,:] + np.random.uniform(-0.15, 0.15, (2, self.block_size))
@@ -153,26 +160,78 @@ class DataGenerate:
             second_block = np.tile(second_base, self.block_size)
             second_block = second_block + np.random.uniform(-0.1, 0.1, (3, self.block_size))
             reward_probability = np.concatenate((first_block, second_block), axis = 1)
-        elif 'slow_reverse' == reward_type:
+        elif 'small_block_reverse' == reward_type:
+            # For the trials of the first block, reward probability of A varies based on 0.6,
+            # of B varies based on 0.2, and of C is fixed to 0. It is a stable reverse, which means though the
+            # perturbation exists, the reward probability of A is no less than B. The reversing process is completed
+            # slowly and the block size is 50.
+            self.block_size = 20
             first_base = [[0.6], [0.2], [0.0]]
-            second_base = [[0.1], [0.4], [0.8]]
-            first_block = [np.linspace(start=first_base[0][0], stop=second_base[0][0], num=self.block_size),
-                           np.linspace(start=first_base[1][0], stop=second_base[1][0], num=self.block_size),
-                           np.linspace(start=first_base[2][0], stop=second_base[2][0], num=self.block_size)]
-            second_block = [np.linspace(start=second_base[0][0], stop=first_block[0][0], num=self.block_size),
-                           np.linspace(start=second_base[1][0], stop=first_block[1][0], num=self.block_size),
-                           np.linspace(start=second_base[2][0], stop=first_block[2][0], num=self.block_size)]
+            first_block = np.tile(first_base, self.block_size - 5)
+            first_block[0:2, :] = first_block[0:2, :] + np.random.uniform(-0.1, 0.1, (2, self.block_size - 5))
+            transit_first_part = [np.linspace(start=first_block[0][-1], stop=0.4, num=5),
+                                  np.linspace(start=first_block[1][-1], stop=0.4, num=5),
+                                  np.linspace(start=first_block[2][-1], stop=0.4, num=5)]
+            transit_first_part = np.array(transit_first_part)
+            transit_second_part = [np.linspace(start=transit_first_part[0][-1], stop=0.2, num=10),
+                                   np.linspace(start=transit_first_part[1][-1], stop=0.4, num=10),
+                                   np.linspace(start=transit_first_part[2][-1], stop=0.8, num=10)]
+            transit_second_part = np.array(transit_second_part)
+            transit_second_part[:, 0:10] = transit_second_part[0:10, :] + np.random.uniform(-0.05, 0.05, (3, 10))
+            # For the trials of the second block
+            second_base = [[transit_second_part[0][-1]], [transit_second_part[1][-1]], [transit_second_part[2][-1]]]
+            second_block = np.tile(second_base, self.block_size - 10)
+            second_block = second_block + np.random.uniform(-0.1, 0.1, (3, self.block_size - 10))
+            reward_probability = np.concatenate((first_block, transit_first_part, transit_second_part, second_block),
+                                                axis=1)
+        elif 'two_reverse' == reward_type:
+            # For the trials of the first block, reward probability of A varies based on 0.6,
+            # of B varies based on 0.2, and of C is fixed to 0. It is a stable reverse, which means though the
+            # perturbation exists, the reward probability of A is no less than B. Then, in the second block, the reward
+            # probability reversed to A=0.0, B=0.4, and C=0.8. Moreover, the reversing process completed suddenly.
+            self.block_size = 20
+            first_base = [[0.8], [0.4], [0.0]]
+            first_block = np.tile(first_base, self.block_size)
+            first_block[0:2, :] = first_block[0:2, :] + np.random.uniform(-0.1, 0.1, (2, self.block_size))
+            # For the trials of the second block
+            second_base = [[0.0], [0.4], [0.8]]
+            second_block = np.tile(second_base, self.block_size)
+            second_block[1:,:] = second_block[1:,:] + np.random.uniform(-0.1, 0.1, (2, self.block_size))
             reward_probability = np.concatenate((first_block, second_block), axis=1)
-            reward_probability = reward_probability + np.random.uniform(-0.1, 0.1, (3, 2*self.block_size))
+        elif 'two_armed' == reward_type:
+            # For the trials of the first block, reward probability of A varies based on 0.6,
+            # of B varies based on 0.2, and of C is fixed to 0. It is a stable reverse, which means though the
+            # perturbation exists, the reward probability of A is no less than B. Moreover, the reversing process completed
+            # suddenly.
+            first_base = [[0.6], [0.2], [0.0]]
+            first_block = np.tile(first_base, self.block_size)
+            first_block[0:2, :] = first_block[0:2, :] + np.random.uniform(-0.1, 0.1, (2, self.block_size))
+            # For the trials of the second block
+            second_base = [[0.2], [0.6], [0.0]]
+            second_block = np.tile(second_base, self.block_size)
+            second_block[0:2, :] = second_block[0:2, :] + np.random.uniform(-0.1, 0.1, (2, self.block_size))
+            reward_probability = np.concatenate((first_block, second_block), axis=1)
+        elif 'two_armed_without_noise' == reward_type:
+            # For the trials of the first block, reward probability of A varies based on 0.6,
+            # of B varies based on 0.2, and of C is fixed to 0. It is a stable reverse, which means though the
+            # perturbation exists, the reward probability of A is no less than B. Moreover, the reversing process completed
+            # suddenly.
+            first_base = [[0.8], [0.2], [0.0]]
+            first_block = np.tile(first_base, self.block_size)
+            # For the trials of the second block
+            second_base = [[0.2], [0.9], [0.0]]
+            second_block = np.tile(second_base, self.block_size)
+            reward_probability = np.concatenate((first_block, second_block), axis=1)
         else:
             raise ValueError('Unsupported reward probability type!')
 
         # show for test
-        plt.plot(np.arange(0, self.block_size * 2), reward_probability[0, :], 'o-r', label='stimulus A')
-        plt.plot(np.arange(0, self.block_size * 2), reward_probability[1, :], 'o-b', label='stimulus B')
-        plt.plot(np.arange(0, self.block_size * 2), reward_probability[2, :], 'o-g', label='stimulus C')
-        plt.legend(fontsize=20)
-        plt.show()
+        # plt.plot(np.arange(0, self.block_size * 2), reward_probability[0, :], 'o-r', label='stimulus A')
+        # plt.plot(np.arange(0, self.block_size * 2), reward_probability[1, :], 'o-b', label='stimulus B')
+        # plt.plot(np.arange(0, self.block_size * 2), reward_probability[2, :], 'o-g', label='stimulus C')
+        # plt.yticks(np.arange(0, 1, 0.1))
+        # plt.legend(fontsize=20)
+        # plt.show()
 
         self.reward_type = reward_type
         return reward_probability
@@ -301,6 +360,6 @@ class DataGenerate:
 
 
 if __name__ == '__main__':
-    g = DataGenerate(train_trial_num=100, validate_trial_num= 5000)
-    g.generating('reverse')
+    g = DataGenerate(train_trial_num=1000000, validate_trial_num= 5000)
+    g.generating('two_armed_without_noise')
     g.save2Mat()

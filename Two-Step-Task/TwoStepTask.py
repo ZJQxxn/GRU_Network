@@ -110,7 +110,6 @@ class TwoStepTask(Task):
                 [0, 0, 0, 0, 1, 1, 0, 0, 0, 1],
                 ]
         }
-        self._resetTrialRecords()
         wining_counts, completed_counts, trial_counts = 0, 0, 0
         total_loss, total_correct_rate = 0, 0
         t_interval = 1000
@@ -131,12 +130,16 @@ class TwoStepTask(Task):
                 'trans_probs': self.task_validate_attr['trans_probs'][:,step],
                 'reward_prob_1':self.task_validate_attr['reward_prob_1'][:,step]
             }
+            self._resetTrialRecords()
             tmp_loss, tmp_correct_rate, raw_rec, wining, completed = self._trialValidate(trial, trial_reward_prob)
             trial_counts = trial_counts + 1
             wining_counts = wining_counts + wining
             completed_counts = completed_counts + completed
             total_loss = total_loss + tmp_loss
             total_correct_rate = total_correct_rate + tmp_correct_rate
+
+            #TODO: for printing correct rate
+            raw_rec['correct_rate'] = tmp_correct_rate
 
             # Write into log file
             if need_log:
@@ -373,7 +376,11 @@ class TwoStepTask(Task):
 
 if __name__ == '__main__':
     t = TwoStepTask("test_config.json")
-    # t.train()
-    # t.saveModel('./save_m/model-two-step.pt')
-    t.loadModel('./save_m/model-sp_ts_250000-20190702_0553-2.pt', 'test_config.json')
-    t.validate('validation-previous.hdf5')
+    # train_loss, train_correct_rate = t.train()
+    # import matplotlib.pyplot as plt
+    # plt.plot(np.arange(0,500), train_correct_rate)
+    # plt.yticks(np.arange(0, 1, 0.1))
+    # plt.show()
+    # t.saveModel('./save_m/model-two-step-without-init.pt')
+    t.loadModel('./save_m/model-two-step-75e5.pt', 'test_config.json')
+    t.validate('20191209_1122-smp_ts.hdf5')

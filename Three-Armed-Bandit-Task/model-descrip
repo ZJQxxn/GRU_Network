@@ -1,0 +1,47 @@
+=================== Model ============================
+
+model-three-armed-2019_12_05-fixed.pt:  Trained with 5e5 trials with fixed probability.
+
+model-three-armed-2019_12_05-reverse.pt:  Trained with 5e5 trials with reverse probability.
+
+model-three-armed-2019_12_05-sudden_revere.pt:  Trained with 5e5 trials with sudden reverse probability.
+
+model-three-armed-2019_12_08-sudden_reverse.pt:  Trained with 7.5e5 trials with sudden reverse probability.
+
+model-three-armed-2019_12_09-sudden_reverse.pt:  Trained with 1.5e6 trials with sudden reverse probability.
+
+model-three-armed-2019_12_10-sudden_reverse.pt:  Trained with 1e6 trials with sudden reverse probability.
+
+model-three-armed-2019_12_10-small_block.pt:  Trained with 1e6 trials with reverse probability (block size = 50).
+
+model-three-armed-2019_12_10-two_reverse.pt:  Trained with 1e6 trials with two reverse probability. (block size = 150)
+
+model-three-armed-2019_12_11-small_block.pt:  Trained with 1e6 trials with small block probability. (block size = 20)
+
+model-three-armed-2019_12_11-two_reverse.pt:  Trained with 1e6 trials with two reverse probability. (block size = 20)
+
+model-three-armed-2019_12_11-two_armed.pt:  Trained with 1e6 trials with two reverse probability. (block size = 150)
+
+=================== Log ============================
+
+validation_record-three-aremd-2019_12_05-fixed.hdf5:  Validation record with corresponding fixed model and 5000 trials.
+
+validation_record-three-aremd-2019_12_05-reverse.hdf5:  Validation record with corresponding reverse model and 5000 trials.
+
+validation_record-three-aremd-2019_12_05-sudden_reverse.hdf5:  Validation record with corresponding sudden reverse model and 5000 trials.
+
+validation_record-three-aremd-2019_12_08-sudden_reverse.hdf5:  Validation record with corresponding sudden reverse model and 5000 trials.
+
+validation_record-three-aremd-2019_12_09-sudden_reverse.hdf5:  Validation record with corresponding sudden reverse model and 5000 trials.
+
+validation_record-three-aremd-2019_12_10-sudden_reverse.hdf5:  Validation record with corresponding sudden reverse model and 5000 trials.
+
+validation_record-three-aremd-2019_12_10-two_reverse.hdf5:  Validation record with corresponding two reverse model and 5000 trials.
+
+validation_record-three-aremd-2019_12_10-small_block.hdf5:  Validation record with corresponding small block reverse model and 5000 trials.
+
+validation_record-three-aremd-2019_12_11-small_block.hdf5:  Validation record with corresponding small block reverse model and 5000 trials.
+
+validation_record-three-aremd-2019_12_11-two_reverse.hdf5:  Validation record with corresponding two reverse model and 5000 trials.
+
+validation_record-three-aremd-2019_12_11-two_armed.hdf5:  Validation record with corresponding two armed model and 5000 trials.

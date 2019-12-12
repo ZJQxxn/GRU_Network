@@ -13,10 +13,9 @@ from sklearn.linear_model import LogisticRegression
 
 class TaskAnalyzer:
 
-    def __init__(self, logFileName, validationFileName, block_size = 150):
-        self.block_size = block_size #TODO: a new name for block size or let block size = 300
+    def __init__(self, logFileName):
+        self.block_size = 70 #TODO: a new name for block size or let block size = 300
         self.logFile = h5py.File(logFileName, 'r')
-        self.validationFileName = validationFileName
 
     def behaviorAnalysis(self):
         self.block_reward_prob = self._getBlockRewrdProbability()  # reward probability for all three stimulus in the 2 block
@@ -28,37 +27,35 @@ class TaskAnalyzer:
         # # TODO: for moving window
         # self.mean_experienced_reward_prob = self.expeienced_reward_prob[:,0]  # average value
         # self.SEM_experienced_reward_prob = self.expeienced_reward_prob[:,1] # SEM
-        # ================== PLOT PROBABILITY ==================
         # Show block reward probability
-        plt.plot(np.arange(0, self.block_size * 2), self.block_reward_prob[0, :], 'o-r', label='stimulus A')
-        plt.plot(np.arange(0, self.block_size * 2), self.block_reward_prob[1, :], 'o-b', label='stimulus B')
-        plt.plot(np.arange(0, self.block_size * 2), self.block_reward_prob[2, :], 'o-g', label='stimulus C')
+        plt.plot(np.arange(0, self.block_size * 2), self.block_reward_prob[0, :], 'o-r', label='stimulus A1')
+        plt.plot(np.arange(0, self.block_size * 2), self.block_reward_prob[1, :], 'o-b', label='stimulus A2')
         plt.legend(fontsize=20)
         plt.show()
         # Show H_sch
         for i in range(2 * self.block_size):
             temp = self.objective_highest[i, :]
-            if temp[0] == 0:
+            if temp[0] == 0: # choose A1
                 color = 'red'
-            elif temp[0] == 1:
+            elif temp[0] == 1: # choose A2
                 color = 'blue'
-            elif temp[0] == 2:
-                color = 'green'
             else:
-                color = 'cyan'
+                pass
             plt.scatter(i, temp[1], color=color)  # TODO: split into groups, then plot scatters with labels
         plt.plot(np.arange(0, self.block_size * 2), self.objective_highest[:, 1], 'k-')
+        # plt.yticks(np.arange(0.0, 1.0, 0.1))
+        # plt.show()
         # Plot experienced reward probability
         plt.plot(np.arange(0, self.block_size * 2), self.mean_experienced_reward_prob, '*-m')
         plt.yticks(np.arange(0.0, 1.0, 0.1))
         plt.show()
 
     def influenceAnalysis(self):
-        influence_matrix, indication_matrix = self._constructInfluenceMatrix() # with shape of (3, number of trials, 6, 6)\
+        influence_matrix, indication_matrix = self._constructInfluenceMatrix() # with shape of (2, number of trials, 6, 6)\
         # ============= PLOT WEIGHT MATRIX ===================
         coeff = np.zeros((6, 6))
-        for stimulus in [0, 1, 2]:
-            logstic_model = LogisticRegression().fit(influence_matrix[stimulus], indication_matrix[stimulus])
+        for index, stimulus in enumerate([1, 2]):
+            logstic_model = LogisticRegression().fit(influence_matrix[index], indication_matrix[index])
             coeff += np.abs(logstic_model.coef_.squeeze().reshape((6,6))) # TODO: need abs?
         coeff /= 3
         coeff = coeff / np.linalg.norm(coeff)
@@ -76,8 +73,8 @@ class TaskAnalyzer:
         for i in range(split_num):
             sub_influence_matrix = influence_matrix[:,i*1000:(i+1)*1000,:]
             sub_indication_matrix = indication_matrix[:,i*1000:(i+1)*1000]
-            for stimulus in [0, 1, 2]:
-                logstic_model = LogisticRegression().fit(sub_influence_matrix[stimulus], sub_indication_matrix[stimulus])
+            for index, stimulus in enumerate([1, 2]):
+                logstic_model = LogisticRegression().fit(sub_influence_matrix[index], sub_indication_matrix[index])
                 coeff_set[i, :] += np.abs(logstic_model.coef_.squeeze())
             coeff_set[i, :] /= 3
             coeff_set[i, :] = coeff_set[i, :] / np.linalg.norm(coeff_set[i,:])
@@ -114,11 +111,11 @@ class TaskAnalyzer:
         #TODO: for test and for simplicity, choose first 100 trials
         clip = choice.shape[0]
         choice, reward = choice[:clip,:], reward[:clip, :]
-        influence_matrix = np.zeros((3, clip-6, 36)) #TODO: notice the sahpe
-        indication_matrix = np.zeros((3, clip-6))
-        for stimulus in [0, 1, 2]:
+        influence_matrix = np.zeros((2, clip-6, 36)) #TODO: notice the sahpe
+        indication_matrix = np.zeros((2, clip-6))
+        for index, stimulus in enumerate([1, 2]):
             for trial_index in range(6, clip):
-                indication_matrix[stimulus, trial_index-6] = int(stimulus == choice[trial_index]) # indication of this trial
+                indication_matrix[index, trial_index-6] = int(stimulus == choice[trial_index]) # indication of this trial
                 for i in range(6): # n-1 to n-6 trials choices
                     for j in range(6): # n-1 to n-6 trials rewards
                         history_choice = choice[trial_index-6+i, :]
@@ -129,19 +126,26 @@ class TaskAnalyzer:
                             influence = -1
                         else:
                             influence = 0
-                        influence_matrix[stimulus, trial_index-6, i*6+j] = influence
+                        influence_matrix[index, trial_index-6, i*6+j] = influence
         return influence_matrix, indication_matrix
 
     def _getChoiceAndReward(self):
         choice = self.logFile['choice']
         reward = self.logFile['reward']
+        trial_num = choice.shape[0]
+        good_index = []
+        for i in range(trial_num):
+            if choice[i] in [1,2]:
+                good_index.append(i)
+        self.choice = choice[good_index, :]
+        self.reward = reward[good_index, :]
         return choice, reward
 
     def _getBlockRewrdProbability(self):
-        mat = loadmat(self.validationFileName) #TODO: change this
-        reward_prob = mat['info']['reward_probability'][0, 0][:,:300]
-        del mat
-        return reward_prob
+        first_block_reward = np.tile([[0.8, 0.2]], (self.block_size, 1))
+        second_block_reward = np.tile([[0.2, 0.8]], (self.block_size, 1))
+        reward_prob = np.vstack((first_block_reward, second_block_reward))
+        return reward_prob.T
 
     def _getObjectiveHighest(self, reward_prob):
         objective_highest = []
@@ -149,24 +153,14 @@ class TaskAnalyzer:
         for i in range(trial_num):
             trial_reward = reward_prob[:, i]
             max_ind = np.argwhere(trial_reward == np.amax(trial_reward))
-            max_ind = max_ind.flatten()
-            if 1 == len(max_ind.shape):  # only one stimulus has the highest reward probability
-                objective_highest.append([max_ind[0], trial_reward[max_ind[0]]])
-            elif 2 == len(max_ind.shape):  # two stimulus has the highest reward probability
-                # 3 for A/B, 4 for A/C, 5 for B/C
-                highest_reward = trial_reward[0] if 0 in max_ind else trial_reward[1]
-                objective_highest.append([np.sum(max_ind) + 2, trial_reward[0], highest_reward])
-            else:  # all the stimulus has the same reward probability
-                objective_highest.append([6, trial_reward[0]])
+            objective_highest.append([max_ind[0, 0], trial_reward[max_ind[0, 0]]])
         return np.array(objective_highest)
 
     def _getExperiencedRewardProb(self):
         # # TODO: poor result; change to use moving window (20 trials)
         # extract the stimulus choices of all the trials
-        trial_choice = self.logFile['choice']
-        # choice_count = [0, 0, 0]
-        # for each in trial_choice[151:300]:
-        #     choice_count[each[0]] += 1
+        self._getChoiceAndReward()
+        trial_choice = self.choice
         trial_num = trial_choice.shape[0]
         block_num = trial_num // (self.block_size * 2)
         # Experienced reward probability os a (number of trials in one block, number of blocks) matrix
@@ -174,7 +168,9 @@ class TaskAnalyzer:
         for index, choice in enumerate(trial_choice):
             index_in_block = index % (2*self.block_size)
             block_index = index // (2*self.block_size)
-            choice_reward_prob[index_in_block, block_index] = self.block_reward_prob[choice[0], index_in_block]
+            if block_index >= block_num:
+                break
+            choice_reward_prob[index_in_block, block_index] = self.block_reward_prob[choice[0].item()-1, index_in_block]
         # TODO: moving window ;there are 17 blocks in total, take the 16-th block
         # trial_choice = self.logFile['choice']
         # sti_count = [0, 0, 0]
@@ -195,9 +191,7 @@ class TaskAnalyzer:
 
 
 if __name__ == '__main__':
-    analyzer = TaskAnalyzer('validate_record-three-armed-2019_12_11-two_armed.hdf5',
-                            './data/ThreeArmedBandit_TestingSet-two_armed-2019_12_11-1.mat',
-                            block_size=150)
-
-    analyzer.behaviorAnalysis()
+    # analyzer = TaskAnalyzer('validate_record-three-armed-2019_12_05-fixed.hdf5')
+    analyzer = TaskAnalyzer('../Two-Step-Task/20191208_0012-smp_ts.hdf5')
+    # analyzer.behaviorAnalysis()
     analyzer.influenceAnalysis()

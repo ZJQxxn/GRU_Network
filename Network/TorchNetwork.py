@@ -73,6 +73,7 @@ class TorchNetwork:
         train_correct_rate = []
         batch_count = 1 # count the number of batches
         self.hidden = self._initHidden()
+        self.hidden = self.hidden.cuda() if self.cuda_enabled else self.hidden # TODO: for GPU
         # print("self.hidden:", self.hidden)
         for step, trial in enumerate(train_set):
             # cease training when reaching at the truncate iteration
@@ -90,7 +91,7 @@ class TorchNetwork:
                 batch_data = np.array(batch_data).transpose([1, 0, 2])
                 batch_reward = np.array(batch_reward)
                 batch_loss, batch_correct_rate = self._trainBatch(batch_data, batch_reward)
-                batch_data,batch_reward=[],[]
+                batch_data, batch_reward = [], []
                 train_loss.append(batch_loss)
                 train_correct_rate.append(batch_correct_rate)
                 # TODO: print out or write into log file?
@@ -134,7 +135,7 @@ class TorchNetwork:
         :param filename: Filename of .py file.
         :return: VOID
         '''
-        pars = torch.load(filename)
+        pars = torch.load(filename, map_location=torch.device('cpu')) # TODO: attach to CPU when saving the model
         self.config_pars = readConfigures(config_file)  # read configurations from file
         self.config_pars = validateConfigures(self.config_pars)  # check validation of configurations
         self._resetNetwork()
@@ -169,18 +170,26 @@ class TorchNetwork:
         # Train the network with each trial
         # hidden = torch.tensor(self.hidden, dtype=torch.float32, requires_grad=True)
         hidden = torch.tensor(self.hidden, dtype=torch.float32)
+        hidden = hidden.cuda() if self.cuda_enabled else hidden #TODO: check
         for i in range(times_num):
             cur_time = np2tensor(batch_data[i:i+1, :, :], cuda_enabled = self.cuda_enabled) # current time step in the batch
-            time_reward = reward_guide[i]
+            time_reward = reward_guide[i].cuda() if self.cuda_enabled else reward_guide[i]
             next_time = np2tensor(batch_data[i+1:i+2, :, :], gradient_required=False) # next time step; used for computing loss
             # Train with current time step
             #TODO: Explain require gradients
-            # cur_time = torch.tensor(cur_time, dtype=torch.float32, requires_grad=True)
-            cur_time = torch.tensor(cur_time, dtype=torch.float32, requires_grad=False) # TODO: donot require gradient still get solution
+            cur_time = torch.tensor(cur_time, dtype=torch.float32, requires_grad=True)
+            # cur_time = torch.tensor(cur_time, dtype=torch.float32, requires_grad=False) # TODO: donot require gradient still get solution
             next_time = torch.tensor(next_time, dtype=torch.float32, requires_grad=False)
+
+            # TODO: for CUDA
+            cur_time = cur_time.cuda() if self.cuda_enabled else cur_time
+            next_time = next_time.cuda() if self.cuda_enabled else next_time
+
             output, hidden = self.network(cur_time, hidden)
+            hidden = hidden.cuda() if self.cuda_enabled else hidden #TODO: for GPU
             if i == save_step:  # TODO: not elegant, it is only for two step task
-                self.hidden = copy.deepcopy(torch.tensor(hidden))
+                self.hidden = copy.deepcopy(torch.tensor(hidden.data.cpu().numpy())) if self.cuda_enabled \
+                    else copy.deepcopy(torch.tensor(hidden))
             # Compute  loss
             #time_reward = torch.tensor(time_reward, dtype=torch.double, requires_grad=True)
             loss = self.network.criterion((time_reward * output).reshape([1, -1])[0],
@@ -233,6 +242,7 @@ class TorchNetwork:
         weight = next(self.network.parameters()).data
         # for pertubation
         noise = torch.randn(self.network.nlayers, self.network.batch_size, self.network.hid_dim,requires_grad=True) * self.init_noise_amp
+        noise = noise.cuda() if self.cuda_enabled else noise
         new_hidden = (weight.new(self.network.nlayers, self.network.batch_size, self.network.hid_dim).zero_() + noise)\
             .clone().requires_grad_(True)
         if self.cuda_enabled:
@@ -246,11 +256,14 @@ class TorchNetwork:
         Precondition: A feasible configuration dict is already loaded as self.config_pars. 
         :return: VOID
         '''
-        self.network = _GRUNetwork(self.config_pars['in_dim'], self.config_pars['batch_size'])
         self.cuda_enabled = self.config_pars['cuda_enabled']
         self.init_noise_amp = self.config_pars['init_noise_amp']
         self.reset_hidden = self.config_pars['reset_hidden']
         self.gradient_clip = self.config_pars['gradient_clip']
+        self.network = _GRUNetwork(self.config_pars['in_dim'], self.config_pars['batch_size'],
+                                   cuda_enabled = self.cuda_enabled, lr = float(self.config_pars['lr']),
+                                   optimizer = self.config_pars['optimizer'])
+        self.network = self.network.cuda() if self.cuda_enabled else self.network
         # TODO: determine whether need a log or not
 
 ########################################################################################################################
@@ -305,9 +318,9 @@ class _GRUNetwork(nn.Module):
         self.sigmoid = nn.Sigmoid()
         self.decoder = nn.Linear(self.hid_dim, self.out_dim) # linear mapping between hidden layer and output layer
         # Optimizer should be Adam or SGD
-        if optimizer is 'Adam':
+        if 'Adam' == optimizer:
             self.optimizer = torch.optim.Adam(self.parameters(), lr=lr)
-        elif optimizer is 'SGD':
+        elif 'SGD' == optimizer:
             self.optimizer = torch.optim.SGD(self.parameters(), lr=lr, momentum=0.9)
         else:
             raise ValueError('Unsupported optimizer type!')

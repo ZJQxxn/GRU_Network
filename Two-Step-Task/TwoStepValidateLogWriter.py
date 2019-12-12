@@ -67,6 +67,8 @@ class TwoStepValidateLogWriter(ValidateLogWriter):
                                                           shape=(0, 1))
         self.reward_storage = self.hdf5file.create_earray(self.hdf5file.root, 'reward', index_dtype,
                                                           shape=(0, 1))
+        self.correct_rate_storage = self.hdf5file.create_earray(self.hdf5file.root, 'correct_rate', content_type,
+                                                          shape=(0, 1))
 
     def appendRecord(self, record):
         '''
@@ -89,6 +91,7 @@ class TwoStepValidateLogWriter(ValidateLogWriter):
         self.index_storage.append(index_data)
         self.choice_storage.append(np.array([record['choice']]).reshape(1, 1))
         self.reward_storage.append(np.array([record['reward']]).reshape(1, 1))
+        self.correct_rate_storage.append(np.array([record['correct_rate']]).reshape(1, 1))
         self.low = tmp_high
 
     def closeHdf5File(self):

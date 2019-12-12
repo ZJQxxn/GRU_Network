@@ -1,0 +1,9 @@
+=================== Model ============================
+model-sp_ts_250000-20190702_0553-2.pt:  Trained by previous codes.
+
+model-two-step-75e5.pt: Trained by my codes over 7.5e5 trials.
+
+=================== Log ============================
+20191208_0012-smp_ts.hdf5: Validation log file with model trained by 5e5 trials.
+
+20191209_1134-smp_ts.hdf5: Validation log file with model trained by 7.5e5 trials.

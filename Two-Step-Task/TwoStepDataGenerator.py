@@ -191,4 +191,4 @@ if __name__ == '__main__':
     training_file_name = 'SimpTwo_TrainingSet-' + file_name
     testing_file_name = 'SimpTwo_TestingSet-' + file_name
     generateTraining(training_file_name)
-    generateTesting(testing_file_name)
+    # generateTesting(testing_file_name)
