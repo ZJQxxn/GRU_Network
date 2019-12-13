@@ -195,9 +195,9 @@ class TaskAnalyzer:
 
 
 if __name__ == '__main__':
-    analyzer = TaskAnalyzer('validate_record-three-armed-2019_12_11-two_armed.hdf5',
-                            './data/ThreeArmedBandit_TestingSet-two_armed-2019_12_11-1.mat',
-                            block_size=150)
+    analyzer = TaskAnalyzer('validate_record-three-armed-2019_12_10-two_reverse.hdf5',
+                            './data/ThreeArmedBandit_TestingSet-two_reverse-2019_12_10-1.mat',
+                            block_size = 150)
 
     analyzer.behaviorAnalysis()
     analyzer.influenceAnalysis()

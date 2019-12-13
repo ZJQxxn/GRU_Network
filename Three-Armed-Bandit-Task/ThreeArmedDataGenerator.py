@@ -66,12 +66,12 @@ class DataGenerate:
     
     '''
 
-    def __init__(self, train_trial_num = 5, validate_trial_num = 5):
+    def __init__(self, train_trial_num = 5, validate_trial_num = 5, block_size = 150):
         '''
         Initialize the training data generator.
         :param numTrials: The number of trials to be generated.
         '''
-        self.block_size = 150  # The numebr of trials in a block
+        self.block_size = block_size  # The numebr of trials in a block
         self.input_dim = 10  # The number of features of a trial
         self.time_step_num = 14  # The number of time steps of a trial
         self.validate_time_step_num = 5 # The number of time steps for validating trial,
@@ -189,7 +189,6 @@ class DataGenerate:
             # of B varies based on 0.2, and of C is fixed to 0. It is a stable reverse, which means though the
             # perturbation exists, the reward probability of A is no less than B. Then, in the second block, the reward
             # probability reversed to A=0.0, B=0.4, and C=0.8. Moreover, the reversing process completed suddenly.
-            self.block_size = 20
             first_base = [[0.8], [0.4], [0.0]]
             first_block = np.tile(first_base, self.block_size)
             first_block[0:2, :] = first_block[0:2, :] + np.random.uniform(-0.1, 0.1, (2, self.block_size))
@@ -219,7 +218,7 @@ class DataGenerate:
             first_base = [[0.8], [0.2], [0.0]]
             first_block = np.tile(first_base, self.block_size)
             # For the trials of the second block
-            second_base = [[0.2], [0.9], [0.0]]
+            second_base = [[0.2], [0.8], [0.0]]
             second_block = np.tile(second_base, self.block_size)
             reward_probability = np.concatenate((first_block, second_block), axis=1)
         else:
@@ -317,7 +316,7 @@ class DataGenerate:
         info = {'NumTrials': self.train_trial_num, 'reward_probability': self.reward_probability,
                 'block_size': self.block_size,'input_dim': self.input_dim, 'time_step_num': self.time_step_num}
         pathname = "./data/"
-        file_name = datetime.datetime.now().strftime("%Y_%m_%d")
+        file_name = datetime.datetime.now().strftime("%Y_%m_%d") + '-blk{}'.format(self.block_size)
         # ================ SAVE TRAINING SET ===================
         train_data_name = 'ThreeArmedBandit_TrainingSet-' + self.reward_type + "-" + file_name
         n = 0
@@ -360,6 +359,6 @@ class DataGenerate:
 
 
 if __name__ == '__main__':
-    g = DataGenerate(train_trial_num=1000000, validate_trial_num= 5000)
-    g.generating('two_armed_without_noise')
+    g = DataGenerate(train_trial_num=1000000, validate_trial_num= 5000, block_size=20)
+    g.generating('two_reverse')
     g.save2Mat()

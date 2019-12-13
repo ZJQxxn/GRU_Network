@@ -22,6 +22,10 @@ model-three-armed-2019_12_11-two_reverse.pt:  Trained with 1e6 trials with two r
 
 model-three-armed-2019_12_11-two_armed.pt:  Trained with 1e6 trials with two reverse probability. (block size = 150)
 
+model-three-armed-2019_12_12-two_armed_without_noise.pt:  Trained with 1e6 trials with two reverse probability without noise. (block size = 150)
+
+model-three-armed-2019_12_12-two_armed.pt:  Trained with 1e6 trials with two reverse probability. (block size = 20)
+
 =================== Log ============================
 
 validation_record-three-aremd-2019_12_05-fixed.hdf5:  Validation record with corresponding fixed model and 5000 trials.
@@ -45,3 +49,7 @@ validation_record-three-aremd-2019_12_11-small_block.hdf5:  Validation record wi
 validation_record-three-aremd-2019_12_11-two_reverse.hdf5:  Validation record with corresponding two reverse model and 5000 trials.
 
 validation_record-three-aremd-2019_12_11-two_armed.hdf5:  Validation record with corresponding two armed model and 5000 trials.
+
+validation_record-three-aremd-2019_12_12-two_armed_without_noise.hdf5:  Validation record with corresponding two armed model and 5000 trials.
+
+validation_record-three-aremd-2019_12_12-two_armed.hdf5:  Validation record with corresponding two armed model and 5000 trials.
