@@ -188,7 +188,7 @@ class TwoStepTask(Task):
         for i in range(predicted_trial.shape[0]):
             if len(planaction_record[i]) != 0:
                 action = planaction_record[i][0]
-                predicted_trial[i, self.task_validate_attr['about_choice']] = 0
+                predicted_trial[i, self.task_validate_attr['about_choice']] = 0 #TODO: don't need reset the trial?
                 predicted_trial[i, self.task_validate_attr['about_choice'][0] + action] = 1
             elif len(planaction_record[i]) == 0:
                 predicted_trial[i, self.task_validate_attr['about_choice']] = 0

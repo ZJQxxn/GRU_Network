@@ -20,7 +20,7 @@ ThreeArmedDataGenerator.py: Generate trainign and validating dataset for three-a
                 5, 6 -- choose stimulus, show three stimulus
                 7, 8 -- waiting for reward, only show the chosen stimulus
                 9, 10, 11 -- show reward, show the chose stimulus
-                12, 13 -- clear the screen,, wait for the nextt trial.
+                12, 13 -- clear the screen,, wait for the next trial.
     ----------------------------------------- FOR TESTING DATA ---------------------------------------------
 
 
@@ -253,8 +253,7 @@ class DataGenerate:
             trial[0:3, 2:5] = trial[7, 2:5] = 1
             # At 5 and 6 time steps, see three stimulus always and choose a stimulus
             trial[0:3, 5:7] = 1
-            chosen_stimulus = np.random.choice([0, 1, 2], 1)[
-                0]  # choose one from three stimulus: 0 for A, 1 for B, and 2 for C
+            chosen_stimulus = np.random.choice([0, 1, 2], 1)[0]  # choose one from three stimulus: 0 for A, 1 for B, and 2 for C
             self.choices.append(chosen_stimulus)
             trial[chosen_stimulus + 4, 5:7] = 1
             # At 7 and 8 time steps, see three stimulus and wait for reward
@@ -278,12 +277,13 @@ class DataGenerate:
         # store weight coefficients for each input of each trial
         self.training_guide = np.vstack((self.rewards[1:], np.tile(2*self.time_step_num, self.train_trial_num-1))).T
         # ================ SHOW TRIAL ===================
-        # sbn.set(font_scale=1.6)
-        # y_lables = ['see A', 'see B', 'see C', 'see nothing', 'choose A', 'choose B', 'choose C', 'do nothing',
-        #             'reward', 'no reward']
-        # show_test = self.training_set[0].T
-        # sbn.heatmap(show_test[:, 0:14], cmap="YlGnBu", linewidths=0.5, yticklabels=y_lables)
-        # plt.show()
+        sbn.set(font_scale=1.6)
+        y_lables = ['see A', 'see B', 'see C', 'see nothing', 'choose A', 'choose B', 'choose C', 'do nothing',
+                    'reward', 'no reward']
+        show_test = self.training_set[0].T
+        sbn.heatmap(show_test[:, 0:14], cmap="YlGnBu", linewidths=0.5, yticklabels=y_lables)
+        plt.show()
+        print()
 
     def _generateValidating(self):
         '''
@@ -301,12 +301,13 @@ class DataGenerate:
             trial[0:3, 2:5] = trial[7, 2:5] = 1
             self.validating_set.append(trial.T)
         # ================ SHOW TRIAL ===================
-        # sbn.set(font_scale=1.6)
-        # y_lables = ['see A', 'see B', 'see C', 'see nothing', 'choose A', 'choose B', 'choose C', 'do nothing',
-        #             'reward', 'no reward']
-        # show_test = self.validating_set[0].T
-        # sbn.heatmap(show_test[:, 0:5], cmap="YlGnBu", linewidths=0.5, yticklabels=y_lables)
-        # plt.show()
+        sbn.set(font_scale=1.6)
+        y_lables = ['see A', 'see B', 'see C', 'see nothing', 'choose A', 'choose B', 'choose C', 'do nothing',
+                    'reward', 'no reward']
+        show_test = self.validating_set[0].T
+        sbn.heatmap(show_test[:, 0:5], cmap="YlGnBu", linewidths=0.5, yticklabels=y_lables)
+        plt.show()
+        print()
 
     def save2Mat(self):
         '''
@@ -359,6 +360,6 @@ class DataGenerate:
 
 
 if __name__ == '__main__':
-    g = DataGenerate(train_trial_num=1000000, validate_trial_num= 5000, block_size=20)
+    g = DataGenerate(train_trial_num=100, validate_trial_num= 5000, block_size=20)
     g.generating('two_reverse')
     g.save2Mat()

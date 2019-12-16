@@ -192,12 +192,35 @@ class TaskAnalyzer:
         # # #     #print()
         return np.array(choice_reward_prob)
 
+    def correctRate(self):
+        #TODO: change for different task
+        choice, reward = self._getChoiceAndReward()
+        large_blk_size = 2 * self.block_size
+        block_num = len(choice) // large_blk_size
+        count = np.zeros((block_num, large_blk_size))
+        try:
+            for step, trial in enumerate(choice):
+                blk_index = step // large_blk_size
+                count[blk_index, step % large_blk_size] = trial.item()
+        except:
+            print()
+        count = count.astype(int)
+        I = np.ones((block_num, self.block_size))
+        c = np.hstack((0 * I, 2 * I))
+        match = np.array(count == c).astype(int)
+        prob = np.mean(match, axis=0)
+        plt.plot(np.arange(0, large_blk_size, 1), prob)
+        plt.yticks(np.arange(0, 1, 0.1))
+        plt.xlabel('trial number')
+        plt.ylabel('correct rate')
+        plt.show()
 
 
 if __name__ == '__main__':
-    analyzer = TaskAnalyzer('validate_record-three-armed-2019_12_10-two_reverse.hdf5',
-                            './data/ThreeArmedBandit_TestingSet-two_reverse-2019_12_10-1.mat',
-                            block_size = 150)
+    analyzer = TaskAnalyzer('validate_record-three-armed-2019_12_14-two_reverseblk20.hdf5',
+                            './data/ThreeArmedBandit_TestingSet-two_reverse-2019_12_14-blk20-1.mat',
+                            block_size = 20)
 
-    analyzer.behaviorAnalysis()
-    analyzer.influenceAnalysis()
+    # analyzer.behaviorAnalysis()
+    # analyzer.influenceAnalysis()
+    analyzer.correctRate()
