@@ -32,7 +32,6 @@ class TaskAnalyzer:
         # Show block reward probability
         plt.plot(np.arange(0, self.block_size * 2), self.block_reward_prob[0, :], 'o-r', label='stimulus A')
         plt.plot(np.arange(0, self.block_size * 2), self.block_reward_prob[1, :], 'o-b', label='stimulus B')
-        plt.plot(np.arange(0, self.block_size * 2), self.block_reward_prob[2, :], 'o-g', label='stimulus C')
         plt.legend(fontsize=20)
         plt.show()
         # Show H_sch
@@ -57,10 +56,10 @@ class TaskAnalyzer:
         influence_matrix, indication_matrix = self._constructInfluenceMatrix() # with shape of (3, number of trials, 6, 6)\
         # ============= PLOT WEIGHT MATRIX ===================
         coeff = np.zeros((6, 6))
-        for stimulus in [0, 1, 2]:
+        for stimulus in [0, 1]:
             logstic_model = LogisticRegression().fit(influence_matrix[stimulus], indication_matrix[stimulus])
             coeff += np.abs(logstic_model.coef_.squeeze().reshape((6,6))) # TODO: need abs?
-        coeff /= 3
+        coeff /= 2
         coeff = coeff / np.linalg.norm(coeff)
         # coeff = (coeff - np.mean(coeff)) / np.std(coeff)
         sbn.set(font_scale=1.6)
@@ -76,10 +75,10 @@ class TaskAnalyzer:
         for i in range(split_num):
             sub_influence_matrix = influence_matrix[:,i*1000:(i+1)*1000,:]
             sub_indication_matrix = indication_matrix[:,i*1000:(i+1)*1000]
-            for stimulus in [0, 1, 2]:
+            for stimulus in [0, 1]:
                 logstic_model = LogisticRegression().fit(sub_influence_matrix[stimulus], sub_indication_matrix[stimulus])
                 coeff_set[i, :] += np.abs(logstic_model.coef_.squeeze())
-            coeff_set[i, :] /= 3
+            coeff_set[i, :] /= 2
             coeff_set[i, :] = coeff_set[i, :] / np.linalg.norm(coeff_set[i,:])
         # Compute mean and SEM (standard deviation / sqrt of sample size) values for every coefficient weight
         coeff_mean = np.mean(coeff_set, axis = 0).reshape((6, 6))[1:, 1:] # Discard the relationship of n-6 trial
@@ -114,9 +113,9 @@ class TaskAnalyzer:
         #TODO: for test and for simplicity, choose first 100 trials
         clip = choice.shape[0]
         choice, reward = choice[:clip,:], reward[:clip, :]
-        influence_matrix = np.zeros((3, clip-6, 36)) #TODO: notice the sahpe
-        indication_matrix = np.zeros((3, clip-6))
-        for stimulus in [0, 1, 2]:
+        influence_matrix = np.zeros((2, clip-6, 36)) #TODO: notice the sahpe
+        indication_matrix = np.zeros((2, clip-6))
+        for stimulus in [0, 1]:
             for trial_index in range(6, clip):
                 indication_matrix[stimulus, trial_index-6] = int(stimulus == choice[trial_index]) # indication of this trial
                 for i in range(6): # n-1 to n-6 trials choices
@@ -139,7 +138,7 @@ class TaskAnalyzer:
 
     def _getBlockRewrdProbability(self):
         mat = loadmat(self.validationFileName) #TODO: change this
-        reward_prob = mat['info']['reward_probability'][0, 0][:,:300]
+        reward_prob = mat['info']['reward_probability'][0, 0][:,:(2*self.block_size)]
         del mat
         return reward_prob
 
@@ -150,14 +149,7 @@ class TaskAnalyzer:
             trial_reward = reward_prob[:, i]
             max_ind = np.argwhere(trial_reward == np.amax(trial_reward))
             max_ind = max_ind.flatten()
-            if 1 == len(max_ind.shape):  # only one stimulus has the highest reward probability
-                objective_highest.append([max_ind[0], trial_reward[max_ind[0]]])
-            elif 2 == len(max_ind.shape):  # two stimulus has the highest reward probability
-                # 3 for A/B, 4 for A/C, 5 for B/C
-                highest_reward = trial_reward[0] if 0 in max_ind else trial_reward[1]
-                objective_highest.append([np.sum(max_ind) + 2, trial_reward[0], highest_reward])
-            else:  # all the stimulus has the same reward probability
-                objective_highest.append([6, trial_reward[0]])
+            objective_highest.append([max_ind[0], trial_reward[max_ind[0]]])
         return np.array(objective_highest)
 
     def _getExperiencedRewardProb(self):
@@ -192,7 +184,7 @@ class TaskAnalyzer:
         # # #     #print()
         return np.array(choice_reward_prob)
 
-    def correctRate(self):
+    def correctRate(self, type='reverse'):
         #TODO: change for different task
         choice, reward = self._getChoiceAndReward()
         large_blk_size = 2 * self.block_size
@@ -206,7 +198,7 @@ class TaskAnalyzer:
             print()
         count = count.astype(int)
         I = np.ones((block_num, self.block_size))
-        c = np.hstack((0 * I, 2 * I))
+        c = np.hstack((0 * I, 1 * I)) if type != 'fixed' else np.hstack((0 * I, 0 * I))
         match = np.array(count == c).astype(int)
         prob = np.mean(match, axis=0)
         plt.plot(np.arange(0, large_blk_size, 1), prob)
@@ -217,10 +209,10 @@ class TaskAnalyzer:
 
 
 if __name__ == '__main__':
-    analyzer = TaskAnalyzer('validate_record-three-armed-2019_12_16-two_reverseblk20.hdf5',
-                            './data/ThreeArmedBandit_TestingSet-two_reverse-2019_12_14-blk20-1.mat',
-                            block_size = 20)
-
+    analyzer = TaskAnalyzer('validate_record-two-armed-2019_12_17-reverse-blk50.hdf5',
+                            './data/TwoArmedBandit_TestingSet-sudden_reverse-2019_12_17-blk50-1.mat',
+                            block_size = 50)
+    type = 'fixed' if 'fixed' in analyzer.validationFileName else 'reverse'
     analyzer.behaviorAnalysis()
-    analyzer.influenceAnalysis()
-    # analyzer.correctRate()
+    # analyzer.influenceAnalysis()
+    analyzer.correctRate(type)

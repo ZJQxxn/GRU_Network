@@ -14,11 +14,11 @@ from Task import Task
 from TorchNetwork import TorchNetwork
 from net_tools import np2tensor, tensor2np, match_rate
 from net_tools import readConfigures #TODO: change this
-from ThreeArmedDataProcessor import ThreeArmedDataProcessor
-from ThreeArmedValidateLogWriter import ThreeArmedValidateLogWriter
+from TwoArmedDataProcessor import ThreeArmedDataProcessor
+from TwoArmedValidateLogWriter import ThreeArmedValidateLogWriter
 
 
-class ThreeArmedTask(Task):
+class ThreeArmedTask(Task): #TODO: change the class name to two-armed task, so as other class
     '''
     Description:
         The three-armed bandit task, including training and validating processes.
@@ -99,30 +99,30 @@ class ThreeArmedTask(Task):
             'trial_length':14,
             'validate_trial_length':5,
             'block_size': block_size,
-            'input_dim':10,
+            'input_dim':8,
             'reward_prob':self.validate_data_attr['reward_probability'][0][0],
             'choice_step' : [5, 6], # time steps of choosing  stimulus
             'show_choice_step': [7,8], # time steps for showing chose stimulus
             'reward_step'  : [9, 10, 11], # time steps of getting reward
-            'choice_index' : [4, 5, 6], # index of choices in the input
-            'reward_index' : [8,9], # index of reward in the input
+            'choice_index' : [3, 4], # index of choices in the input
+            'reward_index' : [6, 7], # index of reward in the input
             'hidden': self.model._initHidden(),
             'base_inputs':np.array([
-                           [0, 0, 0, 1, 0, 0, 0, 1, 0, 0],
-                           [0, 0, 0, 1, 0, 0, 0, 1, 0, 0],
-                           [1, 1, 1, 0, 0, 0, 0, 1, 0, 0],
-                           [1, 1, 1, 0, 0, 0, 0, 1, 0, 0],
-                           [1, 1, 1, 0, 0, 0, 0, 1, 0, 0],
-                           [1, 1, 1, 0, 0, 0, 0, 0, 0, 0],
-                           [1, 1, 1, 0, 0, 0, 0, 0, 0, 0],
-                           [0, 0, 0, 0, 0, 0, 0, 1, 0, 0],
-                           [0, 0, 0, 0, 0, 0, 0, 1, 0, 0],
-                           [0, 0, 0, 0, 0, 0, 0, 1, 0, 0],
-                           [0, 0, 0, 0, 0, 0, 0, 1, 0, 0],
-                           [0, 0, 0, 0, 0, 0, 0, 1, 0, 0],
-                           [0, 0, 0, 1, 0, 0, 0, 1, 0, 0],
-                           [0, 0, 0, 1, 0, 0, 0, 1, 0, 0],
-                           [0, 0, 0, 1, 0, 0, 0, 1, 0, 0]
+                           [0, 0, 1, 0, 0, 1, 0, 0],
+                           [0, 0, 1, 0, 0, 1, 0, 0],
+                           [1, 1, 0, 0, 0, 1, 0, 0],
+                           [1, 1, 0, 0, 0, 1, 0, 0],
+                           [1, 1, 0, 0, 0, 1, 0, 0],
+                           [1, 1, 0, 0, 0, 0, 0, 0],
+                           [1, 1, 0, 0, 0, 0, 0, 0],
+                           [0, 0, 0, 0, 0, 1, 0, 0],
+                           [0, 0, 0, 0, 0, 1, 0, 0],
+                           [0, 0, 0, 0, 0, 1, 0, 0],
+                           [0, 0, 0, 0, 0, 1, 0, 0],
+                           [0, 0, 0, 0, 0, 1, 0, 0],
+                           [0, 0, 1, 0, 0, 1, 0, 0],
+                           [0, 0, 1, 0, 0, 1, 0, 0],
+                           [0, 0, 1, 0, 0, 1, 0, 0]
                            ]) #TODO: the last time step is added for computing error
         }
         wining_counts, trial_counts = 0, 0
@@ -391,17 +391,17 @@ class ThreeArmedTask(Task):
 
 
 if __name__ == '__main__':
-    reward_type = 'two_reverse'
-    config_file = "ThreeArmed_Config.json"
-    # config_file = "GPU_config.json"
+    reward_type = 'reverse'
+    config_file = "TwoArmed_Config.json"
     configs = readConfigures(config_file)
-    model_name = './save_m/model-three-armed-'+ configs['data_file'].split('-')[2] + '-' + reward_type +'.pt' # TODO: deal with multiple models
-    # model_name = './save_m/GPU_model.pt'
+    blk_num = configs['data_file'].split('-')[3]
+    model_name = './save_m/model-two-armed-'+ configs['data_file'].split('-')[2] + '-' + reward_type + '-' + blk_num + '.pt'
+
 
     t = ThreeArmedTask(config_file)
     # t.train()
     # t.saveModel(model_name)
-    # t.loadModel('./save_m/model-three-armed-2019_12_14-sudden_reverseblk20.pt', 'TwoArmed_Config.json')
-    # t.validate('validate_record-three-armed-2019_12_14-sudden_reverseblk20.hdf5', block_size=20)
-    t.loadModel('./save_m/model-three-armed-2019_12_16-two_reverseblk20.pt', 'ThreeArmed_Config.json')
-    t.validate('validate_record-three-armed-2019_12_16-two_reverseblk20.hdf5', block_size=20)
+    # print(model_name)
+
+    t.loadModel('./save_m/model-two-armed-2019_12_17-without_noise-blk50.pt', 'TwoArmed_Config.json')
+    t.validate('validate_record-two-armed-2019_12_17-without_noise-blk50.hdf5', block_size=50)

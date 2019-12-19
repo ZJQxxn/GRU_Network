@@ -1,0 +1,37 @@
+========================= Model ================================
+model-two-armed-2019_12_17-fixed-blk50.pt: Two-armed task training with fixed reward probability, 50 block size, and 7.5e5 training trials.
+
+model-two-armed-2019_12_17-reverse-blk50.pt: Two-armed task training with reverse reward probability, 50 block size, and 7.5e5 training trials.
+
+model-two-armed-2019_12_17-sudden_reverse=blk50.pt: Two-armed task training with sudden reverse reward probability, 50 block size, and 7.5e5 training trials.
+
+model-two-armed-2019_12_17-without_noise-blk50.pt: Two-armed task training with sudden reverse without noise reward probability, 50 block size, and 7.5e5 training trials.
+
+model-two-armed-2019_12_18-without_noise-blk50.pt: Two-armed task training with sudden reverse without noise reward probability, 50 block size, and 1e6 training trials.
+
+model-two-armed-2019_12_18-without_noise-blk20.pt: Two-armed task training with sudden reverse without noise reward probability, 20 block size, and 1e6 training trials.
+
+model-two-armed-2019_12_18-without_noise-blk200.pt: Two-armed task training with sudden reverse without noise reward probability, 200 block size, and 1e6 training trials.
+
+model-two-armed-2019_12_18-sudden_reverse-blk20.pt: Two-armed task training with sudden reverse reward probability, 20 block size, and 1e6 training trials.
+
+model-two-armed-2019_12_18-sudden_reverse-blk200.pt: Two-armed task training with sudden reverse reward probability, 200 block size, and 1e6 training trials.
+
+======================== Log File ==============================
+validation_record-two-armed-2019_12_17-fixed-blk50.pt: Validation on 5000 trials with corresponding model.
+
+validation_record-two-armed-2019_12_17-reverse-blk50.pt: Validation on 5000 trials with corresponding model.
+
+validation_record-two-armed-2019_12_17-sudden_reverse-blk50.pt: Validation on 5000 trials with corresponding model.
+
+validation_record-two-armed-2019_12_17-without_noise-blk50.pt: Validation on 5000 trials with corresponding model.
+
+validation_record-two-armed-2019_12_18-without_noise-blk50.pt: Validation on 5000 trials with corresponding model.
+
+validation_record-two-armed-2019_12_18-without_noise-blk20.pt: Validation on 5000 trials with corresponding model.
+
+validation_record-two-armed-2019_12_18-without_noise-blk200.pt: Validation on 5000 trials with corresponding model.
+
+validation_record-two-armed-2019_12_18-sudden_reverse-blk20.pt: Validation on 5000 trials with corresponding model.
+
+validation_record-two-armed-2019_12_18-sudden_reverse-blk200.pt: Validation on 5000 trials with corresponding model.

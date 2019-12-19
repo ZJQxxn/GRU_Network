@@ -42,6 +42,9 @@ model-three-armed-2019_12_14-two_armed_without_noiseblk20.pt : Trained with 1.5e
 
 model-three-armed-2019_12_14-sudden_reverseblk20.pt : Trained with 1.5e6 trials with sudden reverse probability. (block size = 20)
 
+model-three-armed-2019_12_16-two_reverseblk20.pt : Trained with 1.5e6 trials with two reverse probability. (block size = 20)
+(Corresponding validation set is 12_15, learning rate is 1e-3)
+
 =================== Log ============================
 
 validation_record-three-aremd-2019_12_05-fixed.hdf5:  Validation record with corresponding fixed model and 5000 trials.
@@ -85,3 +88,5 @@ validate_record-three-armed-2019_12_14-two_reverseblk20.hdf5: Validation record 
 validate_record-three-armed-2019_12_14-two_armed_without_noiseblk20.hdf5: Validation record with corresponding two armed model and 5000 trials.
 
 validate_record-three-armed-2019_12_14-sudden_reverseblk20.hdf5: Validation record with corresponding sudden model and 5000 trials.
+
+validate_record-three-armed-2019_12_16-two_reverseblk20.pt : Validation record with corresponding sudden model and 5000 trials.
