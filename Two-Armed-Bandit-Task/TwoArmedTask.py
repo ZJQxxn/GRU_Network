@@ -61,7 +61,7 @@ class ThreeArmedTask(Task): #TODO: change the class name to two-armed task, so a
         self.data_helper = ThreeArmedDataProcessor(cofig_pars['data_file'], cofig_pars['validation_data_file'])
         np.random.seed()
 
-    def train(self):
+    def train(self, save_iter = 0): #TODO: save iteration
         '''
         Training.
         :return: 
@@ -72,7 +72,7 @@ class ThreeArmedTask(Task): #TODO: change the class name to two-armed task, so a
         print('START TRAINING...')
         self.train_data, self.train_guide = self.data_helper.prepareTrainingData()
         try:
-            train_loss, train_correct_rate = self.model.training(self.train_data, self.train_guide)
+            train_loss, train_correct_rate = self.model.training(self.train_data, self.train_guide, save_iter = save_iter)
         except KeyboardInterrupt: #TODO: check this
             self.model.trained = True
             self.saveModel('interrupted_model.pt')
@@ -391,17 +391,17 @@ class ThreeArmedTask(Task): #TODO: change the class name to two-armed task, so a
 
 
 if __name__ == '__main__':
-    reward_type = 'reverse'
+    reward_type = 'without_noise'
     config_file = "TwoArmed_Config.json"
     configs = readConfigures(config_file)
     blk_num = configs['data_file'].split('-')[3]
-    model_name = './save_m/model-two-armed-'+ configs['data_file'].split('-')[2] + '-' + reward_type + '-' + blk_num + '.pt'
+    model_name = './save_m/KnowLarge-model-two-armed-'+ configs['data_file'].split('-')[2] + '-' + reward_type + '-' + blk_num + '.pt'
 
 
     t = ThreeArmedTask(config_file)
-    # t.train()
-    # t.saveModel(model_name)
-    # print(model_name)
+    t.train(save_iter=20)
+    t.saveModel(model_name)
+    print('Save final model to {}'.format(model_name))
 
-    t.loadModel('./save_m/model-two-armed-2019_12_17-without_noise-blk50.pt', 'TwoArmed_Config.json')
-    t.validate('validate_record-two-armed-2019_12_17-without_noise-blk50.hdf5', block_size=50)
+    # t.loadModel('./save_m/model-two_armed_1000000-20191223_0310.pt', 'TwoArmed_Config.json')
+    # t.validate('SeqCode-validate_record-two-armed-2019_12_23-without_noise-blk50.hdf5', block_size=50)

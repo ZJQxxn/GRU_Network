@@ -54,7 +54,7 @@ class TorchNetwork:
             self._resetNetwork() # initialize the network with a configuration file
         self.trained = False # denote whether the network has been trained
 
-    def training(self, train_set, train_guide, truncate_iter = 1e800):
+    def training(self, train_set, train_guide, truncate_iter = 1e800, save_iter = 0):
         '''
         Train the GRU  neural network.
         :param train_set: Training dataset, should have shape (number of trials, time steps in a trial, feature dimension)
@@ -74,7 +74,9 @@ class TorchNetwork:
         batch_count = 1 # count the number of batches
         self.hidden = self._initHidden()
         self.hidden = self.hidden.cuda() if self.cuda_enabled else self.hidden # TODO: for GPU
-        # print("self.hidden:", self.hidden)
+        # TODO: save the model every several trials
+        save_iter = len(train_set) if 0 == save_iter else save_iter
+        save_count = 0
         for step, trial in enumerate(train_set):
             # cease training when reaching at the truncate iteration
             if step >= (truncate_iter - 1):
@@ -95,30 +97,41 @@ class TorchNetwork:
                 train_loss.append(batch_loss)
                 train_correct_rate.append(batch_correct_rate)
                 # TODO: print out or write into log file?
-                print('=' * 15, " {}-th batch ".format(batch_count), '=' * 15)
-                print("Network loss is : ", batch_loss)
-                print("Correct rate is : ", batch_correct_rate)
+                # print('=' * 15, " {}-th batch ".format(batch_count), '=' * 15)
+                # print("Network loss is : ", batch_loss)
+                # print("Correct rate is : ", batch_correct_rate)
                 batch_count = batch_count + 1
+                # TODO: save the model
+                if step % save_iter == 0:
+                    train_attr = self.config_pars['data_file'].split('-')
+                    tmp_filename = './save_m/KnowLarge-' + train_attr[1] + '-' + train_attr[3] + '-' + train_attr[4] + '-' + '-NUM{}-'.format(save_count) + '.pt'
+                    self.saveModel(tmp_filename)
+                    print('=' * 15, " {}-th batch ".format(batch_count), '=' * 15)
+                    print("Network loss for the last trial is : ", batch_loss)
+                    print("Correct rate for the last trial is : ", batch_correct_rate)
+                    print('Save the intermediate model to {}'.format(tmp_filename))
+                    save_count += 1
             else:
                 # Continue collecting training input trials
                 continue
         self.trained = True
         return train_loss, train_correct_rate
 
-    def predicting(self, test_set):
-        '''
-        Predict the output given testing dataset.
-        :param test_set: Testing dataset with shape of (number of trials, dimensionality of input).
-        :return: Predicted output with shape of (number of trials, dimensionality of output).
-        '''
-        if not self.trained:
-            raise ValueError('The network has not been trained!')
-
-        test_prediction = []
-        for trial in test_set:
-            trial_output = tensor2np(self.network(trial, self.hidden))
-            test_prediction.append(trial_output)
-        return np.array(test_prediction)
+    # TODO: delete this function
+    # def predicting(self, test_set):
+    #     '''
+    #     Predict the output given testing dataset.
+    #     :param test_set: Testing dataset with shape of (number of trials, dimensionality of input).
+    #     :return: Predicted output with shape of (number of trials, dimensionality of output).
+    #     '''
+    #     if not self.trained:
+    #         raise ValueError('The network has not been trained!')
+    #
+    #     test_prediction = []
+    #     for trial in test_set:
+    #         trial_output = tensor2np(self.network(trial, self.hidden))
+    #         test_prediction.append(trial_output)
+    #     return np.array(test_prediction)
 
     def saveModel(self, filename):
         '''

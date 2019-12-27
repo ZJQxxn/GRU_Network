@@ -17,6 +17,10 @@ model-two-armed-2019_12_18-sudden_reverse-blk20.pt: Two-armed task training with
 
 model-two-armed-2019_12_18-sudden_reverse-blk200.pt: Two-armed task training with sudden reverse reward probability, 200 block size, and 1e6 training trials.
 
+model-two-armed-2019_12_20-without_noise-blk200.pt: Two-armed task training with sudden reverse reward probability, 200 block size, and 1.5e6 training trials.
+
+model-two-armed-2019_12_20-without_noise-blk300.pt: Two-armed task training with sudden reverse reward probability, 300 block size, and 1e6 training trials.
+
 ======================== Log File ==============================
 validation_record-two-armed-2019_12_17-fixed-blk50.pt: Validation on 5000 trials with corresponding model.
 
@@ -35,3 +39,7 @@ validation_record-two-armed-2019_12_18-without_noise-blk200.pt: Validation on 50
 validation_record-two-armed-2019_12_18-sudden_reverse-blk20.pt: Validation on 5000 trials with corresponding model.
 
 validation_record-two-armed-2019_12_18-sudden_reverse-blk200.pt: Validation on 5000 trials with corresponding model.
+
+validation_record-two-armed-2019_12_20-without_noise-blk200.pt: Validation on 5000 trials with corresponding model.
+
+validation_record-two-armed-2019_12_20-without_noise-blk300.pt: Validation on 5000 trials with corresponding model.

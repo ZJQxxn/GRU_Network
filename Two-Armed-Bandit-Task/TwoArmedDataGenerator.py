@@ -14,8 +14,8 @@ TwoArmedDataGenerator.py: Generate trainign and validating dataset for three-arm
                 7 -- no reward.
     Each trial is generated over 14 time steps:
                 0, 1 -- nothing on the screen; nothing to do
-                2, 3, 4 -- show three stimulus;
-                5, 6 -- choose stimulus, show three stimulus
+                2, 3, 4 -- show two stimulus;
+                5, 6 -- choose stimulus, show two stimulus
                 7, 8 -- waiting for reward, only show the chosen stimulus
                 9, 10, 11 -- show reward, show the chose stimulus
                 12, 13 -- clear the screen,, wait for the next trial.
@@ -59,7 +59,7 @@ class DataGenerate:
     
     '''
 
-    def __init__(self, train_trial_num = 5, validate_trial_num = 5, block_size = 150):
+    def __init__(self, train_trial_num = 5, validate_trial_num = 5, block_size = 150, prefix = ''): #TODO: prefix is used for saving dataset
         '''
         Initialize the training data generator.
         :param numTrials: The number of trials to be generated.
@@ -71,6 +71,7 @@ class DataGenerate:
                                         # only first 5 time steps because we only need validating trial to show stimulus
         self.train_trial_num = train_trial_num
         self.validate_trial_num = validate_trial_num
+        self.prefix = prefix
 
     def generating(self, reward_type = 'reverse'):
         '''
@@ -192,7 +193,9 @@ class DataGenerate:
             trial[0:2, 2:5] = trial[5, 2:5] = 1
             # At 5 and 6 time steps, see three stimulus always and choose a stimulus
             trial[0:2, 5:7] = 1
-            chosen_stimulus = np.random.choice([0, 1], 1)[0]  # choose one from two stimulus: 0 for A, 1 for B
+            # TODO: choose the stimulus with higher reward probability
+            chosen_stimulus = np.argmax(self.reward_probability[:, nTrial % (2*self.block_size)])
+            # chosen_stimulus = np.random.choice([0, 1], 1)[0]  # choose one from two stimulus: 0 for A, 1 for B
             self.choices.append(chosen_stimulus)
             trial[chosen_stimulus + 3, 5:7] = 1
             # At 7 and 8 time steps, see the chosen stimulus and wait for reward
@@ -208,6 +211,8 @@ class DataGenerate:
             trial[2, 12:14] = trial[5, 12:14] = 1
             # The extra time step should be the first step at next trial
             trial[2, 14] = trial[5, 14] = 1
+            # TODO: at the time when reward is not shown, set ``no reward'' to 1
+            trial[7,0:9] = trial[7, 12:14] = 1
             if nTrial>0:
                 # Append this trial into training set
                 self.training_set.append(np.hstack((prev_trial, trial)).T)
@@ -257,7 +262,7 @@ class DataGenerate:
         pathname = "./data/"
         file_name = datetime.datetime.now().strftime("%Y_%m_%d") + '-blk{}'.format(self.block_size)
         # ================ SAVE TRAINING SET ===================
-        train_data_name = 'TwoArmedBandit_TrainingSet-' + self.reward_type + "-" + file_name
+        train_data_name = self.prefix + 'TwoArmedBandit_TrainingSet-' + self.reward_type + "-" + file_name
         n = 0
         while 1:
             n += 1
@@ -277,7 +282,7 @@ class DataGenerate:
         # ================ SAVE VALIDATING SET ===================
         info = {'NumTrials': self.validate_trial_num, 'reward_probability': self.reward_probability,
                 'block_size': self.block_size, 'input_dim': self.input_dim, 'time_step_num': self.time_step_num}
-        validate_data_name = 'TwoArmedBandit_TestingSet-' + self.reward_type + "-" + file_name
+        validate_data_name = self.prefix + 'TwoArmedBandit_TestingSet-' + self.reward_type + "-" + file_name
         n = 0
         while 1:
             n += 1
@@ -298,6 +303,6 @@ class DataGenerate:
 
 
 if __name__ == '__main__':
-    g = DataGenerate(train_trial_num=750000, validate_trial_num= 5000, block_size=50)
-    g.generating('reverse')
+    g = DataGenerate(train_trial_num=100, validate_trial_num= 100, block_size=50, prefix='KnowLarge-')
+    g.generating('without_noise')
     g.save2Mat()
