@@ -399,9 +399,10 @@ if __name__ == '__main__':
 
 
     t = ThreeArmedTask(config_file)
-    t.train(save_iter=20)
-    t.saveModel(model_name)
-    print('Save final model to {}'.format(model_name))
 
-    # t.loadModel('./save_m/model-two_armed_1000000-20191223_0310.pt', 'TwoArmed_Config.json')
-    # t.validate('SeqCode-validate_record-two-armed-2019_12_23-without_noise-blk50.hdf5', block_size=50)
+    # t.train(save_iter=20)
+    # t.saveModel(model_name)
+    # print('Save final model to {}'.format(model_name))
+
+    t.loadModel('./save_m/SeqCode-KnowLarge-model-two_armed-2019_12_27-blk50.pt', 'TwoArmed_Config.json')
+    t.validate('SeqCode-KnowLarge-validate_record-two-armed-2019_12_27-without_noise-blk50.hdf5', block_size=50)

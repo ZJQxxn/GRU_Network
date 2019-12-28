@@ -209,10 +209,12 @@ class TaskAnalyzer:
 
 
 if __name__ == '__main__':
-    analyzer = TaskAnalyzer('SeqCode-validate_record-two-armed-2019_12_23-without_noise-blk50.hdf5',
-                            './data/TwoArmedBandit_TestingSet-without_noise-2019_12_18-blk50-1.mat',
+    for i in range(8):
+        print(i)
+        analyzer = TaskAnalyzer('KnowLarge-validate_record-two-armed-2019_12_27-without_noise-blk50--NUM{}.hdf5'.format(i),
+                            './data/KnowLarge-TwoArmedBandit_TestingSet-without_noise-2019_12_27-blk50-1.mat',
                             block_size = 50)
-    type = 'fixed' if 'fixed' in analyzer.validationFileName else 'reverse'
-    analyzer.behaviorAnalysis()
-    analyzer.influenceAnalysis()
-    analyzer.correctRate(type)
+        type = 'fixed' if 'fixed' in analyzer.validationFileName else 'reverse'
+        analyzer.behaviorAnalysis()
+        # analyzer.influenceAnalysis()
+        analyzer.correctRate(type)
