@@ -12,14 +12,14 @@ from Task import Task
 from TorchNetwork import TorchNetwork
 from net_tools import np2tensor, tensor2np, match_rate
 from net_tools import readConfigures #TODO: change this
-from TwoStepDataProcessor import TwoStepDataProcessor
-from TwoStepValidateLogWriter import TwoStepValidateLogWriter
+from WithoutMediateTwoStepDataProcessor import WithoutMediateTwoStepDataProcessor
+from WithoutMediateTwoStepValidateLogWriter import WithoutMediateTwoStepValidateLogWriter
 
 import copy
 import numpy as np
 import torch
 
-class TwoStepTask(Task):
+class WithoutMediateTwoStepTask(Task):
     '''
     Description:
         The two-step task, cinluding training and validating processes.
@@ -55,10 +55,10 @@ class TwoStepTask(Task):
         Initialize the task.
         :param config_file: Configuration file. Should be a JSON file.
         '''
-        super(TwoStepTask, self).__init__()
+        super(WithoutMediateTwoStepTask, self).__init__()
         self.model = TorchNetwork(config_file)
         cofig_pars = readConfigures(config_file)
-        self.data_helper = TwoStepDataProcessor(cofig_pars['data_file'], cofig_pars['validation_data_file'])
+        self.data_helper = WithoutMediateTwoStepDataProcessor(cofig_pars['data_file'], cofig_pars['validation_data_file'])
 
     def train(self):
         '''
@@ -119,7 +119,7 @@ class TwoStepTask(Task):
         behavior_shape = list(self.validate_data[0].shape)
         behavior_shape.pop(0)
         if need_log:
-            self.log_writer = TwoStepValidateLogWriter(log_filename)
+            self.log_writer = WithoutMediateTwoStepValidateLogWriter(log_filename)
             self.log_writer.craeteHdf5File({'behavior_shape':behavior_shape, 'neuron_shape':neuron_shape})
 
         # Validating
@@ -375,12 +375,13 @@ class TwoStepTask(Task):
 
 
 if __name__ == '__main__':
-    t = TwoStepTask("test_config.json")
+    t = WithoutMediateTwoStepTask("WithoutMediateConfig.json")
     # train_loss, train_correct_rate = t.train()
     # import matplotlib.pyplot as plt
     # plt.plot(np.arange(0,500), train_correct_rate)
     # plt.yticks(np.arange(0, 1, 0.1))
     # plt.show()
-    # t.saveModel('./save_m/model-two-step-without-init.pt')
-    t.loadModel('./save_m/model-two-step-75e5.pt', 'test_config.json')
-    t.validate('20191209_1122-smp_ts.hdf5')
+    t.train()
+    t.saveModel('./save_m/model-WithoutMediate-two-step-without-init.pt')
+    # t.loadModel('./save_m/model-WithoutMediate-two-step-75e5.pt', 'test_config.json')
+    # t.validate('20191209_1122-smp_ts.hdf5')

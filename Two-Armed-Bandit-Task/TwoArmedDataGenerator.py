@@ -183,6 +183,7 @@ class DataGenerate:
         # ================ GENERATE TRIALS ===================
         self.choices = []  # the choice of stimulus of all the trials, 0 for A, 1 for B, and 2 for C
         self.rewards = []  # the reward of all the trials, 1 for reward and 0 for no reward
+        self.right_choice = [] # TODO: for training guide; determine whether the trial choose the correct stimulus
         prev_trial = np.zeros((self.input_dim, self.time_step_num))
         for nTrial in range(self.train_trial_num):
             trial = np.zeros(
@@ -193,10 +194,14 @@ class DataGenerate:
             trial[0:2, 2:5] = trial[5, 2:5] = 1
             # At 5 and 6 time steps, see three stimulus always and choose a stimulus
             trial[0:2, 5:7] = 1
-            # TODO: choose the stimulus with higher reward probability
+            # TODO: choose the stimulus with higher reward probability; training guide
             chosen_stimulus = np.argmax(self.reward_probability[:, nTrial % (2*self.block_size)])
             # chosen_stimulus = np.random.choice([0, 1], 1)[0]  # choose one from two stimulus: 0 for A, 1 for B
             self.choices.append(chosen_stimulus)
+            if chosen_stimulus == np.argmax(self.reward_probability[:, nTrial % (2*self.block_size)]):
+                self.right_choice.append(1)
+            else:
+                self.right_choice.append(0)
             trial[chosen_stimulus + 3, 5:7] = 1
             # At 7 and 8 time steps, see the chosen stimulus and wait for reward
             trial[chosen_stimulus, 7:9] = trial[5, 7:9] = 1
@@ -218,7 +223,10 @@ class DataGenerate:
                 self.training_set.append(np.hstack((prev_trial, trial)).T)
             prev_trial = trial
         # store weight coefficients for each input of each trial
-        self.training_guide = np.vstack((self.rewards[1:], np.tile(2*self.time_step_num, self.train_trial_num-1))).T
+        # TODO: training guide is determined whether the trial select the right stimulus
+        self.training_guide = np.vstack((self.right_choice[1:], np.tile(2*self.time_step_num, self.train_trial_num-1))).T
+        # self.training_guide = np.vstack((self.rewards[1:], np.tile(2*self.time_step_num, self.train_trial_num-1))).T
+
         # ================ SHOW TRIAL ===================
         # sbn.set(font_scale=1.6)
         # y_lables = ['see A', 'see B', 'see nothing', 'choose A', 'choose B', 'do nothing',
@@ -303,6 +311,6 @@ class DataGenerate:
 
 
 if __name__ == '__main__':
-    g = DataGenerate(train_trial_num=100, validate_trial_num= 100, block_size=50, prefix='KnowLarge-')
+    g = DataGenerate(train_trial_num=100, validate_trial_num= 100, block_size=50, prefix='RewardRight-')
     g.generating('without_noise')
     g.save2Mat()

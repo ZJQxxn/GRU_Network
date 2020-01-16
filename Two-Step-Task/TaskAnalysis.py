@@ -130,15 +130,36 @@ class TaskAnalyzer:
         return influence_matrix, indication_matrix
 
     def _getChoiceAndReward(self):
-        choice = self.logFile['choice']
-        reward = self.logFile['reward']
+        choice = np.array(self.logFile['choice'])
+
+        # count  = 0
+        # total_count = 0
+        # for each in choice:
+        #     if each.item() == 1 or each.item() == 2:
+        #         total_count += 1
+        #     if each.item() == 2:
+        #         count += 1
+        # ratio = count / total_count
+
+        reward = np.array(self.logFile['reward'])
         trial_num = choice.shape[0]
         good_index = []
         for i in range(trial_num):
             if choice[i] in [1,2]:
                 good_index.append(i)
-        self.choice = choice[good_index, :]
-        self.reward = reward[good_index, :]
+        choice = choice[good_index, :]
+        reward = reward[good_index, :]
+        self.choice = choice
+        self.reward = reward
+        # # TODO; complete the validation trials
+        # prev_choice = choice[0]
+        # for index, each in enumerate(choice):
+        #     if each[0] in [1,2]:
+        #         prev_choice = each
+        #     else:
+        #         choice[index] = prev_choice
+        # self.choice = choice
+        # self.reward = reward
         return choice, reward
 
     def _getBlockRewrdProbability(self):
@@ -188,10 +209,32 @@ class TaskAnalyzer:
         # # #     #print()
         return np.array(choice_reward_prob)
 
+    def correctRate(self, type='reverse'):
+        choice, reward = self._getChoiceAndReward()
+        large_blk_size = 2 * self.block_size
+        block_num = len(choice) // large_blk_size
+        count = np.zeros((block_num, large_blk_size))
+        try:
+            for step, trial in enumerate(choice):
+                blk_index = step // large_blk_size
+                count[blk_index, step % large_blk_size] = trial.item()
+        except:
+            print()
+        count = count.astype(int)
+        I = np.ones((block_num, self.block_size))
+        c = np.hstack((1 * I, 2 * I))
+        match = np.array(count == c).astype(int)
+        prob = np.mean(match, axis=0)
+        plt.plot(np.arange(0, large_blk_size, 1), prob)
+        plt.yticks(np.arange(0, 1, 0.1))
+        plt.xlabel('trial number')
+        plt.ylabel('correct rate')
+        plt.show()
 
 
 if __name__ == '__main__':
     # analyzer = TaskAnalyzer('validate_record-three-armed-2019_12_05-fixed.hdf5')
-    analyzer = TaskAnalyzer('../Two-Step-Task/20191208_0012-smp_ts.hdf5')
-    # analyzer.behaviorAnalysis()
-    analyzer.influenceAnalysis()
+    analyzer = TaskAnalyzer('../Two-Step-Task/20191231_0942-smp_ts.hdf5')
+    analyzer.behaviorAnalysis()
+    # analyzer.influenceAnalysis()
+    analyzer.correctRate()

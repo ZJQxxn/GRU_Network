@@ -1,9 +1,31 @@
 '''
-TwoStepDataGenerator.py: Generate training and testing  datasets for the two-step task.
+WithoutMediateTwoStepDataGenerator.py: Generate training and testing  datasets for the two-step task without mediate 
+                                       outputs B.
 
 Author: Jiaqi Zhang <zjqseu@gmail.com>
 Date: Nov. 25 2019
 
+============================== TRAINING TRIALS =============================
+Generate synthetic trials for the three-armed bandit task. Each trial is represented by a matrix with shape of (number 
+of inputs, number of time steps). 
+
+Specifically, there are 8 binary-valued inputs:
+                0 -- see stimulus A1;
+                1 -- see stimulus A2;
+                2 -- see nothing;
+                3 -- do nothing;
+                4 -- choose A1;
+                5 -- choose A2;
+                6 -- reward;
+                7 -- no reward.
+                
+Each trial is generated over 13 time steps:
+                0, 1 -- nothing on the screen; nothing to do; no reward
+                2, 3, 4 -- show two stimulus; do nothing; no reward
+                5, 6 -- choose stimulus (A1/A2); see nothing; no reward
+                7, 8, 9 -- show chosen stimulus (A1/A2); do nothing; no reward
+                10, 11 -- show reward; see nothing; do nothing
+                12 -- clear the screen; wait for the next trial; no reward
 '''
 
 import os
@@ -21,8 +43,8 @@ def generateTraining(filename):
     :param filename: Name of the .mat file, where you want to save the training dataset. 
     :return: VOID
     '''
-    NumTrials = int(5e2 + 1)
-    trans_prob = 0.8  # from A1-B1, from A2-B2
+    NumTrials = int(7.5e2 + 1)
+    trans_prob = 1  # from A1-B1, from A2-B2  # TODO: set to 1, same as two-armed task
     reward_prob = 0.8
     block_size = 50
     Double = True
@@ -58,15 +80,10 @@ def generateTraining(filename):
     reward_all = reward_prob_state2 > temp1
     state_all = copy.deepcopy(state2) + 1  # 1: B1; 2: B2
 
-    # Comments by Zhewei Zhang:
-    #   first seven inputs represent visual stimulus
-    #   1st~2nd inputs representing the options
-    #   3rd~4th inputs representing the intermeidate outcome
-    #   6th~8th inputs representing the movement/choice
-    #   9th~10th inpust denotes the reward states
+
 
     data_ST = []
-    n_input = 10
+    n_input = 8
     trial_length = 13
     shape_Dur = 3  # period for shape presentation
     choice_Dur = 2  # period for shape interval
@@ -75,30 +92,30 @@ def generateTraining(filename):
         inputs[0:2, 2:5] = 1  # the three-five time points representing the first epoch
 
         if choices[nTrial] == 0:
-            inputs[6, 5:7] = 1
+            inputs[4, 5:7] = 1
         elif choices[nTrial] == 1:
-            inputs[7, 5:7] = 1
+            inputs[5, 5:7] = 1
 
         if state_all[nTrial] == 1:
-            inputs[2, 7:10] = 1
+            inputs[0, 7:10] = 1
         elif state_all[nTrial] == 2:
-            inputs[3, 7:10] = 1
+            inputs[1, 7:10] = 1
 
         if reward_all[nTrial] == 1:
-            inputs[8, 10:12] = 1
+            inputs[6, 10:12] = 1
 
-        inputs[4, :] = inputs[0:4, :].sum(axis=0)
-        inputs[4, np.where(inputs[4, :] != 0)] = 1
-        inputs[4, :] = 1 - inputs[4, :]
-        inputs[5, :] = 1 - inputs[6:8, :].sum(axis=0)
-        inputs[9, :] = 1 - inputs[8, :]
+        inputs[2, :] = inputs[0:2, :].sum(axis=0)
+        inputs[2, np.where(inputs[2, :] != 0)] = 1
+        inputs[2, :] = 1 - inputs[2, :]
+        inputs[3, :] = 1 - inputs[4:6, :].sum(axis=0)
+        inputs[7, :] = 1 - inputs[6, :]
         if nTrial != 0:
             data_ST.append([np.hstack((inputs_prev, inputs)).T])
         inputs_prev = copy.deepcopy(inputs)
 
-        # # show trial
+        # show trial
         # sbn.set(font_scale=1.6)
-        # y_lables = ['show A1', 'show A2', 'show B1', 'show B2', 'see nothing', 'do nothing','choose A1',
+        # y_lables = ['show A1', 'show A2', 'see nothing', 'do nothing','choose A1',
         #             'choose A2', 'reward', 'no reward']
         # sbn.heatmap(inputs, cmap="YlGnBu", linewidths=0.5, yticklabels=y_lables)
         # plt.show()
@@ -141,7 +158,7 @@ def generateTesting(filename):
     #   6th~9th inputs representing the movement/choice
     #   9th-10th inpust denotes the reward states
     data_ST = []
-    n_input = 10
+    n_input = 8
     trial_length = 6
 
     NumTrials = 5000
@@ -167,8 +184,6 @@ def generateTesting(filename):
     inputs = [
         [0., 0., 1., 1., 1., 0.],
         [0., 0., 1., 1., 1., 0.],
-        [0., 0., 0., 0., 0., 0.],
-        [0., 0., 0., 0., 0., 0.],
         [1., 1., 0., 0., 0., 0.],
         [1., 1., 1., 1., 1., 0.],
         [0., 0., 0., 0., 0., 0.],
@@ -188,11 +203,12 @@ def generateTesting(filename):
     #     [0, 0, 0, 0, 1, 1, 0, 0, 0, 1],
     # ]
     #
-    # # show trial
+
+    # show trial
     # sbn.set(font_scale=1.6)
-    # y_lables = ['show A1', 'show A2', 'show B1', 'show B2', 'see nothing', 'do nothing', 'choose A1',
+    # y_lables = ['show A1', 'show A2', 'see nothing', 'do nothing', 'choose A1',
     #             'choose A2', 'reward', 'no reward']
-    # sbn.heatmap(np.array(chosen_state).T, cmap="YlGnBu", linewidths=0.5, yticklabels=y_lables)
+    # sbn.heatmap(np.array(inputs), cmap="YlGnBu", linewidths=0.5, yticklabels=y_lables)
     # plt.show()
     # print()
 
@@ -217,7 +233,7 @@ def generateTesting(filename):
 if __name__ == '__main__':
     pathname = "./data/"
     file_name = datetime.datetime.now().strftime("%Y_%m_%d")
-    training_file_name = 'SimpTwo_TrainingSet-' + file_name
-    testing_file_name = 'SimpTwo_TestingSet-' + file_name
-    # generateTraining(training_file_name)
+    training_file_name = 'WithoutMediateTwo_TrainingSet-' + file_name
+    testing_file_name = 'WithoutMediateTwo_TestingSet-' + file_name
+    generateTraining(training_file_name)
     generateTesting(testing_file_name)

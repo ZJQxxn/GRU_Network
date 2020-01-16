@@ -26,6 +26,12 @@ KnowLarge-model-two-armed-2019_12_27-blk50-(NUM0~NUM7).pt: Intermediate model ev
 
 SeqCode-KnowLarge-model_two_armed-2019_12_27-blk50.pt: Two-armed task training with sudden reverse reward probability, 50 block size, and 7.5e5 training trials. Stimulus is chosen with the higher reward probability.
 
+RewardRight-model-two-armed-2019_12_28-without_noise-blk50.pt: Two-armed task training with sudden reverse reward probability, 50 block size, and 7.5e5 training trials. Stimulus is chosen with the higher reward probability. Whether reward is determined by whether next trial choose the right stimulus.
+RewardRight-model-two-armed-2019_12_28-blk50-(NUM0~NUM7).pt: Intermediate model every 10000 trials. (block size = 50, training trials = 7.5e5)
+
+SeqCode-RewardRight-model_two_armed-2019_12_28-blk50.pt: Two-armed task training with sudden reverse reward probability, 50 block size, and 7.5e5 training trials. Stimulus is chosen with the higher reward probability.
+
+
 ======================== Log File ==============================
 validation_record-two-armed-2019_12_17-fixed-blk50.pt: Validation on 5000 trials with corresponding model.
 
@@ -53,3 +59,8 @@ KnowLarge-validate_record-two-armed-2019_12_27-without_noise-blk50.hdf5: Validat
 KnowLarge-validate_record-two-armed-2019_12_27-without_noise-blk50--(NUM0~NUM7).hdf5: Validation on 5000 trials with corresponding intermediate model.
 
 SeqCode-KnowLarge-validate_record-two-armed-2019_12_27-without_noise-blk50.hdf5: Validation on 5000 trials with corresponding model.
+
+RewardRight-validate_record-two-armed-2019_12_28-without_noise-blk50.hdf5: Validation on 5000 trials with corresponding model.
+RewardRight-validate_record-two-armed-2019_12_28-without_noise-blk50--(NUM0~NUM7).hdf5: Validation on 5000 trials with corresponding intermediate model.
+
+SeqCode-RewardRight-validate_record-two-armed-2019_12_28-without_noise-blk50.hdf5: Validation on 5000 trials with corresponding model.

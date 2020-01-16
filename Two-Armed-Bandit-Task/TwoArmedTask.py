@@ -404,5 +404,5 @@ if __name__ == '__main__':
     # t.saveModel(model_name)
     # print('Save final model to {}'.format(model_name))
 
-    t.loadModel('./save_m/SeqCode-KnowLarge-model-two_armed-2019_12_27-blk50.pt', 'TwoArmed_Config.json')
-    t.validate('SeqCode-KnowLarge-validate_record-two-armed-2019_12_27-without_noise-blk50.hdf5', block_size=50)
+    t.loadModel('./save_m/RewardRight-model-two_armed-2019_12_28-blk50--NUM7.pt', 'TwoArmed_Config.json')
+    t.validate('RewardRight-validate_record-two-armed-2019_12_28-without_noise-blk50--NUM7.hdf5', block_size=50)

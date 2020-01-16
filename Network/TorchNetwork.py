@@ -103,13 +103,13 @@ class TorchNetwork:
                 batch_count = batch_count + 1
                 # TODO: save the model
                 if step % save_iter == 0:
-                    train_attr = self.config_pars['data_file'].split('-')
-                    tmp_filename = './save_m/KnowLarge-' + train_attr[1] + '-' + train_attr[3] + '-' + train_attr[4] + '-' + '-NUM{}-'.format(save_count) + '.pt'
-                    self.saveModel(tmp_filename)
+                    # train_attr = self.config_pars['data_file'].split('-')
+                    # tmp_filename = './save_m/intermediate-' + train_attr[1] + '-' + train_attr[3] + '-' + train_attr[4] + '-' + '-NUM{}-'.format(save_count) + '.pt'
+                    # self.saveModel(tmp_filename)
                     print('=' * 15, " {}-th batch ".format(batch_count), '=' * 15)
                     print("Network loss for the last trial is : ", batch_loss)
                     print("Correct rate for the last trial is : ", batch_correct_rate)
-                    print('Save the intermediate model to {}'.format(tmp_filename))
+                    # print('Save the intermediate model to {}'.format(tmp_filename))
                     save_count += 1
             else:
                 # Continue collecting training input trials

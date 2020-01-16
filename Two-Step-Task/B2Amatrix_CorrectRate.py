@@ -27,8 +27,8 @@ with open('matrix_mapping.json') as json_file:
 # In[3]:
 
 
-filename = '20191209_1134-smp_ts.hdf5'
-# filename = '20190702_0553-smp_ts.hdf5'
+filename = 'MyCode-validation-two_step-blk50-15e6.hdf5'
+# filename = '20191209_1134-smp_ts.hdf5'
 
 # filename = 'SeqCode/log_m/ST/20190702_0537-smp_ts.hdf5'
 # filename = 'SeqCode/log_m/ST/20190702_0200-smp_ts.hdf5'
@@ -98,7 +98,7 @@ start_end = [0] + list((pd.Series(big_prob) - pd.Series(big_prob).shift(-1)).whe
 choice_matrix = pd.DataFrame([a[start_end[i]:start_end[i + 1]] for i in range(len(start_end) - 1)])
 
 # choice_matrix = np.array(choice_matrix.values).reshape((-1, 100))
-choice_matrix = np.array(choice_matrix.values).reshape((-1, 140))
+# choice_matrix = np.array(choice_matrix.values).reshape((-1, 140)) #TODO: rearrange block size
 
 # Handle with previous
 # previous = None
@@ -115,12 +115,18 @@ choice_matrix = np.array(choice_matrix.values).reshape((-1, 140))
 # first_block = np.mean(np.array(first_block).astype(int), axis=0)
 # second_block = np.mean(np.array(second_block).astype(int), axis=0)
 
-check = np.hstack((np.tile(['A1'], 70), np.tile(['A2'], 70)))
+choice_matrix = np.array(choice_matrix.values).reshape((-1, 70*2))
+block_size = choice_matrix.shape[1] #TODO: rearrange block size; this is infact 2 * block size
+
+check = np.hstack((np.tile(['A1'], block_size // 2), np.tile(['A2'], block_size - block_size // 2)))
 check = np.tile(check, (choice_matrix.shape[0], 1))
 match = np.equal(choice_matrix, check).astype(int)
 prob = np.mean(match, axis = 0)
 # plt.plot(np.arange(0, 140, 1), prob)
-plt.plot(np.arange(0, 140, 1), prob)
+plt.plot(np.arange(0, block_size, 1), prob,lw=2)
+plt.plot([block_size // 2, block_size // 2], [0, 1], 'k--', lw = 1)
+plt.yticks(np.arange(0, 1.1, 0.2), fontsize = 30)
+plt.xticks(fontsize = 30)
 plt.show()
 
 print(prob)
