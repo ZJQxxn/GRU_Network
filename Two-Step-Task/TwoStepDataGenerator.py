@@ -164,19 +164,19 @@ def generateTesting(filename):
     trans_probs = trans_prob * np.ones(NumTrials, )
     reward_probs = reward_prob * blocks + (1 - reward_prob) * (1 - blocks)
 
-    inputs = [
-        [0., 0., 1., 1., 1., 0.],
-        [0., 0., 1., 1., 1., 0.],
-        [0., 0., 0., 0., 0., 0.],
-        [0., 0., 0., 0., 0., 0.],
-        [1., 1., 0., 0., 0., 0.],
-        [1., 1., 1., 1., 1., 0.],
-        [0., 0., 0., 0., 0., 0.],
-        [0., 0., 0., 0., 0., 0.],
-        [0., 0., 0., 0., 0., 0.],
-        [1., 1., 1., 1., 1., 0.]
-    ]
-
+    # inputs = [
+    #     [0., 0., 1., 1., 1., 0.],
+    #     [0., 0., 1., 1., 1., 0.],
+    #     [0., 0., 0., 0., 0., 0.],
+    #     [0., 0., 0., 0., 0., 0.],
+    #     [1., 1., 0., 0., 0., 0.],
+    #     [1., 1., 1., 1., 1., 0.],
+    #     [0., 0., 0., 0., 0., 0.],
+    #     [0., 0., 0., 0., 0., 0.],
+    #     [0., 0., 0., 0., 0., 0.],
+    #     [1., 1., 1., 1., 1., 0.]
+    # ]
+    #
     # chosen_state = [
     #     [0, 0, 0, 0, 1, 0, 0, 0, 0, 1],
     #     [0, 0, 0, 0, 1, 0, 0, 0, 0, 1],
@@ -219,5 +219,5 @@ if __name__ == '__main__':
     file_name = datetime.datetime.now().strftime("%Y_%m_%d")
     training_file_name = 'SimpTwo_TrainingSet-' + file_name
     testing_file_name = 'SimpTwo_TestingSet-' + file_name
-    # generateTraining(training_file_name)
-    generateTesting(testing_file_name)
+    generateTraining(training_file_name)
+    # generateTesting(testing_file_name)

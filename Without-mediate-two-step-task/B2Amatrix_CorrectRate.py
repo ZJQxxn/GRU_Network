@@ -1,12 +1,3 @@
-#!/usr/bin/env python
-# coding: utf-8
-
-# In[1]:
-
-
-# get_ipython().run_line_magic('matplotlib', 'inline')
-# get_ipython().run_line_magic('config', 'IPCompleter.greedy=True')
-
 import matplotlib.pyplot as plt
 import pandas as pd
 import numpy as np
@@ -15,23 +6,29 @@ import seaborn as sns
 import scipy.io as sio
 import json
 import h5py
+import seaborn as sbn
+import matplotlib.pyplot as plt
 
-
-# In[2]:
 
 
 with open('matrix_mapping.json') as json_file:
     matrix_mapping = json.load(json_file)
 
+temp_mapping = {}
+for each in matrix_mapping:
+    temp_mapping[each] = list(np.array(matrix_mapping[each]).T)
+matrix_mapping = temp_mapping
 
-# In[3]:
+# # show trial
+# sbn.set(font_scale=1.6)
+# y_lables = ['show A1', 'show A2', 'see nothing', 'do nothing', 'choose A1',
+#                 'choose A2', 'reward', 'no reward']
+# sbn.heatmap(np.array(np.array(matrix_mapping['A2NR']).T), cmap="YlGnBu", linewidths=0.5, yticklabels=y_lables)
+# plt.show()
+# print()
 
-
-filename = '20200130_1509-smp_ts-revise_interupt.hdf5'
-# filename = '20191209_1134-smp_ts.hdf5'
-
-# filename = 'SeqCode/log_m/ST/20190702_0537-smp_ts.hdf5'
-# filename = 'SeqCode/log_m/ST/20190702_0200-smp_ts.hdf5'
+filename = 'MyCode-validation-two_step_without_intermediate.hdf5'
+# filename = 'SeqCode-20200130_1042-without-mediate.hdf5'
 
 data = {}
 with h5py.File(filename, 'r') as f:
@@ -46,11 +43,13 @@ with h5py.File(filename, 'r') as f:
 
 
 # only select matrix with 13 time points
-good_index = np.array([list(range(*i[0])) for i in data['index'] if i[0][1] - i[0][0] == 13 and 
+good_index = np.array([list(range(*i[0])) for i in data['index'] if i[0][1] - i[0][0] == 13 and
                       any(np.array_equal(np.array(data['behavior'][i[0][0]:i[0][1]]), v) for v in matrix_mapping.values())])  #4928 trials
+print(len(good_index))
+# good_index = np.array([list(range(*i[0])) for i in data['index'] if i[0][1] - i[0][0] == 13]) # decard the mapping matrix
 
 # reshape to (4928, 13, 10), 4928 is trial numbers, 13 is time stamps, 10 is # of variables
-all_trials_raw = np.array(data['behavior'])[good_index.ravel(),:].reshape(-1, 13, 10)
+all_trials_raw = np.array(data['behavior'])[good_index.ravel(),:].reshape(-1, 13, 8)
 
 # pinpoint start points of each session. (session: contiguous matrices selected from raw data)
 starts = [idx + 1 for idx, item in enumerate(np.diff(good_index[:, 0])) if item != 13]
@@ -69,7 +68,7 @@ all_trials = np.array(all_trials)
 # categories each matrix and pick good matrix indexes
 all_cnts, categories = [], []
 for cnt in range(all_trials.shape[0]):
-    v = [i for i in matrix_mapping.keys() if np.sum(all_trials[cnt, :] == matrix_mapping[i]) == 130]
+    v = [i for i in matrix_mapping.keys() if np.sum(all_trials[cnt, :] == matrix_mapping[i]) == 104] # 104 = 13 * 8
     if v != []:
         all_cnts.append(cnt)
         categories.append(v[0])
@@ -90,10 +89,9 @@ big_prob_raw = np.array(switch)[good_index]
 connected_index = [idx for idx in range(1, np.array(switch)[good_index].shape[0]) if idx not in starts]
 big_prob = big_prob_raw[connected_index][all_cnts,:][:,0]
 
-
 del data
 
-a, b, r = pd.Series(categories).str[:2].values, pd.Series(categories).str[2:4].values, pd.Series(categories).str[4:].values
+a, r = pd.Series(categories).str[:2].values, pd.Series(categories).str[2:].values
 start_end = [0] + list((pd.Series(big_prob) - pd.Series(big_prob).shift(-1)).where(lambda x: x != 0).dropna().index + 1) + [len(categories)]
 choice_matrix = pd.DataFrame([a[start_end[i]:start_end[i + 1]] for i in range(len(start_end) - 1)])
 
@@ -116,8 +114,8 @@ choice_matrix = pd.DataFrame([a[start_end[i]:start_end[i + 1]] for i in range(le
 # second_block = np.mean(np.array(second_block).astype(int), axis=0)
 
 print()
-choice_matrix = np.array(choice_matrix.values).reshape((-1, 70*2))
-block_size = choice_matrix.shape[1] #TODO: rearrange block size; this is infact 2 * block size
+choice_matrix = np.array(choice_matrix.values).reshape((-1, choice_matrix.shape[1]*2))
+block_size = choice_matrix.shape[1] #TODO: rearrange block size; this is in fact 2 * block size
 
 check = np.hstack((np.tile(['A1'], block_size // 2), np.tile(['A2'], block_size - block_size // 2)))
 check = np.tile(check, (choice_matrix.shape[0], 1))

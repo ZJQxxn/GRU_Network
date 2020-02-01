@@ -95,19 +95,19 @@ class WithoutMediateTwoStepTask(Task):
             'trans_probs' : self.validate_data_attr['trans_probs'][0][0],
             'reward_prob_1' : self.validate_data_attr['reward_prob_1'][0][0],
             'action_step' : [5,6],
-            'about_state'  : [2,3], # index of states
-            'about_choice' : [5,6,7], # index of choices
-            'about_reward' : [8,9], # index of reward
-            'interrupt_states' : [[0, 0, 0, 0, 1, 0, 0, 1, 0, 1]], # TODO: see nothing; choose A2; no reward
+            'about_state'  : [0,1], # index of showing stimulus
+            'about_choice' : [3,4,5], # index of choosing choices
+            'about_reward' : [6,7], # index of reward
+            'interrupt_states' : [[0, 0, 1, 0, 0, 1, 0, 1]], # TODO: see nothing; choose A2; no reward
             'chosen_states' : [
-                [0, 0, 0, 0, 1, 0, 0, 0, 0, 1],
-                [0, 0, 0, 0, 1, 0, 0, 0, 0, 1],
-                [0, 0, 0, 0, 0, 1, 0, 0, 0, 1],
-                [0, 0, 0, 0, 0, 1, 0, 0, 0, 1],
-                [0, 0, 0, 0, 0, 1, 0, 0, 0, 1],
-                [0, 0, 0, 0, 1, 1, 0, 0, 0, 0],
-                [0, 0, 0, 0, 1, 1, 0, 0, 0, 0],
-                [0, 0, 0, 0, 1, 1, 0, 0, 0, 1],
+                [0, 0, 1, 0, 0, 0, 0, 1],
+                [0, 0, 1, 0, 0, 0, 0, 1],
+                [0, 0, 0, 1, 0, 0, 0, 1],
+                [0, 0, 0, 1, 0, 0, 0, 1],
+                [0, 0, 0, 1, 0, 0, 0, 1],
+                [0, 0, 1, 1, 0, 0, 0, 0],
+                [0, 0, 1, 1, 0, 0, 0, 0],
+                [0, 0, 1, 1, 0, 0, 0, 1],
                 ]
         }
         wining_counts, completed_counts, trial_counts = 0, 0, 0
@@ -228,7 +228,6 @@ class WithoutMediateTwoStepTask(Task):
             next_sensory_inputs: Next input of this trial
         :raise BaseException: Wrong time index.
         '''
-        #TODO: understand the logic of this function
         time_step = self.validate_records['time_step'] + 1
         states_pool = self.validate_records['states_pool']
         if len(action) != 1 or not (action[0] in (0, 1, 2)):
@@ -244,6 +243,7 @@ class WithoutMediateTwoStepTask(Task):
             elif time_step == self.task_validate_attr['action_step'][0]:  # choice has not been made
                 if action == 0:  # fixate, keep silent
                     states_pool = copy.deepcopy(self.task_validate_attr['interrupt_states'])
+                # [Jiaqi - Jan. 29 2020] Though state is defined, it is not used because we omit the intermediate outputs
                 elif action == 1:
                     state = 1 if trial_reward_prob['trans_probs'] > np.random.rand() else 2
                 elif action == 2:
@@ -254,7 +254,7 @@ class WithoutMediateTwoStepTask(Task):
                     reward = trial_reward_prob['reward_prob_1'] > np.random.rand() if state == 1 \
                         else (1 - trial_reward_prob['reward_prob_1']) > np.random.rand()
                     self.validate_records.update({
-                        'common': state == action,
+                        # 'common': state == action,
                         'state':state,
                         'choice':action,
                         'reward':reward,
@@ -381,7 +381,7 @@ if __name__ == '__main__':
     # plt.plot(np.arange(0,500), train_correct_rate)
     # plt.yticks(np.arange(0, 1, 0.1))
     # plt.show()
-    t.train()
-    t.saveModel('./save_m/model-WithoutMediate-two-step-without-init.pt')
-    # t.loadModel('./save_m/model-WithoutMediate-two-step-75e5.pt', 'test_config.json')
-    # t.validate('20191209_1122-smp_ts.hdf5')
+    # t.train()
+    # t.saveModel('./save_m/model-WithoutMediate-two-step-without-init.pt')
+    t.loadModel('./save_m/model-WithoutMediate-two-step-without-init.pt', 'WithoutMediateConfig.json')
+    t.validate('MyCode-validation-two_step_without_intermediate-revise_interrupt.hdf5')

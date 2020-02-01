@@ -114,12 +114,12 @@ def generateTraining(filename):
         inputs_prev = copy.deepcopy(inputs)
 
         # show trial
-        # sbn.set(font_scale=1.6)
-        # y_lables = ['show A1', 'show A2', 'see nothing', 'do nothing','choose A1',
-        #             'choose A2', 'reward', 'no reward']
-        # sbn.heatmap(inputs, cmap="YlGnBu", linewidths=0.5, yticklabels=y_lables)
-        # plt.show()
-        # print()
+        sbn.set(font_scale=1.6)
+        y_lables = ['show A1', 'show A2', 'see nothing', 'do nothing','choose A1',
+                    'choose A2', 'reward', 'no reward']
+        sbn.heatmap(inputs, cmap="YlGnBu", linewidths=0.5, yticklabels=y_lables)
+        plt.show()
+        print(inputs)
 
     if Double:
         training_guide = np.array(
@@ -162,7 +162,7 @@ def generateTesting(filename):
     trial_length = 6
 
     NumTrials = 5000
-    trans_prob = 0.8
+    trans_prob = 1.0
     reward_prob = 0.8
     block_size = 70
 
@@ -236,4 +236,4 @@ if __name__ == '__main__':
     training_file_name = 'WithoutMediateTwo_TrainingSet-' + file_name
     testing_file_name = 'WithoutMediateTwo_TestingSet-' + file_name
     generateTraining(training_file_name)
-    generateTesting(testing_file_name)
+    # generateTesting(testing_file_name)

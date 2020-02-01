@@ -8,7 +8,7 @@
   "data_file": "./data/WithoutMediateTwo_TrainingSet-2020_01_16-1.mat",
   "data_attr": "data_ST",
   "data_brief": "data_ST_Brief",
-  "validation_data_file": "./data/WithoutMediateTwo_TestingSet-2020_01_16-1.mat",
+  "validation_data_file": "./data/WithoutMediateTwo_TestingSet-2020_01_29-1.mat",
   "log_path": "./log_m/ST/",
   "model_path": "./save_m/model-sp_ts_",
   "load_model": "",
