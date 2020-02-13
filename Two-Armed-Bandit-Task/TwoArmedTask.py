@@ -364,7 +364,7 @@ class ThreeArmedTask(Task): #TODO: change the class name to two-armed task, so a
                                  'choice': None,
                                  'chosen': None,
                                  'state': None
-                                 # 'hidden': self.model._initHidden() #TODO: this shouldn't be initialized for every trial
+                                 # 'hidden': self.model._initHidden()
                                  }
 
     def saveModel(self, filename):

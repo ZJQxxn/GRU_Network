@@ -12,14 +12,14 @@ from Task import Task
 from TorchNetwork import TorchNetwork
 from net_tools import np2tensor, tensor2np, match_rate
 from net_tools import readConfigures #TODO: change this
-from WithoutMediateTwoStepDataProcessor import WithoutMediateTwoStepDataProcessor
-from WithoutMediateTwoStepValidateLogWriter import WithoutMediateTwoStepValidateLogWriter
+from TwoStepThreeDataProcessor import TwoStepThreeDataProcessor
+from TwoStepThreeValidateLogWriter import TwoStepThreeValidateLogWriter
 
 import copy
 import numpy as np
 import torch
 
-class WithoutMediateTwoStepTask(Task):
+class TwoStepThreeTask(Task):
     '''
     Description:
         The two-step task, cinluding training and validating processes.
@@ -55,10 +55,10 @@ class WithoutMediateTwoStepTask(Task):
         Initialize the task.
         :param config_file: Configuration file. Should be a JSON file.
         '''
-        super(WithoutMediateTwoStepTask, self).__init__()
+        super(TwoStepThreeTask, self).__init__()
         self.model = TorchNetwork(config_file)
         cofig_pars = readConfigures(config_file)
-        self.data_helper = WithoutMediateTwoStepDataProcessor(cofig_pars['data_file'], cofig_pars['validation_data_file'])
+        self.data_helper = TwoStepThreeDataProcessor(cofig_pars['data_file'], cofig_pars['validation_data_file'])
 
     def train(self):
         '''
@@ -91,25 +91,25 @@ class WithoutMediateTwoStepTask(Task):
         self.validate_data, self.validate_data_attr = self.data_helper.prepareValidatingData()
         self.task_validate_attr = { # attributes for validating
             'trial_length':12,
-            'block' : self.validate_data_attr['block'],
-            # 'trans_probs' : self.validate_data_attr['trans_probs'][0][0],
-            'reward_prob_1' : self.validate_data_attr['reward_prob_1'][0][0],
+            'block' : self.validate_data_attr['block'][0][0],
+            'trans_probs' : self.validate_data_attr['trans_probs'][0][0],
+            'reward_prob' : self.validate_data_attr['reward_prob'][0][0],
             'action_step' : [5,6],
-            'about_state'  : [0,1], # index of showing stimulus
-            'about_choice' : [3,4,5], # index of choosing choices
-            'about_reward' : [6,7], # index of reward
-            'interrupt_states' : [[0, 0, 1, 1, 0, 0, 0, 1]],
+            'about_state'  : [3, 4, 5], # index of states
+            'about_choice' : [7, 8, 9, 10], # index of choices
+            'about_reward' : [11, 12], # index of reward
+            'interrupt_states' : [[0, 0, 0, 0, 0, 0, 1, 1, 0, 0, 0, 0, 1]],
             'chosen_states' : [
-                [0, 0, 1, 0, 0, 0, 0, 1],
-                [0, 0, 1, 0, 0, 0, 0, 1],
-                [0, 0, 0, 1, 0, 0, 0, 1],
-                [0, 0, 0, 1, 0, 0, 0, 1],
-                [0, 0, 0, 1, 0, 0, 0, 1],
-                [0, 0, 1, 1, 0, 0, 0, 0],
-                [0, 0, 1, 1, 0, 0, 0, 0],
-                [0, 0, 1, 1, 0, 0, 0, 1],
+                [0, 0, 0, 0, 0, 0, 1, 0, 0, 0, 0, 0, 1],
+                [0, 0, 0, 0, 0, 0, 1, 0, 0, 0, 0, 0, 1],
+                [0, 0, 0, 0, 0, 0, 0, 1, 0, 0, 0, 0, 1],
+                [0, 0, 0, 0, 0, 0, 0, 1, 0, 0, 0, 0, 1],
+                [0, 0, 0, 0, 0, 0, 0, 1, 0, 0, 0, 0, 1],
+                [0, 0, 0, 0, 0, 0, 1, 1, 0, 0, 0, 0, 0],
+                [0, 0, 0, 0, 0, 0, 1, 1, 0, 0, 0, 0, 0],
+                [0, 0, 0, 0, 0, 0, 1, 1, 0, 0, 0, 0, 1],
                 ],
-            'hidden':self.model._initHidden()
+            'hidden': self.model._initHidden()
         }
         wining_counts, completed_counts, trial_counts = 0, 0, 0
         total_loss, total_correct_rate = 0, 0
@@ -120,7 +120,7 @@ class WithoutMediateTwoStepTask(Task):
         behavior_shape = list(self.validate_data[0].shape)
         behavior_shape.pop(0)
         if need_log:
-            self.log_writer = WithoutMediateTwoStepValidateLogWriter(log_filename)
+            self.log_writer = TwoStepThreeValidateLogWriter(log_filename)
             self.log_writer.craeteHdf5File({'behavior_shape':behavior_shape, 'neuron_shape':neuron_shape})
 
         # Validating
@@ -129,7 +129,7 @@ class WithoutMediateTwoStepTask(Task):
                 break
             trial_reward_prob = {
                 # 'trans_probs': self.task_validate_attr['trans_probs'][:,step],
-                'reward_prob_1':self.task_validate_attr['reward_prob_1'][:,step]
+                'reward_prob':self.task_validate_attr['reward_prob'][:,step]
             }
             # self._resetTrialRecords()
             tmp_loss, tmp_correct_rate, raw_rec, wining, completed = self._trialValidate(trial, trial_reward_prob)
@@ -201,7 +201,7 @@ class WithoutMediateTwoStepTask(Task):
 
         if self.validate_records['reward'] != None:
             raw_rec['choice'] = self.validate_records['choice']
-            raw_rec['reward'] = self.validate_records['reward'][0]
+            raw_rec['reward'] = self.validate_records['reward']
         else:
             raw_rec['choice'] = -1
             raw_rec['reward'] = -1
@@ -229,9 +229,10 @@ class WithoutMediateTwoStepTask(Task):
             next_sensory_inputs: Next input of this trial
         :raise BaseException: Wrong time index.
         '''
+        #TODO: understand the logic of this function
         time_step = self.validate_records['time_step'] + 1
         states_pool = self.validate_records['states_pool']
-        if len(action) != 1 or not (action[0] in (0, 1, 2)):
+        if len(action) != 1 or not (action[0] in (0, 1, 2, 3)):
             states_pool = copy.deepcopy(self.task_validate_attr['interrupt_states'])
         else:
             action = action[0]
@@ -244,13 +245,25 @@ class WithoutMediateTwoStepTask(Task):
             elif time_step == self.task_validate_attr['action_step'][0]:  # choice has not been made
                 if action == 0:  # fixate, keep silent
                     states_pool = copy.deepcopy(self.task_validate_attr['interrupt_states'])
+                # trans_prob = 1
+                elif action == 1:
+                    state = 1
+                elif action == 2:
+                    state = 2
+                elif action == 3:
+                    state =3
 
                 if action != 0:
                     # print("block: {:6f} | choice: {:6f} | reward: {:.6f} ".format(self.block,action,reward))
-                    reward = trial_reward_prob['reward_prob_1'] > np.random.rand() if action == 1 \
-                        else (1 - trial_reward_prob['reward_prob_1']) > np.random.rand()
+                    if action == 1:
+                        reward = trial_reward_prob['reward_prob'][0] > np.random.rand()
+                    elif action == 2:
+                        reward = trial_reward_prob['reward_prob'][1] > np.random.rand()
+                    elif action == 3:
+                        reward = trial_reward_prob['reward_prob'][2] > np.random.rand()
+
                     self.validate_records.update({
-                        # 'common': state == action,
+                        'state':state,
                         'choice':action,
                         'reward':reward,
                         'chose':True})
@@ -258,9 +271,9 @@ class WithoutMediateTwoStepTask(Task):
                     state_[0][self.task_validate_attr['about_choice'][action]] = 1
                     state_[1][self.task_validate_attr['about_choice'][action]] = 1
 
-                    state_[2][self.task_validate_attr['about_state'][action - 1]] = 1
-                    state_[3][self.task_validate_attr['about_state'][action - 1]] = 1
-                    state_[4][self.task_validate_attr['about_state'][action - 1]] = 1
+                    state_[2][self.task_validate_attr['about_state'][state - 1]] = 1
+                    state_[3][self.task_validate_attr['about_state'][state - 1]] = 1
+                    state_[4][self.task_validate_attr['about_state'][state - 1]] = 1
 
                     state_[5][self.task_validate_attr['about_reward'][1 - int(reward)]] = 1
                     state_[6][self.task_validate_attr['about_reward'][1 - int(reward)]] = 1
@@ -340,7 +353,7 @@ class WithoutMediateTwoStepTask(Task):
                                  'states_pool': [],
                                  'completed': None,
                                  'trial_end': False,
-                                 # 'block': [],
+                                 'block': [],
                                  'reward': None,
                                  'choice': None,
                                  'chosen': None,
@@ -374,8 +387,8 @@ class WithoutMediateTwoStepTask(Task):
 if __name__ == '__main__':
     # torch.set_num_threads(3)
     # torch.set_num_interop_threads(3)
-    t = WithoutMediateTwoStepTask("WithoutMediateConfig.json")
+    t = TwoStepThreeTask("two_step_three_config.json")
     # train_loss, train_correct_rate = t.train()
-    # t.saveModel('./save_m/WihtoutInter-two-step.pt')
-    t.loadModel('./save_m/model-WithoutMediate-two-step-without-init.pt', 'WithoutMediateConfig.json')
-    t.validate('MyCode-two_step_without_intermediate-new-validation.hdf5')
+    # t.saveModel('./save_m/TwoStepThree-5e5-mycode.pt')
+    t.loadModel('./save_m/TwoStepThree-15e6-mycode.pt', 'two_step_three_config.json')
+    t.validate('MyCode-TwoStepThree-15e6-validation.hdf5')

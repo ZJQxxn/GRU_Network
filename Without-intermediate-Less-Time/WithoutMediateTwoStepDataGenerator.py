@@ -43,8 +43,8 @@ def generateTraining(filename):
     :param filename: Name of the .mat file, where you want to save the training dataset. 
     :return: VOID
     '''
-    NumTrials = int(7.5e2 + 1)
-    trans_prob = 1  # from A1-B1, from A2-B2  # TODO: set to 1, same as two-armed task
+    NumTrials = int(2.5e5 + 1)
+    trans_prob = 1  # from A1-B1, from A2-B2
     reward_prob = 0.8
     block_size = 50
     Double = True
@@ -63,59 +63,58 @@ def generateTraining(filename):
     blocks = np.hstack((blocks, temp))
 
     choices = np.random.choice([0, 1], NumTrials)  # 0:A1; 1:A2
-    trans_probs = trans_prob * choices + (1 - trans_prob) * (
-    1 - choices)  # probability of transition to the B2 in stage 2
 
-    temp = np.random.rand(NumTrials, )
-    state2 = trans_probs > temp  # 0: B1; 1: B2
+    reward_prob_A1 = choices * blocks * reward_prob + choices * (1 - blocks) * (1 - reward_prob)
+    reward_prob_A2 = (1 - choices) * blocks * (1 - reward_prob) + (1 - choices) * (1 - blocks) * reward_prob
 
-    reward_prob_B1 = (1 - reward_prob) * state2 * (1 - blocks) + reward_prob * (1 - state2) * (
-    1 - blocks)  # when B1 with larger reward
-    reward_prob_B2 = reward_prob * state2 * blocks + (1 - reward_prob) * (
-    1 - state2) * blocks  # when B2 with larger reward
+    reward_prob_choice = reward_prob_A1 + reward_prob_A2  #
+    reward_all = reward_prob_choice > np.random.rand(NumTrials, )
 
-    reward_prob_state2 = reward_prob_B1 + reward_prob_B2  # reward probability of the observation in stage 2
+    # In[]:
+    """
+    first seven inputs represent visual stimulus 
 
-    temp1 = np.random.rand(NumTrials, )
-    reward_all = reward_prob_state2 > temp1
-    state_all = copy.deepcopy(state2) + 1  # 1: B1; 2: B2
+    1st~2nd inputs representing the options
 
+    3rd inputs representing no visual stimuli
 
+    4th~6th inputs representing the movement/choice
 
-    data_ST = []
-    n_input = 8
-    trial_length = 13
-    shape_Dur = 3  # period for shape presentation
-    choice_Dur = 2  # period for shape interval
+    7th~8th inpust denotes the reward states
+    """
+
+    data_RL = []
+    n_input = 8;
+    trial_length = 10
+    shape_Dur = 3;  # period for shape presentation
+    choice_Dur = 2;  # period for shape interval
     for nTrial in range(NumTrials):
         inputs = np.zeros((n_input, trial_length))
         inputs[0:2, 2:5] = 1  # the three-five time points representing the first epoch
 
         if choices[nTrial] == 0:
+            inputs[0, 5:7] = 1
             inputs[4, 5:7] = 1
         elif choices[nTrial] == 1:
+            inputs[1, 5:7] = 1
             inputs[5, 5:7] = 1
 
-        if state_all[nTrial] == 1:
-            inputs[0, 7:10] = 1
-        elif state_all[nTrial] == 2:
-            inputs[1, 7:10] = 1
-
         if reward_all[nTrial] == 1:
-            inputs[6, 10:12] = 1
+            inputs[6, 7:9] = 1
 
         inputs[2, :] = inputs[0:2, :].sum(axis=0)
         inputs[2, np.where(inputs[2, :] != 0)] = 1
         inputs[2, :] = 1 - inputs[2, :]
+
         inputs[3, :] = 1 - inputs[4:6, :].sum(axis=0)
         inputs[7, :] = 1 - inputs[6, :]
         if nTrial != 0:
-            data_ST.append([np.hstack((inputs_prev, inputs)).T])
+            data_RL.append([np.hstack((inputs_prev, inputs)).T])
         inputs_prev = copy.deepcopy(inputs)
 
         # # show trial
         # sbn.set(font_scale=1.6)
-        # y_lables = ['show A1', 'show A2', 'see nothing', 'do nothing','choose A1',
+        # y_lables = ['show A1', 'show A2', 'see nothing', 'do nothing', 'choose A1',
         #             'choose A2', 'reward', 'no reward']
         # sbn.heatmap(inputs, cmap="YlGnBu", linewidths=0.5, yticklabels=y_lables)
         # plt.show()
@@ -128,23 +127,28 @@ def generateTraining(filename):
         training_guide = np.array([reward_all[1:], trial_length + np.zeros((len(reward_all) - 1,))]).squeeze().astype(
             np.int).T.tolist()
 
-    data_ST_Brief = {'choices': choices, 'state_all': state_all,
-                     'reward': reward_all, 'trans_prob': trans_prob,
+    data_RL_Brief = {'choices': choices, 'reward': reward_all, 'trans_prob': trans_prob,
                      'shape_Dur': shape_Dur, 'choice_Dur': choice_Dur, 'Double': Double,
                      'training_guide': training_guide}
+
+    # data  saving
+    pathname = "./data/"
+    file_name = datetime.datetime.now().strftime("%Y_%m_%d")
+    data_name = 'WithoutInterLessTime_TrainingSet-' + file_name
 
     n = 0
     while 1:  # save the model
         n += 1
-        if not os.path.isfile(pathname + filename + '-' + str(n) + '.mat'):
-            sio.savemat(pathname + filename + '-' + str(n) + '.mat',
-                        {'data_ST': data_ST,
-                         'data_ST_Brief': data_ST_Brief,
+        if not os.path.isfile(pathname + data_name + '-' + str(n) + '.mat'):
+            sio.savemat(pathname + data_name + '-' + str(n) + '.mat',
+                        {'data_RL': data_RL,
+                         'data_RL_Brief': data_RL_Brief,
                          'info': info})
             print("_" * 36)
-            print("training file for simplified two step task is saved")
-            print("file name:" + pathname + filename + '-' + str(n) + '.mat')
+            print("training file for reserval learning task is saved")
+            print("file name:" + pathname + data_name + '-' + str(n) + '.mat')
             break
+    filename = pathname + data_name + '-' + str(n) + '.mat'
 
 
 def generateTesting(filename):
@@ -157,16 +161,15 @@ def generateTesting(filename):
     #   5 inputs represent visual stimulus
     #   6th~9th inputs representing the movement/choice
     #   9th-10th inpust denotes the reward states
-    data_ST = []
+    data_RL = []
     n_input = 8
     trial_length = 6
 
     NumTrials = 5000
-    trans_prob = 1.0
     reward_prob = 0.8
     block_size = 70
 
-    info = {'NumTrials': NumTrials, 'reward_prob': reward_prob, 'block_size': block_size, 'trans_prob': trans_prob}
+    info = {'NumTrials': NumTrials, 'reward_prob': reward_prob, 'block_size': block_size}
 
     temp = np.hstack((np.ones((block_size,)), np.zeros((block_size,))))
     blocks = np.tile(temp, int(NumTrials / (block_size * 2)))
@@ -178,7 +181,6 @@ def generateTesting(filename):
         temp = np.hstack((np.ones((block_size,)), np.zeros((lost_trialsNum - block_size,))))
     blocks = np.hstack((blocks, temp))
 
-    trans_probs = trans_prob * np.ones(NumTrials, )
     reward_probs = reward_prob * blocks + (1 - reward_prob) * (1 - blocks)
 
     inputs = [
@@ -192,42 +194,26 @@ def generateTesting(filename):
         [1., 1., 1., 1., 1., 0.]
     ]
 
-    # chosen_state = [
-    #     [0, 0, 0, 0, 1, 0, 0, 0, 0, 1],
-    #     [0, 0, 0, 0, 1, 0, 0, 0, 0, 1],
-    #     [0, 0, 0, 0, 0, 1, 0, 0, 0, 1],
-    #     [0, 0, 0, 0, 0, 1, 0, 0, 0, 1],
-    #     [0, 0, 0, 0, 0, 1, 0, 0, 0, 1],
-    #     [0, 0, 0, 0, 1, 1, 0, 0, 0, 0],
-    #     [0, 0, 0, 0, 1, 1, 0, 0, 0, 0],
-    #     [0, 0, 0, 0, 1, 1, 0, 0, 0, 1],
-    # ]
-    #
+    data_RL = [[np.array(inputs).T]] * NumTrials
 
-    # show trial
-    # sbn.set(font_scale=1.6)
-    # y_lables = ['show A1', 'show A2', 'see nothing', 'do nothing', 'choose A1',
-    #             'choose A2', 'reward', 'no reward']
-    # sbn.heatmap(np.array(inputs), cmap="YlGnBu", linewidths=0.5, yticklabels=y_lables)
-    # plt.show()
-    # print()
+    data_RL_Brief = {'reward_prob_1': reward_probs, 'block_size': block_size, 'block': blocks}
 
-    data_ST = [[np.array(inputs).T]] * NumTrials
-    data_ST_Brief = {'reward_prob_1': reward_probs, 'trans_probs': trans_probs, 'block_size': block_size,
-                     'block': blocks}
-
+    pathname = "./data/"
+    file_name = datetime.datetime.now().strftime("%Y_%m_%d")
+    data_name = 'WithoutInterLessTime_TestingSet-' + file_name
     n = 0
     while 1:  # save the model
         n += 1
-        if not os.path.isfile(pathname + filename + '-' + str(n) + '.mat'):
-            sio.savemat(pathname + filename + '-' + str(n) + '.mat',
-                        {'data_ST': data_ST,
-                         'data_ST_Brief': data_ST_Brief,
+        if not os.path.isfile(pathname + data_name + '-' + str(n) + '.mat'):
+            sio.savemat(pathname + data_name + '-' + str(n) + '.mat',
+                        {'data_RL': data_RL,
+                         'data_RL_Brief': data_RL_Brief,
                          })
             print("_" * 36)
-            print("testing file for simplified two step task is saved")
-            print("file name:" + pathname + filename + '-' + str(n) + '.mat')
+            print("testing file for reserval learning step task is saved")
+            print("file name:" + pathname + data_name + '-' + str(n) + '.mat')
             break
+    filename = pathname + data_name + '-' + str(n) + '.mat'
 
 
 if __name__ == '__main__':

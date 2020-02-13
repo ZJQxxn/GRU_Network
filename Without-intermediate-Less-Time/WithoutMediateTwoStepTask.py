@@ -90,9 +90,8 @@ class WithoutMediateTwoStepTask(Task):
         # Initialization
         self.validate_data, self.validate_data_attr = self.data_helper.prepareValidatingData()
         self.task_validate_attr = { # attributes for validating
-            'trial_length':12,
+            'trial_length':9,
             'block' : self.validate_data_attr['block'],
-            # 'trans_probs' : self.validate_data_attr['trans_probs'][0][0],
             'reward_prob_1' : self.validate_data_attr['reward_prob_1'][0][0],
             'action_step' : [5,6],
             'about_state'  : [0,1], # index of showing stimulus
@@ -100,16 +99,13 @@ class WithoutMediateTwoStepTask(Task):
             'about_reward' : [6,7], # index of reward
             'interrupt_states' : [[0, 0, 1, 1, 0, 0, 0, 1]],
             'chosen_states' : [
-                [0, 0, 1, 0, 0, 0, 0, 1],
-                [0, 0, 1, 0, 0, 0, 0, 1],
-                [0, 0, 0, 1, 0, 0, 0, 1],
-                [0, 0, 0, 1, 0, 0, 0, 1],
-                [0, 0, 0, 1, 0, 0, 0, 1],
+                [0, 0, 0, 0, 0, 0, 0, 1], # TODO [Jiaqi] SeqCode made a mistake about firdt two time steps
+                [0, 0, 0, 0, 0, 0, 0, 1],
                 [0, 0, 1, 1, 0, 0, 0, 0],
                 [0, 0, 1, 1, 0, 0, 0, 0],
                 [0, 0, 1, 1, 0, 0, 0, 1],
                 ],
-            'hidden':self.model._initHidden()
+            'hidden': self.model._initHidden()
         }
         wining_counts, completed_counts, trial_counts = 0, 0, 0
         total_loss, total_correct_rate = 0, 0
@@ -250,7 +246,6 @@ class WithoutMediateTwoStepTask(Task):
                     reward = trial_reward_prob['reward_prob_1'] > np.random.rand() if action == 1 \
                         else (1 - trial_reward_prob['reward_prob_1']) > np.random.rand()
                     self.validate_records.update({
-                        # 'common': state == action,
                         'choice':action,
                         'reward':reward,
                         'chose':True})
@@ -258,15 +253,14 @@ class WithoutMediateTwoStepTask(Task):
                     state_[0][self.task_validate_attr['about_choice'][action]] = 1
                     state_[1][self.task_validate_attr['about_choice'][action]] = 1
 
-                    state_[2][self.task_validate_attr['about_state'][action - 1]] = 1
-                    state_[3][self.task_validate_attr['about_state'][action - 1]] = 1
-                    state_[4][self.task_validate_attr['about_state'][action - 1]] = 1
+                    state_[0][self.task_validate_attr['about_state'][action - 1]] = 1
+                    state_[1][self.task_validate_attr['about_state'][action - 1]] = 1
 
-                    state_[5][self.task_validate_attr['about_reward'][1 - int(reward)]] = 1
-                    state_[6][self.task_validate_attr['about_reward'][1 - int(reward)]] = 1
+                    state_[2][self.task_validate_attr['about_reward'][1 - int(reward)]] = 1
+                    state_[3][self.task_validate_attr['about_reward'][1 - int(reward)]] = 1
                     states_pool = copy.deepcopy(state_)
 
-            elif time_step == self.task_validate_attr['action_step'][1]:  # choice has not been made
+            elif time_step == self.task_validate_attr['action_step'][1]:  # choice has been made
                 if action == self.validate_records['choice']:
                     pass
                 else:
@@ -301,6 +295,7 @@ class WithoutMediateTwoStepTask(Task):
         :return: 
             selected_action: The estimated action.
         '''
+        # hidden = self.validate_records['hidden']
         hidden = self.task_validate_attr['hidden']
         processed_input = torch.tensor(sensory_inputs).type(torch.FloatTensor).view(1, self.model.network.batch_size, -1).requires_grad_(True)
         output, hidden = self.model.network(processed_input, hidden)
@@ -345,7 +340,7 @@ class WithoutMediateTwoStepTask(Task):
                                  'choice': None,
                                  'chosen': None,
                                  'state': None,
-                                 # 'hidden': self.model._initHidden()
+                                 # 'hidden': self.model.hidden
                                  }
 
     def saveModel(self, filename):
@@ -376,6 +371,6 @@ if __name__ == '__main__':
     # torch.set_num_interop_threads(3)
     t = WithoutMediateTwoStepTask("WithoutMediateConfig.json")
     # train_loss, train_correct_rate = t.train()
-    # t.saveModel('./save_m/WihtoutInter-two-step.pt')
-    t.loadModel('./save_m/model-WithoutMediate-two-step-without-init.pt', 'WithoutMediateConfig.json')
-    t.validate('MyCode-two_step_without_intermediate-new-validation.hdf5')
+    # t.saveModel('./save_m/MyCode-WithoutInterLessTime.pt')
+    t.loadModel('./save_m/MyCode-WithoutInterLessTime.pt', 'WithoutMediateConfig.json')
+    t.validate('MyCode-without-intermediate-less-time.hdf5')

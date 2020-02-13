@@ -54,7 +54,7 @@ class TorchNetwork:
             self._resetNetwork() # initialize the network with a configuration file
         self.trained = False # denote whether the network has been trained
 
-    def training(self, train_set, train_guide, truncate_iter = 1e800, save_iter = 0):
+    def training(self, train_set, train_guide, truncate_iter = 1e800, save_iter = 1000):
         '''
         Train the GRU  neural network.
         :param train_set: Training dataset, should have shape (number of trials, time steps in a trial, feature dimension)
@@ -106,7 +106,7 @@ class TorchNetwork:
                     # train_attr = self.config_pars['data_file'].split('-')
                     # tmp_filename = './save_m/intermediate-' + train_attr[1] + '-' + train_attr[3] + '-' + train_attr[4] + '-' + '-NUM{}-'.format(save_count) + '.pt'
                     # self.saveModel(tmp_filename)
-                    print('=' * 15, " {}-th batch ".format(batch_count), '=' * 15)
+                    print('=' * 15, " {}-th batch ".format(step), '=' * 15)
                     print("Network loss for the last trial is : ", batch_loss)
                     print("Correct rate for the last trial is : ", batch_correct_rate)
                     # print('Save the intermediate model to {}'.format(tmp_filename))
