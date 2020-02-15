@@ -276,14 +276,14 @@ class DataGenerate:
             prev_trial = trial
         # store weight coefficients for each input of each trial
         self.training_guide = np.vstack((self.rewards[1:], np.tile(2*self.time_step_num, self.train_trial_num-1))).T
-        # ================ SHOW TRIAL ===================
-        sbn.set(font_scale=1.6)
-        y_lables = ['see A', 'see B', 'see C', 'see nothing', 'choose A', 'choose B', 'choose C', 'do nothing',
-                    'reward', 'no reward']
-        show_test = self.training_set[0].T
-        sbn.heatmap(show_test[:, 0:14], cmap="YlGnBu", linewidths=0.5, yticklabels=y_lables)
-        plt.show()
-        print()
+        # # ================ SHOW TRIAL ===================
+        # sbn.set(font_scale=1.6)
+        # y_lables = ['see A', 'see B', 'see C', 'see nothing', 'choose A', 'choose B', 'choose C', 'do nothing',
+        #             'reward', 'no reward']
+        # show_test = self.training_set[0].T
+        # sbn.heatmap(show_test[:, 0:14], cmap="YlGnBu", linewidths=0.5, yticklabels=y_lables)
+        # plt.show()
+        # print()
 
     def _generateValidating(self):
         '''
@@ -292,22 +292,27 @@ class DataGenerate:
         :return: VOID
         '''
         # ================ GENERATE TRIALS ===================
+        trial = np.array([
+            [0., 0., 1., 1., 1., 0.],
+            [0., 0., 1., 1., 1., 0.],
+            [0., 0., 1., 1., 1., 0.],
+            [1., 1., 0., 0., 0., 0.],
+            [0., 0., 0., 0., 0., 0.],
+            [0., 0., 0., 0., 0., 0.],
+            [0., 0., 0., 0., 0., 0.],
+            [1., 1., 1., 1., 1., 0.],
+            [0., 0., 0., 0., 0., 0.],
+            [1., 1., 1., 1., 1., 0.]
+        ])
         for nTrial in range(self.validate_trial_num):
-            trial = np.zeros(
-                (self.input_dim, self.validate_time_step_num))
-            # At 0 and 1 time steps, see nothing and do nothing
-            trial[3, 0:2] = trial[7, 0:2] = 1
-            # At 2, 3, and 4 time steps, see three stimulus and do nothing
-            trial[0:3, 2:5] = trial[7, 2:5] = 1
             self.validating_set.append(trial.T)
-        # ================ SHOW TRIAL ===================
-        sbn.set(font_scale=1.6)
-        y_lables = ['see A', 'see B', 'see C', 'see nothing', 'choose A', 'choose B', 'choose C', 'do nothing',
-                    'reward', 'no reward']
-        show_test = self.validating_set[0].T
-        sbn.heatmap(show_test[:, 0:5], cmap="YlGnBu", linewidths=0.5, yticklabels=y_lables)
-        plt.show()
-        print()
+        # # ================ SHOW TRIAL ===================
+        # sbn.set(font_scale=1.6)
+        # y_lables = ['see A', 'see B', 'see C', 'see nothing', 'choose A', 'choose B', 'choose C', 'do nothing',
+        #             'reward', 'no reward']
+        # sbn.heatmap(trial, cmap="YlGnBu", linewidths=0.5, yticklabels=y_lables)
+        # plt.show()
+        # print()
 
     def save2Mat(self):
         '''
@@ -337,6 +342,8 @@ class DataGenerate:
                 break
 
         # ================ SAVE VALIDATING SET ===================
+        blkNum = len(self.validating_set) // (2 * self.block_size) + 1
+        self.reward_probability = np.tile(self.reward_probability, blkNum)[:, :len(self.validating_set)]
         info = {'NumTrials': self.validate_trial_num, 'reward_probability': self.reward_probability,
                 'block_size': self.block_size, 'input_dim': self.input_dim, 'time_step_num': self.time_step_num}
         validate_data_name = 'ThreeArmedBandit_TestingSet-' + self.reward_type + "-" + file_name
@@ -360,6 +367,6 @@ class DataGenerate:
 
 
 if __name__ == '__main__':
-    g = DataGenerate(train_trial_num=100, validate_trial_num= 5000, block_size=20)
-    g.generating('two_reverse')
+    g = DataGenerate(train_trial_num=100, validate_trial_num= 5000, block_size=50)
+    g.generating('sudden_reverse')
     g.save2Mat()

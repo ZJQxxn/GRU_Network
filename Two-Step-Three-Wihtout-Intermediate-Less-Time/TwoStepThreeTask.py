@@ -380,5 +380,5 @@ if __name__ == '__main__':
     t = TwoStepThreeTask("two_step_three_config.json")
     # train_loss, train_correct_rate = t.train()
     # t.saveModel('./save_m/TwoStepThree-5e5-mycode.pt')
-    t.loadModel('./save_m/TwoStepThree-1e6-mycode.pt', 'two_step_three_config.json')
-    t.validate('MyCode-TwoStepThree-1e6-validation.hdf5')
+    t.loadModel('./save_m/TwoStepThreeLess-15e6-mycode.pt', 'two_step_three_config.json')
+    t.validate('MyCode-TwoStepThreeLess-15e6-validation.hdf5')

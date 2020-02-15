@@ -17,7 +17,7 @@ import matplotlib.pyplot as plt
 blk_size = 70
 
 # choices of each validation trial
-filename = 'MyCode-TwoStepThree-1e6-validation.hdf5' # TODO: lack of training
+filename = 'MyCode-TwoStepThreeLess-15e6-validation.hdf5' # TODO: lack of training
 # filename = 'SeqCode-20200210_1310-revrl_lr.hdf5' # less time step; does not show choices
 
 with h5py.File(filename, 'r') as f:

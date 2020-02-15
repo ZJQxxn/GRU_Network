@@ -112,13 +112,13 @@ def generateTraining(filename):
             data_RL.append([np.hstack((inputs_prev, inputs)).T])
         inputs_prev = copy.deepcopy(inputs)
 
-        # # show trial
-        # sbn.set(font_scale=1.6)
-        # y_lables = ['show A1', 'show A2', 'see nothing', 'do nothing', 'choose A1',
-        #             'choose A2', 'reward', 'no reward']
-        # sbn.heatmap(inputs, cmap="YlGnBu", linewidths=0.5, yticklabels=y_lables)
-        # plt.show()
-        # print(inputs)
+        # show trial
+        sbn.set(font_scale=1.6)
+        y_lables = ['show A1', 'show A2', 'see nothing', 'do nothing', 'choose A1',
+                    'choose A2', 'reward', 'no reward']
+        sbn.heatmap(inputs, cmap="YlGnBu", linewidths=0.5, yticklabels=y_lables)
+        plt.show()
+        print(inputs)
 
     if Double:
         training_guide = np.array(

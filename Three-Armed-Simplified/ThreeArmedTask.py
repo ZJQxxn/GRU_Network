@@ -96,25 +96,21 @@ class ThreeArmedTask(Task): #TODO: change the class name to two-armed task, so a
         # Initialization
         self.validate_data, self.validate_data_attr = self.data_helper.prepareValidatingData()
         self.task_validate_attr = { # attributes for validating
-            'trial_length':13,
+            'trial_length':9,
             # 'block' : self.validate_data_attr['block'],
             # 'trans_probs' : self.validate_data_attr['trans_probs'][0][0],
-            'reward_prob_1' : self.validate_data_attr['reward_probability'][0][0],
+            'reward_prob_1' : self.validate_data_attr['reward_prob_1'][0][0],
             'action_step' : [5,6],
-            'about_state'  : [0,1], # index of showing stimulus
-            'about_choice' : [3,4,5], # index of choosing choices
-            'about_reward' : [6,7], # index of reward
-            'interrupt_states' : [[0, 0, 1, 0, 0, 1, 0, 1]],
+            'about_state'  : [0,1,2], # index of showing stimulus
+            'about_choice' : [4,5,6,7], # index of choosing choices
+            'about_reward' : [8,9], # index of reward
+            'interrupt_states' : [[0, 0, 0, 1, 1, 0, 0, 0, 0, 1]],
             'chosen_states' : [
-                [1, 1, 0, 0, 0, 0, 0, 1],
-                [1, 1, 0, 0, 0, 0, 0, 1],
-                [0, 0, 0, 0, 0, 1, 0, 1],
-                [0, 0, 0, 0, 0, 1, 0, 1],
-                [0, 0, 0, 0, 0, 1, 0, 0],
-                [0, 0, 0, 0, 0, 1, 0, 0],
-                [0, 0, 0, 0, 0, 1, 0, 0],
-                [0, 0, 1, 0, 0, 1, 0, 1],
-                [0, 0, 1, 0, 0, 1, 0, 1]
+                [0, 0, 0, 0, 0, 0, 0, 0, 0, 1],
+                [0, 0, 0, 0, 0, 0, 0, 0, 0, 1],
+                [0, 0, 0, 1, 1, 0, 0, 0, 0, 0],
+                [0, 0, 0, 1, 1, 0, 0, 0, 0, 0],
+                [0, 0, 0, 1, 1, 0, 0, 0, 0, 1]
                 ],
             'hidden':self.model._initHidden()
         }
@@ -185,7 +181,7 @@ class ThreeArmedTask(Task): #TODO: change the class name to two-armed task, so a
         raw_rec = {}
         self._resetTrialRecords()
         self.validate_records.update({'states_pool': trial.tolist(), 'trial_end': False})
-        action = [2]  # init action: fixate on fixation point [Jiaqi] 2 for fixation
+        action = [0]  # init action: fixate on fixation point [Jiaqi] 2 for fixation
         planaction_record = []
         while not self.validate_records['trial_end']:
             trial_end, sensory_inputs = self._nextInput(action, trial_reward_prob)  # compute the input
@@ -238,39 +234,37 @@ class ThreeArmedTask(Task): #TODO: change the class name to two-armed task, so a
         '''
         time_step = self.validate_records['time_step'] + 1
         states_pool = self.validate_records['states_pool']
-        if len(action) != 1 or not (action[0] in (0, 1, 2)):
+        if len(action) != 1 or not (action[0] in (0, 1, 2, 3)):
             states_pool = copy.deepcopy(self.task_validate_attr['interrupt_states'])
         else:
             action = action[0]
             if not (time_step in self.task_validate_attr['action_step']):  # choice has not been made
-                if action == 2:  # fixate, keep silent
+                if action == 0:  # fixate, keep silent
                     pass
                 else:
                     states_pool = copy.deepcopy(self.task_validate_attr['interrupt_states'])
 
             elif time_step == self.task_validate_attr['action_step'][0]:  # choice has not been made
-                if action == 2:  # fixate, keep silent
+                if action == 0:  # fixate, keep silent
                     states_pool = copy.deepcopy(self.task_validate_attr['interrupt_states'])
 
-                if action != 2: # action = 0 or 1, representing A or B respectively
+                if action != 0: # action = 0 or 1, representing A or B respectively
                     # print("block: {:6f} | choice: {:6f} | reward: {:.6f} ".format(self.block,action,reward))
-                    reward = trial_reward_prob['reward_prob_1'][0] > np.random.rand() if action == 0 \
-                        else trial_reward_prob['reward_prob_1'][1] > np.random.rand()
+                    reward = trial_reward_prob['reward_prob_1'][action-1] > np.random.rand()
                     self.validate_records.update({
                         # 'common': state == action,
                         'choice':action,
                         'reward':reward,
                         'chose':True})
                     state_ = copy.deepcopy(self.task_validate_attr['chosen_states'])
-                    state_[0][self.task_validate_attr['about_choice'][action]] = 1 # action is 0/1 and the index is 0/1
+                    state_[0][self.task_validate_attr['about_choice'][action]] = 1 # action is 1/2 and the index is 0/1
                     state_[1][self.task_validate_attr['about_choice'][action]] = 1
 
-                    state_[2][self.task_validate_attr['about_state'][action]] = 1
-                    state_[3][self.task_validate_attr['about_state'][action]] = 1
+                    state_[0][self.task_validate_attr['about_state'][action-1]] = 1
+                    state_[1][self.task_validate_attr['about_state'][action-1]] = 1
 
-                    state_[4][self.task_validate_attr['about_reward'][action]] = 1
-                    state_[5][self.task_validate_attr['about_reward'][1 - int(reward)]] = 1
-                    state_[6][self.task_validate_attr['about_reward'][1 - int(reward)]] = 1
+                    state_[2][self.task_validate_attr['about_reward'][1 - int(reward)]] = 1
+                    state_[3][self.task_validate_attr['about_reward'][1 - int(reward)]] = 1
                     states_pool = copy.deepcopy(state_)
 
             elif time_step == self.task_validate_attr['action_step'][1]:  # choice has not been made
@@ -382,18 +376,12 @@ class ThreeArmedTask(Task): #TODO: change the class name to two-armed task, so a
 
 
 if __name__ == '__main__':
-    reward_type = 'without_noise'
-    config_file = "TwoArmed_Config.json"
-    configs = readConfigures(config_file)
-    blk_num = configs['data_file'].split('-')[3]
-    model_name = './save_m/KnowLarge-model-two-armed-'+ configs['data_file'].split('-')[2] + '-' + reward_type + '-' + blk_num + '.pt'
+    torch.set_num_threads(3)
+    torch.set_num_interop_threads(3)
+    t = ThreeArmedTask('ThreeArmed_Config.json')
 
+    t.train(save_iter=1000)
+    t.saveModel('../save_m/SimplifyThreeArmed-1e6-model.pt')
 
-    t = ThreeArmedTask(config_file)
-
-    # t.train(save_iter=20)
-    # t.saveModel(model_name)
-    # print('Save final model to {}'.format(model_name))
-    # TODO: RewardRight-model-two_armed-2019_12_28-blk50--NUM7 has 50/%  correct rate...
-    t.loadModel('./save_m/RewardRight-model-two_armed-2019_12_28-blk50--NUM7.pt', 'TwoArmed_Config.json')
-    t.validate('TwoArmed-new_validation-without_noise-blk50.hdf5')
+    # t.loadModel('./save_m/SimplifyThreeArmed-1e6-model.pt', 'ThreeArmed_Config.json')
+    # t.validate('SimplifyThreeArmed-validation-1e6.hdf5')
