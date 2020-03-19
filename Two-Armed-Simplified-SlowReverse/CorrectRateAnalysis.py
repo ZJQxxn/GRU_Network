@@ -17,11 +17,11 @@ import matplotlib.pyplot as plt
 blk_size = 70
 
 # choices of each validation trial
-filename = 'SimplifyTwoArmed-validation-75e5.hdf5'
-
+filename = 'save_m/model_2/TwoArmedSimplifySlowReverse-validation-15e6-model2-NUM14.hdf5'
+filename =  'TwoArmedSimplifySlowReverse-validation-15e6-model1-final.hdf5'
 with h5py.File(filename, 'r') as f:
     choices = np.array(f['choice'].value, dtype = np.float32)
-choices[np.where(choices > 2)] = np.nan
+choices[np.where(choices > 3)] = np.nan
 
 # the number of trials
 numTrials = len(choices)
@@ -31,7 +31,7 @@ choices = choices[:numTrials]
 
 # A1 is reward in the first block; A2 is reward in the second block
 block_indication = np.hstack(
-    (np.zeros(blk_size,), np.ones(blk_size,))
+    (np.zeros(blk_size,), 2 * np.ones(blk_size,))
 )
 block_indication = np.tile(block_indication, numBlks // 2)
 

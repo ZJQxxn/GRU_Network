@@ -27,7 +27,7 @@ class TorchNetwork:
         training: Train the network.
         predicting: Predict outputs with the trained network.
         saveMiodel: Save network parameters and configurations to a Pytorch ``.pt''` file.
-        loadModel: Read network parameters and configurations from a Pytorch 11.pt'' file.
+        loadModel: Read network parameters and configurations from a Pytorch ``.pt'' file.
         _trainBlock: Train the network with a data block.
         _trainTrial: Train the networkwith a single trial.
         _initHidden: Initialize the hidden units.
@@ -104,12 +104,12 @@ class TorchNetwork:
                 # TODO: save the model
                 if step % save_iter == 0:
                     # train_attr = self.config_pars['data_file'].split('-')
-                    # tmp_filename = './save_m/intermediate-' + train_attr[1] + '-' + train_attr[3] + '-' + train_attr[4] + '-' + '-NUM{}-'.format(save_count) + '.pt'
-                    # self.saveModel(tmp_filename)
+                    tmp_filename = './save_m/Intermediate-' + '-NUM{}-'.format(save_count) + '.pt'
+                    self.saveModel(tmp_filename)
                     print('=' * 15, " {}-th batch ".format(step), '=' * 15)
                     print("Network loss for the last trial is : ", batch_loss)
                     print("Correct rate for the last trial is : ", batch_correct_rate)
-                    # print('Save the intermediate model to {}'.format(tmp_filename))
+                    print('Save the intermediate model to {}'.format(tmp_filename))
                     save_count += 1
             else:
                 # Continue collecting training input trials

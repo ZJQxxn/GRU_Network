@@ -41,7 +41,7 @@ def generateTraining(filename):
     :param filename: Name of the .mat file, where you want to save the training dataset. 
     :return: VOID
     '''
-    NumTrials = int(1e6 + 1)
+    NumTrials = int(1e2 + 1)
     reward_prob = np.array([0.8, 0.5, 0.2]).reshape((3,1))
     block_size = 50
 
@@ -54,11 +54,24 @@ def generateTraining(filename):
         ))
     all_reward_prob = np.tile(whole_block_reward_prob, blk_num)[:, :NumTrials]
 
+    # # show trial reward probability
+    # plt.title('Trial Reward Probability', fontsize=30)
+    # plt.plot(np.arange(0, 100), whole_block_reward_prob[0, :], label='Stimulus A')
+    # plt.plot(np.arange(0, 100), whole_block_reward_prob[1, :], label='Stimulus B')
+    # plt.plot(np.arange(0, 100), whole_block_reward_prob[2, :], label='Stimulus C')
+    # plt.xlabel('Trial', fontsize=30)
+    # plt.ylabel('Probability', fontsize=30)
+    # plt.xticks(fontsize=30)
+    # plt.yticks(fontsize=30)
+    # plt.legend(fontsize=25)
+    # plt.show()
+    # print()
+
     # Generat training data
     data_ST = []
     n_input = 10
     trial_length = 10
-    choices = np.random.choice([0, 1, 2], NumTrials) # 0 for A and 1 for B
+    choices = np.random.choice([0, 1, 2], NumTrials) # 0 for A and 1 for B and 2 for C
     reward_all = []
     for nTrial in range(NumTrials):
         inputs = np.zeros((n_input, trial_length))
@@ -78,6 +91,7 @@ def generateTraining(filename):
         inputs[3, :] = 1 - inputs[3, :]
         inputs[4, :] = 1 - inputs[5:8, :].sum(axis=0)
         inputs[9, :] = 1 - inputs[8, :]
+
         if nTrial != 0:
             data_ST.append([np.hstack((inputs_prev, inputs)).T])
         inputs_prev = copy.deepcopy(inputs)
@@ -175,5 +189,5 @@ if __name__ == '__main__':
     file_name = datetime.datetime.now().strftime("%Y_%m_%d")
     training_file_name = 'SimplifyThreeArmed_TrainingSet-' + file_name
     testing_file_name = 'SimplifyThreeArmed_TestingSet-' + file_name
-    generateTraining(training_file_name)
-    # generateTesting(testing_file_name)
+    # generateTraining(training_file_name)
+    generateTesting(testing_file_name)

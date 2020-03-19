@@ -73,7 +73,7 @@ class ThreeArmedTask(Task): #TODO: change the class name to two-armed task, so a
         self.train_data, self.train_guide = self.data_helper.prepareTrainingData()
         try:
             train_loss, train_correct_rate = self.model.training(self.train_data, self.train_guide, save_iter = save_iter)
-        except KeyboardInterrupt: #TODO: check this
+        except KeyboardInterrupt:
             self.model.trained = True
             self.saveModel('interrupted_model.pt')
             return
@@ -385,5 +385,5 @@ if __name__ == '__main__':
     # t.saveModel('../save_m/SimplifyTwoArmed-75e5-model.pt')
     # print('Save final model to {}'.format(model_name))
 
-    t.loadModel('./save_m/SimplifyTwoArmed-75e5-model.pt', 'TwoArmed_Config.json')
-    t.validate('SimplifyTwoArmed-validation-75e5.hdf5')
+    t.loadModel('./save_m/SimplifyTwoArmedSlowReverseNoNoise-15e6-model.pt', 'TwoArmed_Config.json')
+    t.validate('SimplifyTwoArmedSlowReverseNoNoise-validation-15e6.hdf5')

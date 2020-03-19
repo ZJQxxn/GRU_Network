@@ -33,292 +33,145 @@ import numpy as np
 import matplotlib.pyplot as plt
 import seaborn as sbn
 import scipy.io as sio
+import copy
 
-class DataGenerate:
+
+def generateTraining(filename):
     '''
-    Description: 
-        Generate training set and validating set of two-armed bandit task described in the paper
-    
-    Variables:
-        block_size: The size of a trial.
-        input_dim: The number of features of a trial, is 9.
-        time_step_num: The number of time steps for a trial, is 14.
-         block_num: The number of blocks after completing missing trials.
-         numTrials: The number of trials.
-         reward_probability: A matrix of reward probability for each stimulus at each trial, with shape of (2, numTrials).
-         choices: A vector of choices of all trials with shape of (1, numTrials).
-         rewards: A vector of rewards of all trials with shape of (1, numTrials).
-        training_set: Training data set with shape of (numTrials, input_dim, time_step_num).
-        reward_type: The type of trend of reward probabilities, either 'fixed' or 'reverse'.
-        
-    Functions:
-        __init__: Initialize the training dataset generator.
-        _generateRewardProbability: Compute the reward probability for each trial.
-        generating: Generate training dataset.
-        save2Mat: Save training data to a .mat file.
-    
+    Generate training datasets.
+    :return: VOID
     '''
 
-    def __init__(self, train_trial_num = 5, validate_trial_num = 5, block_size = 150, prefix = ''): #TODO: prefix is used for saving dataset
-        '''
-        Initialize the training data generator.
-        :param numTrials: The number of trials to be generated.
-        '''
-        self.block_size = block_size  # The numebr of trials in a block
-        self.input_dim = 8  # The number of features of a trial
-        self.time_step_num = 14  # The number of time steps of a trial
-        self.validate_time_step_num = 5 # The number of time steps for validating trial,
-                                        # only first 5 time steps because we only need validating trial to show stimulus
-        self.train_trial_num = train_trial_num
-        self.validate_trial_num = validate_trial_num
-        self.prefix = prefix
+    NumTrials = int(7.5e2 + 1)
+    reward_prob = np.array([0.8, 0.2]).reshape((2, 1))
+    block_size = 50
 
-    def generating(self, reward_type = 'reverse'):
-        '''
-        Generate training and validating dataset.
-        :param reward_type: The type of reward probability, either 'fixed' or 'reverse'.
-        :return: VOID
-        '''
-        # =============== COMPUTE TRIAL REWARD PROBABILITY ========
-        self.training_set = []
-        self.validating_set = []
-        self.reward_probability = self._generateRewardProbability(reward_type)
-        print('Finished generating reward probability at each trial.')
-        # =============== FOR TRAINING DATA =======================
-        # Add some trials to make a complete block in the tail.
-        self.train_block_num = self.train_trial_num // self.block_size
-        self.train_block_num = (
-        self.train_block_num + 1) if self.train_trial_num % self.block_size != 0 else self.train_block_num  # complete the last block
-        if self.train_block_num % 2 == 1:  # make the number of blocks be a even number
-            self.train_block_num = self.train_block_num + 1
-        self.train_trial_num = self.train_block_num * self.block_size
-        self.train_trial_num += 1  # TODO: explain
-        # =============== FOR VALIDATING DATA ==================
-        # Add some trials to make a complete block in the tail.
-        self.validate_block_num = self.validate_trial_num // self.block_size
-        self.validate_block_num = (
-            self.validate_block_num + 1) if self.validate_trial_num % self.block_size != 0 else self.validate_block_num  # complete the last block
-        if self.validate_block_num % 2 == 1:  # make the number of blocks be a even number
-            self.validate_block_num = self.validate_block_num + 1
-        self.validate_trial_num = self.validate_block_num * self.block_size
-        # =============== GENERATING TRIALS =======================
-        self._generateTraining()
-        print('Finished generating {} training data.'.format(self.train_trial_num))
-        self._generateValidating()
-        print('Finished generating {} validating data.'.format(self.validate_trial_num))
+    # Reward probabiltiy for each trial
+    blk_num = NumTrials // (2 * block_size) + 1
+    whole_block_reward_prob = np.hstack(
+        (
+            np.tile(reward_prob, block_size),
+            np.tile(1 - reward_prob, block_size)
+        ))
+    all_reward_prob = np.tile(whole_block_reward_prob, blk_num)[:, :NumTrials]
 
-    def _generateRewardProbability(self, reward_type):
-        '''
-        Compute the reward probability for each trial.
-        :param reward_type: The type of reward probabiliy, either 'fixed' or 'reverse'.
-        :return: A matrix with shape of (3, numTrials).
-        '''
-        # return a (3, 2 * block size) matrix
-        if 'fixed' == reward_type:
-            # The reward probability is basically fixed among trials, with some noise added.
-            reward_probability = [[0.8], [0.2]]  # reward probability is A (0.8), B (0.5), and C (0.1)
-            reward_probability = np.tile(reward_probability, 2*self.block_size)
-            reward_probability += np.random.uniform(-0.1, 0.1, (2, 2*self.block_size))
-        elif 'reverse' == reward_type:
-            # For the trials of the first block, reward probability of A varies based on 0.6,
-            # of B varies based on 0.2, and of C is fixed to 0. It is a stable reverse, which means though the
-            # perturbation exists, the reward probability of A is no less than B. The reversing process is completed
-            # slowly.
-            first_base = [[0.8], [0.2]]
-            first_block = np.tile(first_base, self.block_size-10)
-            first_block[0:2,:] = first_block[0:2,:] + np.random.uniform(-0.05, 0.05, (2, self.block_size - 10))
-            transit_first_part = [np.linspace(start = first_block[0][-1], stop = 0.5, num = 10),
-                            np.linspace(start = first_block[1][-1], stop = 0.5, num=10)]
-            transit_first_part = np.array(transit_first_part)
-            transit_second_part = [np.linspace(start=transit_first_part[0][-1], stop=0.2, num=20),
-                                  np.linspace(start=transit_first_part[1][-1], stop=0.8, num=20)]
-            transit_second_part = np.array(transit_second_part)
-            transit_second_part[:,0:20] = transit_second_part[0:20,:] + np.random.uniform(-0.05, 0.05, (2, 20))
-            # For the trials of the second block
-            second_base = [[transit_second_part[0][-1]], [transit_second_part[1][-1]]]
-            second_block = np.tile(second_base, self.block_size-20)
-            second_block = second_block + np.random.uniform(-0.05, 0.05, (2, self.block_size - 20))
-            reward_probability = np.concatenate((first_block, transit_first_part, transit_second_part, second_block), axis = 1)
-        elif 'sudden_reverse' == reward_type:
-            # For the trials of the first block, reward probability of A varies based on 0.6,
-            # of B varies based on 0.2, and of C is fixed to 0. It is a stable reverse, which means though the
-            # perturbation exists, the reward probability of A is no less than B. Moreover, the reversing process completed
-            # suddenly.
-            first_base = [[0.8], [0.2]]
-            first_block = np.tile(first_base, self.block_size)
-            first_block[0:2,:] = first_block[0:2,:] + np.random.uniform(-0.05, 0.05, (2, self.block_size))
-            # For the trials of the second block
-            second_base = [[0.2], [0.8]]
-            second_block = np.tile(second_base, self.block_size)
-            second_block = second_block + np.random.uniform(-0.05, 0.05, (2, self.block_size))
-            reward_probability = np.concatenate((first_block, second_block), axis = 1)
-        elif 'without_noise' == reward_type:
-            # For the trials of the first block, reward probability of A varies based on 0.6,
-            # of B varies based on 0.2, and of C is fixed to 0. It is a stable reverse, which means though the
-            # perturbation exists, the reward probability of A is no less than B. Moreover, the reversing process completed
-            # suddenly.
-            first_base = [[0.8], [0.2]]
-            first_block = np.tile(first_base, self.block_size)
-            # For the trials of the second block
-            second_base = [[0.2], [0.8]]
-            second_block = np.tile(second_base, self.block_size)
-            reward_probability = np.concatenate((first_block, second_block), axis=1)
-        else:
-            raise ValueError('Unsupported reward probability type!')
+    # ================ GENERATE TRIALS ===================
+    data_ST = []
+    n_input = 8
+    trial_length = 14
+    choices = np.random.choice([0, 1], NumTrials)  # 0 for A and 1 for B
+    reward_all = []
+    for nTrial in range(NumTrials):
+        inputs = np.zeros((n_input, trial_length))
+        # show stimulus
+        inputs[0:2, 2:5] = 1
+        # make choice
+        inputs[3 + choices[nTrial], 5:7] = 1
+        inputs[0:2, 5:7] = 1
+        # show chosen stimulus
+        inputs[0 + choices[nTrial], 7:9] = 1
+        # show reward
+        reward = np.random.uniform(size=1) < all_reward_prob[choices[nTrial], nTrial]
+        reward_all.append(reward)
+        if reward == 1:
+            inputs[6, 9:12] = 1
 
-        # show for test
-        # plt.plot(np.arange(0, self.block_size * 2), reward_probability[0, :], 'o-r', label='stimulus A')
-        # plt.plot(np.arange(0, self.block_size * 2), reward_probability[1, :], 'o-b', label='stimulus B')
-        # plt.yticks(np.arange(0, 1, 0.1))
-        # plt.legend(fontsize=20)
-        # plt.show()
-        self.reward_type = reward_type
-        return reward_probability
+        inputs[2, :] = inputs[0:2, :].sum(axis=0)
+        inputs[2, np.where(inputs[2, :] != 0)] = 1
+        inputs[2, :] = 1 - inputs[2, :]
+        inputs[5, :] = 1 - inputs[3:5, :].sum(axis=0)
+        inputs[7, :] = 1 - inputs[6, :]
+        if nTrial != 0:
+            data_ST.append([np.hstack((inputs_prev, inputs)).T])
+        inputs_prev = copy.deepcopy(inputs)
 
-    def _generateTraining(self):
-        '''
-        Generate training datasets.
-        :return: VOID
-        '''
-        # ================ GENERATE TRIALS ===================
-        self.choices = []  # the choice of stimulus of all the trials, 0 for A, 1 for B, and 2 for C
-        self.rewards = []  # the reward of all the trials, 1 for reward and 0 for no reward
-        self.right_choice = [] # TODO: for training guide; determine whether the trial choose the correct stimulus
-        prev_trial = np.zeros((self.input_dim, self.time_step_num))
-        for nTrial in range(self.train_trial_num):
-            trial = np.zeros(
-                (self.input_dim, self.time_step_num + 1))  # add an extra time step for computing loss when training
-            # At 0 and 1 time steps, see nothing and do nothing
-            trial[2, 0:2] = trial[5, 0:2] = 1
-            # At 2, 3, and 4 time steps, see three stimulus and do nothing
-            trial[0:2, 2:5] = trial[5, 2:5] = 1
-            # At 5 and 6 time steps, see three stimulus always and choose a stimulus
-            trial[0:2, 5:7] = 1
-            # TODO: choose the stimulus with higher reward probability; training guide
-            chosen_stimulus = np.argmax(self.reward_probability[:, nTrial % (2*self.block_size)])
-            # chosen_stimulus = np.random.choice([0, 1], 1)[0]  # choose one from two stimulus: 0 for A, 1 for B
-            self.choices.append(chosen_stimulus)
-            if chosen_stimulus == np.argmax(self.reward_probability[:, nTrial % (2*self.block_size)]):
-                self.right_choice.append(1)
-            else:
-                self.right_choice.append(0)
-            trial[chosen_stimulus + 3, 5:7] = 1
-            # At 7 and 8 time steps, see the chosen stimulus and wait for reward
-            trial[chosen_stimulus, 7:9] = trial[5, 7:9] = 1
-            # At 9, 10 and 11 time steps, show the chosen stimulus, show reward, and do nothing
-            trial[chosen_stimulus, 9:12] = 1
-            trial[5, 9:12] = 1
-            reward_prob = self.reward_probability[chosen_stimulus, nTrial % (2*self.block_size)]
-            is_rewarded = np.random.choice([0, 1], 1, p=[reward_prob, 1 - reward_prob])[0]  # 0 for reward and 1 for no reward
-            self.rewards.append(1 - is_rewarded)
-            trial[6 + is_rewarded, 9:12] = 1
-            # At 12 and 13 time steps, see nothing and do nothing
-            trial[2, 12:14] = trial[5, 12:14] = 1
-            # The extra time step should be the first step at next trial
-            trial[2, 14] = trial[5, 14] = 1
-            # TODO: at the time when reward is not shown, set ``no reward'' to 1
-            trial[7,0:9] = trial[7, 12:14] = 1
-            if nTrial>0:
-                # Append this trial into training set
-                self.training_set.append(np.hstack((prev_trial, trial)).T)
-            prev_trial = trial
-        # store weight coefficients for each input of each trial
-        # TODO: training guide is determined whether the trial select the right stimulus
-        self.training_guide = np.vstack((self.right_choice[1:], np.tile(2*self.time_step_num, self.train_trial_num-1))).T
-        print()
-        # self.training_guide = np.vstack((self.rewards[1:], np.tile(2*self.time_step_num, self.train_trial_num-1))).T
-
-                # ================ SHOW TRIAL ===================
-        sbn.set(font_scale=1.6)
-        y_lables = ['see A', 'see B', 'see nothing', 'choose A', 'choose B', 'do nothing',
-                    'reward', 'no reward']
-        show_test = self.training_set[0].T
-        sbn.heatmap(show_test[:, 0:14], cmap="YlGnBu", linewidths=0.5, yticklabels=y_lables)
-        plt.show()
-        print()
-
-    def _generateValidating(self):
-        '''
-        Generate validating dataset. 
-        Each validating trial only show stimulus, hence, input of first 5 time steps are generated. 
-        :return: VOID
-        '''
-        # ================ GENERATE TRIALS ===================
-        trial = np.array([
-            [0., 0., 1., 1., 1., 0.],
-            [0., 0., 1., 1., 1., 0.],
-            [1., 1., 0., 0., 0., 0.],
-            [0., 0., 0., 0., 0., 0.],
-            [0., 0., 0., 0., 0., 0.],
-            [1., 1., 1., 1., 1., 0.],
-            [0., 0., 0., 0., 0., 0.],
-            [1., 1., 1., 1., 1., 0.]
-        ])
-        for nTrial in range(self.validate_trial_num):
-            self.validating_set.append(trial.T)
-        # # ================ SHOW TRIAL ===================
+        # # show trial
         # sbn.set(font_scale=1.6)
-        # y_lables = ['see A', 'see B', 'see nothing', 'choose A', 'choose B', 'do nothing',
-        #             'reward', 'no reward']
-        # show_test = self.validating_set[0].T
-        # sbn.heatmap(show_test, cmap="YlGnBu", linewidths=0.5, yticklabels=y_lables)
+        # y_lables = ['show A', 'show B', 'see nothing', 'choose A',
+        #             'choose B', 'do nothing', 'reward', 'no reward']
+        # sbn.heatmap(inputs, cmap="YlGnBu", linewidths=0.5, yticklabels=y_lables)
         # plt.show()
         # print()
 
-    def save2Mat(self):
-        '''
-        Save data to a ``.mat'' file.
+    training_guide = np.vstack((np.array(reward_all[1:]).squeeze(), np.tile(2 * trial_length, NumTrials - 1))).T
+
+    info = {'NumTrials': NumTrials, 'reward_prob': reward_prob, 'block_size': block_size}
+    data_ST_Brief = {'choices': choices, 'reward': reward_all,
+                     'training_guide': training_guide}
+
+    n = 0
+    while 1:  # save the model
+        n += 1
+        if not os.path.isfile(pathname + filename + '-' + str(n) + '.mat'):
+            sio.savemat(pathname + filename + '-' + str(n) + '.mat',
+                        {'data_ST': data_ST,
+                         'data_ST_Brief': data_ST_Brief,
+                         'info': info})
+            print("_" * 36)
+            print("training file for simplified two step task is saved")
+            print("file name:" + pathname + filename + '-' + str(n) + '.mat')
+            break
+
+
+def generateTesting(filename):
+    '''
+        Generate testing data. The content of this function is wrote by Zhewei Zhang.
+        :param filename: Name of the .mat file, where you want to save the testing dataset. 
         :return: VOID
         '''
-        info = {'NumTrials': self.train_trial_num, 'reward_probability': self.reward_probability,
-                        'block_size': self.block_size,'input_dim': self.input_dim, 'time_step_num': self.time_step_num}
-        pathname = "./data/"
-        file_name = datetime.datetime.now().strftime("%Y_%m_%d") + '-blk{}'.format(self.block_size)
-        # ================ SAVE TRAINING SET ===================
-        train_data_name = self.prefix + 'TwoArmedBandit_TrainingSet-' + self.reward_type + "-" + file_name
-        n = 0
-        while 1:
-            n += 1
-            if not os.path.isfile(pathname + train_data_name + '-' + str(n) + '.mat'):
-                sio.savemat(pathname + train_data_name + '-' + str(n) + '.mat',
-                            {'training_set': self.training_set,
-                                'info':info,
-                                'training_guide':self.training_guide,
-                                'training_choices':self.choices, # choice of each training trial
-                                'training_rewards':self.rewards  # reward of each training trial
-                                })
-                print("_" * 36)
-                print("Training data for three-armed bandit task is saved")
-                print("File name:" + pathname + train_data_name + '-' + str(n) + '.mat')
-                break
+    NumTrials = 5000
+    reward_prob = np.array([0.8, 0.2]).reshape((2, 1))
+    block_size = 70
 
-                # ================ SAVE VALIDATING SET ===================
-        blkNum = len(self.validating_set) // (2*self.block_size) + 1
-        self.reward_probability = np.tile(self.reward_probability, blkNum)[:,:len(self.validating_set)]
-        info = {'NumTrials': self.validate_trial_num, 'reward_probability': self.reward_probability,
-                'block_size': self.block_size, 'input_dim': self.input_dim, 'time_step_num': self.time_step_num}
-        validate_data_name = self.prefix + 'TwoArmedBandit_TestingSet-' + self.reward_type + "-" + file_name
-        n = 0
-        while 1:
-            n += 1
-            if not os.path.isfile(pathname + validate_data_name + '-' + str(n) + '.mat'):
-                sio.savemat(pathname + validate_data_name + '-' + str(n) + '.mat',
-                            {'validating_set': self.validating_set,
-                              'info': info})
-                print("_" * 36)
-                print("Validating data for simplified two step task is saved")
-                print("File name:" + pathname + validate_data_name + '-' + str(n) + '.mat')
-                break
+    # Reward probabiltiy for each trial
+    blk_num = NumTrials // (2 * block_size) + 1
+    whole_block_reward_prob = np.hstack(
+        (
+            np.tile(reward_prob, block_size),
+            np.tile(1 - reward_prob, block_size)
+        ))
+    all_reward_prob = np.tile(whole_block_reward_prob, blk_num)[:, :NumTrials]
 
-        # # validate the output file
-        # filename = pathname + validate_data_name + '-' + str(n) + '.mat'
-        # data = sio.loadmat(filename)
-        # brief = data['training_descrip'][0, 0]
-        # print(brief['info'])
+    inputs = [
+        [0., 0., 1., 1., 1., 0.],
+        [0., 0., 1., 1., 1., 0.],
+        [1., 1., 0., 0., 0., 0.],
+        [0., 0., 0., 0., 0., 0.],
+        [0., 0., 0., 0., 0., 0.],
+        [1., 1., 1., 1., 1., 0.],
+        [0., 0., 0., 0., 0., 0.],
+        [1., 1., 1., 1., 1., 0.]
+    ]
+
+    # # show trial
+    # sbn.set(font_scale=1.6)
+    # y_lables = ['show A', 'show B', 'see nothing', 'choose A',
+    #             'choose B', 'do nothing', 'reward', 'no reward']
+    # sbn.heatmap(np.array(inputs), cmap="YlGnBu", linewidths=0.5, yticklabels=y_lables)
+    # plt.show()
+    # print()
+
+    data_ST = [[np.array(inputs).T]] * NumTrials
+    data_ST_Brief = {'reward_prob_1': all_reward_prob, 'block_size': block_size}
+
+    n = 0
+    while 1:  # save the model
+        n += 1
+        if not os.path.isfile(pathname + filename + '-' + str(n) + '.mat'):
+            sio.savemat(pathname + filename + '-' + str(n) + '.mat',
+                        {'data_ST': data_ST,
+                         'data_ST_Brief': data_ST_Brief,
+                         })
+            print("_" * 36)
+            print("testing file for simplified two step task is saved")
+            print("file name:" + pathname + filename + '-' + str(n) + '.mat')
+            break
 
 
 if __name__ == '__main__':
-    #TODO: split generating training and validation set into two functions
-    g = DataGenerate(train_trial_num=100, validate_trial_num= 5000, block_size=50, prefix='')
-    g.generating('without_noise')
-    g.save2Mat()
+    pathname = "./data/"
+    file_name = datetime.datetime.now().strftime("%Y_%m_%d")
+    training_file_name = 'TwoArmed_TrainingSet-' + file_name
+    testing_file_name = 'TwoArmed_TestingSet-' + file_name
+    generateTraining(training_file_name)
+    generateTesting(testing_file_name)

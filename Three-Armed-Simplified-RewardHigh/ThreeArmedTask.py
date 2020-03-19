@@ -380,8 +380,22 @@ if __name__ == '__main__':
     torch.set_num_interop_threads(3)
     t = ThreeArmedTask('ThreeArmed_Config.json')
 
-    # t.train(save_iter=1000)
-    # t.saveModel('./save_m/SimplifyThreeArmed-1e6-model.pt')
+    t.train(save_iter=100000)
+    t.saveModel('./save_m/SimplifyThreeArmedRewardHigh-1e6-model.pt')
 
-    t.loadModel('./save_m/SimplifyThreeArmed-1e6-model.pt', 'ThreeArmed_Config.json')
-    t.validate('SimplifyThreeArmed-validation-1e6.hdf5')
+
+    for num in range(3,4):
+        # t = ThreeArmedTask('TwoArmed_Config.json')
+        dir_path = './save_m/model_{}/'.format(num)
+        print('============ MODEL {} ==========='.format(num))
+        # Validate intermediate model
+        # t.need_log = False
+        for index in range(1,10):
+            filename = dir_path + 'Intermediate--NUM{}-.pt'.format(index)
+            print('------- intermediate model {}'.format(index))
+            t.loadModel(filename, 'ThreeArmed_Config.json')
+            t.validate(dir_path + 'ThreeArmedRewardHigh-validation-1e6-model{}-NUM{}.hdf5'.format(num,index))
+        # Validate the final model
+        # t.need_log = True
+        t.loadModel(dir_path + 'SimplifyThreeArmedRewardHigh-1e6-model.pt', 'ThreeArmed_Config.json')
+        t.validate('ThreeArmedRewardHigh-validation-1e6-model{}-final.hdf5'.format(num))

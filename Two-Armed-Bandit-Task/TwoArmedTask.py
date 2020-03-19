@@ -99,7 +99,7 @@ class ThreeArmedTask(Task): #TODO: change the class name to two-armed task, so a
             'trial_length':13,
             # 'block' : self.validate_data_attr['block'],
             # 'trans_probs' : self.validate_data_attr['trans_probs'][0][0],
-            'reward_prob_1' : self.validate_data_attr['reward_probability'][0][0],
+            'reward_prob_1' : self.validate_data_attr['reward_prob_1'][0][0],
             'action_step' : [5,6],
             'about_state'  : [0,1], # index of showing stimulus
             'about_choice' : [3,4,5], # index of choosing choices
@@ -382,18 +382,31 @@ class ThreeArmedTask(Task): #TODO: change the class name to two-armed task, so a
 
 
 if __name__ == '__main__':
-    reward_type = 'without_noise'
-    config_file = "TwoArmed_Config.json"
-    configs = readConfigures(config_file)
-    blk_num = configs['data_file'].split('-')[3]
-    model_name = './save_m/KnowLarge-model-two-armed-'+ configs['data_file'].split('-')[2] + '-' + reward_type + '-' + blk_num + '.pt'
+    torch.set_num_threads(3)
+    torch.set_num_interop_threads(3)
+    model_name = './save_m/TwoArmed-75e5-model.pt'
 
 
-    t = ThreeArmedTask(config_file)
-
-    # t.train(save_iter=20)
+    t = ThreeArmedTask('TwoArmed_Config.json')
+    # t.train(save_iter=100000)
     # t.saveModel(model_name)
     # print('Save final model to {}'.format(model_name))
-    # TODO: RewardRight-model-two_armed-2019_12_28-blk50--NUM7 has 50/%  correct rate...
-    t.loadModel('./save_m/RewardRight-model-two_armed-2019_12_28-blk50--NUM7.pt', 'TwoArmed_Config.json')
-    t.validate('TwoArmed-new_validation-without_noise-blk50.hdf5')
+
+    for num in range(1,6):
+        # t = ThreeArmedTask('TwoArmed_Config.json')
+        dir_path = './save_m/model_{}/'.format(num)
+        print('============ MODEL {} ==========='.format(num))
+        # Validate intermediate model
+        # t.need_log = False
+        for index in range(1,8):
+            filename = dir_path + 'Intermediate--NUM{}-.pt'.format(index)
+            print('------- intermediate model {}'.format(index))
+            t.loadModel(filename, 'TwoArmed_Config.json')
+            t.validate(dir_path + 'TwoArmed-validation-75e5-model{}-NUM{}.hdf5'.format(num,index))
+        # Validate the final model
+        # t.need_log = True
+        t.loadModel(dir_path + 'TwoArmed-75e5-model.pt', 'TwoArmed_Config.json')
+        t.validate('TwoArmed-validation-75e5-model{}-final.hdf5'.format(num))
+
+    # t.loadModel('./save_m/model_5/Intermediate--NUM1-.pt', 'TwoArmed_Config.json')
+    # t.validate('TwoArmed-validation-model5-NUM1.hdf5')

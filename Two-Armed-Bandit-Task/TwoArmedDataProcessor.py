@@ -47,8 +47,8 @@ class ThreeArmedDataProcessor(DataProcessor):
             train_guide: Weight coefficient for training data.
         '''
         mat = loadmat(self.train_data_file)
-        self.train_data_set = mat['training_set']
-        self.train_guide = mat['training_guide']
+        self.train_data_set = [t[0] for t in mat['data_ST']]
+        self.train_guide = mat['data_ST_Brief']['training_guide'][0][0]
         return self.train_data_set, self.train_guide
 
     def prepareValidatingData(self):
@@ -59,9 +59,10 @@ class ThreeArmedDataProcessor(DataProcessor):
             validate_data_attr: Validating data attributes, including reward probability, etc.
         '''
         mat = loadmat(self.validate_data_file)
-        self.validate_data_set = mat['validating_set']
-        self.validate_data_attr = mat['info']
+        self.validate_data_set = [t[0] for t in mat['data_ST']]
+        self.validate_data_attr = mat['data_ST_Brief']
         return self.validate_data_set, self.validate_data_attr
+
 
 
 if __name__ == '__main__':
