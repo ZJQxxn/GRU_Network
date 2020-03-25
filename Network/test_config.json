@@ -1,0 +1,13 @@
+{
+  "name": "test",
+  "in_dim": 10,
+  "cuda_enabled": 0,
+  "init_noise_amp": 0.0,
+  "gradient_clip": 0.25,
+  "optimizer": "Adam",
+  "train_num": 1e6,
+  "reset_hidden": 0,
+  "lr": 1e-4,
+  "record": 1,
+  "batch_size": 1
+}
