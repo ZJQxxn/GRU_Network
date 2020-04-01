@@ -17,7 +17,7 @@ import matplotlib.pyplot as plt
 blk_size = 70
 
 # choices of each validation trial
-filename = 'SimplifyThreeArmed-validation-1e6.hdf5'
+filename = 'StackedGRU-SimplifyThreeArmed-validation-2e6.hdf5'
 
 with h5py.File(filename, 'r') as f:
     choices = np.array(f['choice'].value, dtype = np.float32)
@@ -30,7 +30,7 @@ choices = choices[:numTrials]
 
 # A1 is reward in the first block; A2 is reward in the second block
 block_indication = np.hstack(
-    (np.zeros(blk_size,), 2 * np.ones(blk_size,))
+    (np.ones(blk_size,), 3 * np.ones(blk_size,))
 )
 block_indication = np.tile(block_indication, numBlks // 2)
 

@@ -1,5 +1,5 @@
 '''
-TaskAnalysis.py: Analysis of the three-armed bandit task .
+TaskAnalysis.py: Analysis of the three-armed bandit task with stacked GRU network.
 '''
 
 from scipy.io import loadmat
@@ -179,8 +179,8 @@ class TaskAnalyzer:
 
 
 if __name__ == '__main__':
-    analyzer = TaskAnalyzer('SimplifyThreeArmed-validation-1e6.hdf5',
-                            './data/SimplifyThreeArmed_TestingSet-2020_02_16-1.mat',
+    analyzer = TaskAnalyzer('StackedGRU-SimplifyThreeArmed-validation-2e6.hdf5',
+                            './data/SimplifyThreeArmed_TestingSet-2020_03_27-1.mat',
                             block_size = 70)
 
     analyzer.behaviorAnalysis()

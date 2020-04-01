@@ -30,7 +30,7 @@ choices = choices[:numTrials]
 
 # A1 is reward in the first block; A2 is reward in the second block
 block_indication = np.hstack(
-    (np.zeros(blk_size,), 2 * np.ones(blk_size,))
+    (np.ones(blk_size,), 3 * np.ones(blk_size,))
 )
 block_indication = np.tile(block_indication, numBlks // 2)
 

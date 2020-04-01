@@ -380,8 +380,8 @@ if __name__ == '__main__':
     torch.set_num_interop_threads(3)
     t = ThreeArmedTask('ThreeArmed_Config.json')
 
-    t.train(save_iter=100000)
-    t.saveModel('./save_m/StackedGRU-SimplifyThreeArmed-1e6-model.pt')
+    # t.train(save_iter=100000)
+    # t.saveModel('./save_m/StackedGRU-SimplifyThreeArmed-1e6-model.pt')
 
-    # t.loadModel('./save_m/SimplifyThreeArmed-1e6-model.pt', 'ThreeArmed_Config.json')
-    # t.validate('SimplifyThreeArmed-validation-1e6.hdf5')
+    t.loadModel('./save_m/model2/StackedGRU-SimplifyThreeArmed-2e6-model.pt', 'ThreeArmed_Config.json')
+    t.validate('StackedGRU-SimplifyThreeArmed-validation-2e6.hdf5')

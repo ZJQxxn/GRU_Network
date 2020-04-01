@@ -7,7 +7,7 @@
   "optimizer": "Adam",
   "data_file": "./data/SimplifyThreeArmed_TrainingSet-2020_03_23-1.mat",
   "data_attr": "info",
-  "validation_data_file": "./data/SimplifyThreeArmed_TestingSet-2020_03_23-1.mat",
+  "validation_data_file": "./data/SimplifyThreeArmed_TestingSet-2020_03_27-1.mat",
   "log_path": "./log_m/ST/",
   "load_model": "",
   "train_num": 1e6,
