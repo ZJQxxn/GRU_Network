@@ -17,8 +17,8 @@ import matplotlib.pyplot as plt
 blk_size = 70
 
 # choices of each validation trial
-filename = 'save_m/model_2/TwoArmedSimplifySlowReverse-validation-15e6-model2-NUM14.hdf5'
-filename =  'TwoArmedSimplifySlowReverse-validation-15e6-model1-final.hdf5'
+filename = 'save_m/model_2/TwoArmedSimplifySlowReverse-validation-15e6-model2-NUM12.hdf5'
+# filename =  'TwoArmedSimplifySlowReverse-validation-15e6-model1-final.hdf5'
 with h5py.File(filename, 'r') as f:
     choices = np.array(f['choice'].value, dtype = np.float32)
 choices[np.where(choices > 3)] = np.nan
@@ -31,11 +31,11 @@ choices = choices[:numTrials]
 
 # A1 is reward in the first block; A2 is reward in the second block
 block_indication = np.hstack(
-    (np.zeros(blk_size,), 2 * np.ones(blk_size,))
+    (np.ones(blk_size,), 2 * np.ones(blk_size,))
 )
 block_indication = np.tile(block_indication, numBlks // 2)
 
-# find out where the block reverse
+# find out where the block reverse # TODO: explain
 block_sep = np.where(np.diff(block_indication) !=0 )[0]
 numWholeBlocks = len(block_sep)
 
@@ -46,7 +46,7 @@ for whole_blk_index in range(numWholeBlocks - 1):
     # next_reverse_points = block_sep[whole_blk_index+1]
     cr_range = np.arange(reverse_point - 10, reverse_point + 30)
     cr = [
-        1 if choices[trial] == block_indication[trial] + 1 # choice is 1/2, indication is 0/1
+        1 if choices[trial] == block_indication[trial] # choice is 1/2, indication is 0/1
         else 0
         for trial in cr_range
     ]

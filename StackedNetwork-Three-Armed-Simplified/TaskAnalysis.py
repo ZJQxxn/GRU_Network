@@ -22,6 +22,7 @@ class TaskAnalyzer:
         self.block_reward_prob = self._getBlockRewrdProbability()  # reward probability for all three stimulus in the 2 block
         self.objective_highest = self._getObjectiveHighest(self.block_reward_prob)  # the objective highest value stimulus (H_sch)
         self.expeienced_reward_prob = self._getExperiencedRewardProb() # the experienced reward probability
+        self.random_reward = self._getRandomRewardProb(self.block_reward_prob, self.expeienced_reward_prob.shape)
         # Compute the mean and SEM over blocks (300 trial is one block)
         self.mean_experienced_reward_prob = np.nanmean(self.expeienced_reward_prob, axis = 1) # average value
         self.SEM_experienced_reward_prob = sem(self.expeienced_reward_prob, axis = 1) # SEM
@@ -46,11 +47,26 @@ class TaskAnalyzer:
                 color = 'green'
             else:
                 color = 'cyan'
-            plt.scatter(i, temp[1], color=color)  # TODO: split into groups, then plot scatters with labels
-        plt.plot(np.arange(0, self.block_size * 2), self.objective_highest[:, 1], 'k-')
+            plt.scatter(i, temp[1], color=color)
+        plt.title("Experienced Reward Prob. vs. Random Reward Prob.", fontsize = 20)
+        plt.plot(np.arange(0, self.block_size * 2), self.objective_highest[:, 1], 'k-', ms = 8)
         # Plot experienced reward probability
-        plt.plot(np.arange(0, self.block_size * 2), self.mean_experienced_reward_prob, '*-m')
-        plt.yticks(np.arange(0.0, 1.0, 0.1))
+        plt.plot(np.arange(0, self.block_size * 2), self.mean_experienced_reward_prob, 's-m',
+                 label = "Experienced Reward Prob.", ms = 8, lw = 2)
+        # plt.fill_between(np.arange(0, self.block_size * 2),
+        #                  self.mean_experienced_reward_prob - self.SEM_experienced_reward_prob,
+        #                  self.mean_experienced_reward_prob + self.SEM_experienced_reward_prob,
+        #                  color = "#dcb2ed",
+        #                  alpha = 0.8,
+        #                  linewidth = 4)
+        plt.plot(np.mean(self.random_reward, axis = 1), 'b--', alpha = 0.5,
+                 label = "Random Reward Prob.", lw = 2)
+        plt.ylim((0.0, 0.85))
+        plt.yticks(fontsize = 20)
+        plt.ylabel("Reward Probability", fontsize = 20)
+        plt.xticks(fontsize = 20)
+        plt.xlabel("Trial", fontsize = 20)
+        plt.legend(loc = "best", fontsize = 20)
         plt.show()
 
     def influenceAnalysis(self):
@@ -177,11 +193,17 @@ class TaskAnalyzer:
                 choice_reward_prob[index_in_block, block_index] = self.block_reward_prob[choice.item()-1, index_in_block]
         return np.array(choice_reward_prob)
 
+    def _getRandomRewardProb(self, block_reward, trial_shape):
+        random_reward = np.array(
+            [block_reward[np.random.choice([0, 1, 2], 1),  index % block_reward.shape[1]] for index in range(trial_shape[0] * trial_shape[1])])\
+            .reshape(trial_shape)
+        return random_reward
+
 
 if __name__ == '__main__':
-    analyzer = TaskAnalyzer('StackedGRU-SimplifyThreeArmed-validation-2e6.hdf5',
-                            './data/SimplifyThreeArmed_TestingSet-2020_03_27-1.mat',
+    analyzer = TaskAnalyzer('StackedGRU-SimplifyThreeArmed-blk50-reverseblk0-noise-validation-2e6.hdf5',
+                            './data/SimplifyThreeArmed_TestingSet-2020_04_06-blk70-reverseblk0-noise-1.mat',
                             block_size = 70)
 
     analyzer.behaviorAnalysis()
-    analyzer.influenceAnalysis()
+    # analyzer.influenceAnalysis()

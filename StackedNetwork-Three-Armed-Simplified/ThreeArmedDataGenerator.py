@@ -34,24 +34,67 @@ import seaborn as sbn
 import matplotlib.pyplot as plt
 import scipy.io as sio
 
+def _generateRewardProb(block_size = 50, reverse_block_size = 0, need_noise = False):
+    '''
+           Compute the reward probability for each trial.
+           :param reward_type: The type of reward probabiliy, either 'fixed' or 'reverse'.
+           :return: A matrix with shape of (3, numTrials).
+    '''
+    first_base = [[0.8], [0.5], [0.2]]
+    first_block = np.tile(first_base, block_size - reverse_block_size)
+    # The transit part
+    if reverse_block_size > 0:
+        transit_first_part = [np.linspace(start=first_block[0][-1], stop=first_base[1][0], num=reverse_block_size),
+                              np.tile(first_base[1][0], reverse_block_size),
+                              np.linspace(start=first_block[2][-1], stop=first_base[1][0], num=reverse_block_size)]
+        transit_first_part = np.array(transit_first_part)
+        transit_second_part = [
+            np.linspace(start=transit_first_part[0][-1], stop=first_base[2][0], num=reverse_block_size),
+            np.tile(first_base[1][0], reverse_block_size),
+            np.linspace(start=transit_first_part[2][-1], stop=first_base[0][0], num=reverse_block_size)]
+        transit_second_part = np.array(transit_second_part)
+        transit_part = np.concatenate((transit_first_part, transit_second_part), axis=1)
+        second_base = [[transit_part[each][-1]] for each in [0, 1, 2]]
+    elif reverse_block_size == 0:
+        transit_part = []
+        second_base = [[first_block[each][-1]] for each in [2, 1, 0]] # Reverse the reward probability
+    else:
+        raise ValueError("The reverse block size should be no less than 0!")
+    # For the trials of the second block
+    second_block = np.tile(second_base, block_size - reverse_block_size)
+    # Concatenate each part and add noise, if need any
+    if reverse_block_size > 0:
+        reward_probability = np.concatenate((first_block, transit_part, second_block), axis=1)
+    else:
+        reward_probability = np.concatenate((first_block, second_block), axis=1)
+    if need_noise:
+        reward_probability = reward_probability + np.random.uniform(-0.05, 0.05, (3, 2*block_size))
+    # # Show for test
+    # plt.figure(figsize=(15,8))
+    # plt.title("Objective Reward Probability", fontsize = 20)
+    # plt.plot(np.arange(0, block_size * 2), reward_probability[0, :], 'o-r', label='stimulus A')
+    # plt.plot(np.arange(0, block_size * 2), reward_probability[1, :], 'o-b', label='stimulus B')
+    # plt.plot(np.arange(0, block_size * 2), reward_probability[2, :], 'o-g', label='stimulus C')
+    # plt.yticks(np.arange(0, 1.1, 0.2), fontsize = 20)
+    # plt.ylabel("Reward Probability", fontsize = 20)
+    # plt.xticks(fontsize=20)
+    # plt.xlabel("Trial", fontsize=20)
+    # plt.legend(loc = 9, fontsize=20, ncol = 3) # legend is located at upper center with 3 columns
+    # plt.show()
+    return reward_probability
 
-def generateTraining(filename):
+
+def generateTraining(filename, block_size = 50, reverse_block_size = 0, need_noise = False):
     '''
     Generate training data. The content of this function is wrote by Zhewei Zhang.
     :param filename: Name of the .mat file, where you want to save the training dataset. 
     :return: VOID
     '''
-    NumTrials = int(1e2 + 1)
-    reward_prob = np.array([0.8, 0.5, 0.2]).reshape((3,1))
-    block_size = 50
-
-    # Reward probabiltiy for each trial
+    NumTrials = int(2e6 + 1)
+    reward_prob = np.array([0.8, 0.5, 0.2]).reshape((3, 1)) # TODO: take this as an argument of "_generate..."
+    # Reward probability for each trial
     blk_num = NumTrials // (2*block_size) + 1
-    whole_block_reward_prob = np.hstack(
-        (
-            np.tile(reward_prob, block_size),
-            np.tile(1-reward_prob, block_size)
-        ))
+    whole_block_reward_prob =  _generateRewardProb(block_size, reverse_block_size, need_noise)
     all_reward_prob = np.tile(whole_block_reward_prob, blk_num)[:, :NumTrials]
 
     # # show trial reward probability
@@ -124,7 +167,7 @@ def generateTraining(filename):
             break
 
 
-def generateTesting(filename):
+def generateTesting(filename, block_size = 50, reverse_block_size = 0, need_noise = False):
     '''
         Generate testing data. The content of this function is wrote by Zhewei Zhang.
         :param filename: Name of the .mat file, where you want to save the testing dataset. 
@@ -139,11 +182,7 @@ def generateTesting(filename):
 
     # Reward probabiltiy for each trial
     blk_num = NumTrials // (2 * block_size) + 1
-    whole_block_reward_prob = np.hstack(
-        (
-            np.tile(reward_prob, block_size),
-            np.tile(1 - reward_prob, block_size)
-        ))
+    whole_block_reward_prob =  _generateRewardProb(block_size, reverse_block_size, need_noise)
     all_reward_prob = np.tile(whole_block_reward_prob, blk_num)[:, :NumTrials]
 
     inputs = [
@@ -185,9 +224,16 @@ def generateTesting(filename):
 
 
 if __name__ == '__main__':
+    train_blk_size = 50
+    test_blk_size = 70
+    reverse_blk_size = 0
+    need_noise = True
     pathname = "./data/"
-    file_name = datetime.datetime.now().strftime("%Y_%m_%d")
-    training_file_name = 'SimplifyThreeArmed_TrainingSet-' + file_name
-    testing_file_name = 'SimplifyThreeArmed_TestingSet-' + file_name
-    generateTraining(training_file_name)
-    generateTesting(testing_file_name)
+    training_file_name = datetime.datetime.now().strftime("%Y_%m_%d") \
+                + "-blk{}-reverseblk{}-{}".format(train_blk_size, reverse_blk_size, "noise" if need_noise else "no_noise")
+    training_file_name = 'SimplifyThreeArmed_TrainingSet-' + training_file_name
+    testing_file_name = datetime.datetime.now().strftime("%Y_%m_%d") \
+                         + "-blk{}-reverseblk{}-{}".format(test_blk_size, reverse_blk_size,"noise" if need_noise else "no_noise")
+    testing_file_name = 'SimplifyThreeArmed_TestingSet-' + testing_file_name
+    generateTraining(training_file_name, block_size = train_blk_size, reverse_block_size = reverse_blk_size, need_noise = need_noise)
+    generateTesting(testing_file_name, block_size = test_blk_size, reverse_block_size = reverse_blk_size, need_noise = need_noise)

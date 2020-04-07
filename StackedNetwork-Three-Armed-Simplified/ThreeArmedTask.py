@@ -380,8 +380,10 @@ if __name__ == '__main__':
     torch.set_num_interop_threads(3)
     t = ThreeArmedTask('ThreeArmed_Config.json')
 
+    model_path = "blk50-reverseblk0-noise"
     # t.train(save_iter=100000)
-    # t.saveModel('./save_m/StackedGRU-SimplifyThreeArmed-1e6-model.pt')
+    # t.saveModel('./save_m/'+model_path+'StackedGRU-SimplifyThreeArmed-2e6-model.pt')
 
-    t.loadModel('./save_m/model2/StackedGRU-SimplifyThreeArmed-2e6-model.pt', 'ThreeArmed_Config.json')
-    t.validate('StackedGRU-SimplifyThreeArmed-validation-2e6.hdf5')
+    # t.loadModel('./save_m/'+model_path+'/StackedGRU-SimplifyThreeArmed-2e6-model.pt', 'ThreeArmed_Config.json')
+    t.loadModel('./save_m/'+model_path+'/Intermediate--NUM19-.pt', 'ThreeArmed_Config.json')
+    t.validate('StackedGRU-SimplifyThreeArmed-'+ model_path + '-validation-2e6.hdf5')
