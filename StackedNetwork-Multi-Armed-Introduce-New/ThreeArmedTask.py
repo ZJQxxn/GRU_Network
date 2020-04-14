@@ -11,11 +11,11 @@ import sys
 
 sys.path.append('../Network/')
 from Task import Task
-from TorchNetwork import TorchNetwork
+from StackedGRUNetwork import StackedGRUNetwork
 from net_tools import np2tensor, tensor2np, match_rate
-from net_tools import readConfigures #TODO: change this
-from TwoArmedDataProcessor import ThreeArmedDataProcessor #TODO: class name
-from TwoArmedValidateLogWriter import ThreeArmedValidateLogWriter #TODO: class name
+from net_tools import readConfigures
+from ThreeArmedDataProcessor import ThreeArmedDataProcessor #TODO: class name
+from ThreeArmedValidateLogWriter import ThreeArmedValidateLogWriter #TODO: class name
 
 
 class ThreeArmedTask(Task): #TODO: change the class name to two-armed task, so as other class
@@ -56,7 +56,7 @@ class ThreeArmedTask(Task): #TODO: change the class name to two-armed task, so a
         '''
         super(ThreeArmedTask, self).__init__()
         # TODO: change to initialize with dict rather than the file
-        self.model = TorchNetwork(config_file)
+        self.model = StackedGRUNetwork(config_file)
         cofig_pars = readConfigures(config_file)
         self.data_helper = ThreeArmedDataProcessor(cofig_pars['data_file'], cofig_pars['validation_data_file'])
         np.random.seed()
@@ -73,7 +73,7 @@ class ThreeArmedTask(Task): #TODO: change the class name to two-armed task, so a
         self.train_data, self.train_guide = self.data_helper.prepareTrainingData()
         try:
             train_loss, train_correct_rate = self.model.training(self.train_data, self.train_guide, save_iter = save_iter)
-        except KeyboardInterrupt:
+        except KeyboardInterrupt: #TODO: check this
             self.model.trained = True
             self.saveModel('interrupted_model.pt')
             return
@@ -101,16 +101,16 @@ class ThreeArmedTask(Task): #TODO: change the class name to two-armed task, so a
             # 'trans_probs' : self.validate_data_attr['trans_probs'][0][0],
             'reward_prob_1' : self.validate_data_attr['reward_prob_1'][0][0],
             'action_step' : [5,6],
-            'about_state'  : [0,1], # index of showing stimulus
-            'about_choice' : [3,4,5], # index of choosing choices
-            'about_reward' : [6,7], # index of reward
-            'interrupt_states' : [[0, 0, 1, 1, 0, 0, 0, 1]],
+            'about_state'  : [0,1,2], # index of showing stimulus
+            'about_choice' : [4,5,6,7], # index of choosing choices
+            'about_reward' : [8,9], # index of reward
+            'interrupt_states' : [[0, 0, 0, 1, 1, 0, 0, 0, 0, 1]],
             'chosen_states' : [
-                [0, 0, 0, 0, 0, 0, 0, 1],
-                [0, 0, 0, 0, 0, 0, 0, 1],
-                [0, 0, 1, 1, 0, 0, 0, 0],
-                [0, 0, 1, 1, 0, 0, 0, 0],
-                [0, 0, 1, 1, 0, 0, 0, 1]
+                [0, 0, 0, 0, 0, 0, 0, 0, 0, 1],
+                [0, 0, 0, 0, 0, 0, 0, 0, 0, 1],
+                [0, 0, 0, 1, 1, 0, 0, 0, 0, 0],
+                [0, 0, 0, 1, 1, 0, 0, 0, 0, 0],
+                [0, 0, 0, 1, 1, 0, 0, 0, 0, 1]
                 ],
             'hidden':self.model._initHidden()
         }
@@ -234,7 +234,7 @@ class ThreeArmedTask(Task): #TODO: change the class name to two-armed task, so a
         '''
         time_step = self.validate_records['time_step'] + 1
         states_pool = self.validate_records['states_pool']
-        if len(action) != 1 or not (action[0] in (0, 1, 2)):
+        if len(action) != 1 or not (action[0] in (0, 1, 2, 3)):
             states_pool = copy.deepcopy(self.task_validate_attr['interrupt_states'])
         else:
             action = action[0]
@@ -250,8 +250,7 @@ class ThreeArmedTask(Task): #TODO: change the class name to two-armed task, so a
 
                 if action != 0: # action = 0 or 1, representing A or B respectively
                     # print("block: {:6f} | choice: {:6f} | reward: {:.6f} ".format(self.block,action,reward))
-                    reward = trial_reward_prob['reward_prob_1'][0] > np.random.rand() if action == 1 \
-                        else trial_reward_prob['reward_prob_1'][1] > np.random.rand()
+                    reward = trial_reward_prob['reward_prob_1'][action-1] > np.random.rand()
                     self.validate_records.update({
                         # 'common': state == action,
                         'choice':action,
@@ -377,13 +376,15 @@ class ThreeArmedTask(Task): #TODO: change the class name to two-armed task, so a
 
 
 if __name__ == '__main__':
-    torch.set_num_threads(2)
-    torch.set_num_interop_threads(2)
-    t = ThreeArmedTask('TwoArmed_Config.json')
+    #TODO: revise the validation corresponding
+    torch.set_num_threads(3)
+    torch.set_num_interop_threads(3)
+    t = ThreeArmedTask('ThreeArmed_Config.json')
 
-    # t.train(save_iter=100000)
-    # t.saveModel('../save_m/SimplifyTwoArmedSlowReverseNoNoise-15e6-new_model.pt')
-    # print('Save final model to {}'.format(model_name))
+    model_path = "blk50-reverseblk0-noise"
+    t.train(save_iter=100000)
+    t.saveModel('./save_m/'+model_path+'StackedGRU-SimplifyThreeArmed-2e6-model.pt')
 
-    t.loadModel('./save_m/with_noise/SimplifyTwoArmedSlowReverseWithNoise-15e6-new_model.pt', 'TwoArmed_Config.json')
-    t.validate('SimplifyTwoArmedSlowReverseWithNoise-validation-15e6.hdf5')
+    # t.loadModel('./save_m/'+model_path+'/StackedGRU-SimplifyThreeArmed-2e6-model.pt', 'ThreeArmed_Config.json')
+    # t.loadModel('./save_m/'+model_path+'/Intermediate--NUM19-.pt', 'ThreeArmed_Config.json')
+    # t.validate('StackedGRU-SimplifyThreeArmed-'+ model_path + '-validation-2e6.hdf5')

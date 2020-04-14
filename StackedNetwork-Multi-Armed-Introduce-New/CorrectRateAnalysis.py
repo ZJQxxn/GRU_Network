@@ -17,7 +17,7 @@ import matplotlib.pyplot as plt
 blk_size = 70
 
 # choices of each validation trial
-filename = 'StackedGRU-HigherBThreeArmed-higherB-blk50-reverseblk0-noise-validation-2e6.hdf5'
+filename = 'StackedGRU-SimplifyThreeArmed-blk50-reverseblk0-noise-validation-2e6.hdf5'
 
 with h5py.File(filename, 'r') as f:
     choices = np.array(f['choice'].value, dtype = np.float32)

@@ -34,7 +34,7 @@ class TaskAnalyzer:
         plt.plot(np.arange(0, self.block_size * 2), self.block_reward_prob[0, :], 'o-r', label='stimulus A')
         plt.plot(np.arange(0, self.block_size * 2), self.block_reward_prob[1, :], 'o-b', label='stimulus B')
         plt.plot(np.arange(0, self.block_size * 2), self.block_reward_prob[2, :], 'o-g', label='stimulus C')
-        plt.legend(fontsize=20, loc = "best")
+        plt.legend(fontsize=20)
         plt.show()
         # Show H_sch
         for i in range(2 * self.block_size):
@@ -201,8 +201,8 @@ class TaskAnalyzer:
 
 
 if __name__ == '__main__':
-    analyzer = TaskAnalyzer('StackedGRU-HigherBThreeArmed-higherB-blk50-reverseblk0-noise-validation-2e6.hdf5',
-                            './data/HigherBThreeArmed_TestingSet-2020_04_09-blk70-reverseblk0-noise-1.mat',
+    analyzer = TaskAnalyzer('StackedGRU-SimplifyThreeArmed-blk50-reverseblk0-noise-validation-2e6.hdf5',
+                            './data/SimplifyThreeArmed_TestingSet-2020_04_06-blk70-reverseblk0-noise-1.mat',
                             block_size = 70)
 
     analyzer.behaviorAnalysis()

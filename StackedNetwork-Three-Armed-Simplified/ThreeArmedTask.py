@@ -376,14 +376,14 @@ class ThreeArmedTask(Task): #TODO: change the class name to two-armed task, so a
 
 
 if __name__ == '__main__':
-    torch.set_num_threads(3)
-    torch.set_num_interop_threads(3)
+    torch.set_num_threads(2)
+    torch.set_num_interop_threads(2)
     t = ThreeArmedTask('ThreeArmed_Config.json')
 
-    model_path = "blk50-reverseblk0-noise"
+    model_path = "higherB-blk50-reverseblk0-noise"
     # t.train(save_iter=100000)
-    # t.saveModel('./save_m/'+model_path+'StackedGRU-SimplifyThreeArmed-2e6-model.pt')
+    # t.saveModel('./save_m/'+model_path+'StackedGRU-LowerBThreeArmed-2e6-model.pt')
 
-    # t.loadModel('./save_m/'+model_path+'/StackedGRU-SimplifyThreeArmed-2e6-model.pt', 'ThreeArmed_Config.json')
-    t.loadModel('./save_m/'+model_path+'/Intermediate--NUM19-.pt', 'ThreeArmed_Config.json')
-    t.validate('StackedGRU-SimplifyThreeArmed-'+ model_path + '-validation-2e6.hdf5')
+    t.loadModel('./save_m/'+model_path+'/StackedGRU-HigherBThreeArmed-2e6-model.pt', 'ThreeArmed_Config.json')
+    # t.loadModel('./save_m/'+model_path+'/Intermediate--NUM15-.pt', 'ThreeArmed_Config.json')
+    t.validate('StackedGRU-HigherBThreeArmed-'+ model_path + '-validation-2e6.hdf5')

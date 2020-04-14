@@ -234,7 +234,7 @@ class TaskAnalyzer:
 
 if __name__ == '__main__':
     # analyzer = TaskAnalyzer('validate_record-three-armed-2019_12_05-fixed.hdf5')
-    analyzer = TaskAnalyzer('../Two-Step-Task/20191231_1001-smp_ts.hdf5')
+    analyzer = TaskAnalyzer('../Original-Two-Step-Task/20191231_1001-smp_ts.hdf5')
     analyzer.behaviorAnalysis()
     # analyzer.influenceAnalysis()
     analyzer.correctRate()

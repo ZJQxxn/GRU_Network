@@ -42,29 +42,36 @@ def generateTraining(filename, with_noise = True):
     NumTrials = int(1.5e6 + 1)
     reward_prob = np.array([0.8, 0.2]).reshape((2,1))
     block_size = 50
-
+    reverse_block_size = 5
     # Reward probabiltiy for each trial
     first_base = [[0.8], [0.2]]
-    first_block = np.tile(first_base, block_size - 10)
-    first_block[0:2, :] = first_block[0:2, :] + np.random.uniform(-0.05, 0.05, (2, block_size - 10)) if with_noise \
-        else first_block[0:2, :]
-    transit_first_part = [np.linspace(start=first_block[0][-1], stop=0.5, num=10),
-                          np.linspace(start=first_block[1][-1], stop=0.5, num=10)]
+    first_block = np.concatenate(
+        (
+            [np.linspace(start=0.5, stop=first_base[0][0], num=reverse_block_size),
+             np.linspace(start=0.5, stop=first_base[1][0], num=reverse_block_size)],
+            np.tile(first_base, block_size - 2 * reverse_block_size)
+        ), axis=1)
+    transit_first_part = [np.linspace(start=first_block[0][-1], stop=0.5, num=reverse_block_size),
+                          np.linspace(start=first_block[1][-1], stop=0.5, num=reverse_block_size)]
     transit_first_part = np.array(transit_first_part)
-    transit_second_part = [np.linspace(start=transit_first_part[0][-1], stop=0.2, num=10),
-                           np.linspace(start=transit_first_part[1][-1], stop=0.8, num=10)]
+    transit_second_part = [np.linspace(start=transit_first_part[0][-1], stop=0.2, num=reverse_block_size),
+                           np.linspace(start=transit_first_part[1][-1], stop=0.8, num=reverse_block_size)]
     transit_second_part = np.array(transit_second_part)
-    transit_second_part[:, 0:10] = transit_second_part[0:10, :] + np.random.uniform(-0.05, 0.05, (2, 10)) if with_noise \
-        else transit_second_part[0:10, :]
+    # if with_noise:
+    #     transit_second_part = transit_second_part + np.random.uniform(-0.05, 0.05, (2, reverse_block_size))
     # For the trials of the second block
     second_base = [[transit_second_part[0][-1]], [transit_second_part[1][-1]]]
-    second_block = np.tile(second_base, block_size - 10)
-    second_block = second_block + np.random.uniform(-0.05, 0.05, (2, block_size - 10)) if with_noise \
-        else second_block
+    second_block = np.tile(second_base, block_size - 2 * reverse_block_size)
+    last_transit = [np.linspace(start=second_block[0][-1], stop=0.5, num=reverse_block_size),
+                    np.linspace(start=second_block[1][-1], stop=0.5, num=reverse_block_size)]
+    second_block = np.concatenate((second_block, last_transit), axis=1)
     whole_block_reward_prob = np.concatenate((first_block, transit_first_part, transit_second_part, second_block),
                                              axis=1)
+    if with_noise:
+        whole_block_reward_prob = whole_block_reward_prob + np.random.uniform(-0.05, 0.05, (2, 2 * block_size))
     blk_num = NumTrials // (2 * block_size) + 1
     all_reward_prob = np.tile(whole_block_reward_prob, blk_num)[:, :NumTrials]
+
 
     # # show trial reward probability
     # plt.title('Trial Reward Probability', fontsize = 30)
@@ -74,6 +81,7 @@ def generateTraining(filename, with_noise = True):
     # plt.ylabel('Probability', fontsize=30)
     # plt.xticks(fontsize = 30)
     # plt.yticks(fontsize = 30)
+    # plt.ylim((0,1))
     # plt.legend(fontsize = 25)
     # plt.show()
     # print()
@@ -168,17 +176,6 @@ def generateTesting(filename, with_noise = True):
     blk_num = NumTrials // (2 * block_size) + 1
     all_reward_prob = np.tile(whole_block_reward_prob, blk_num)[:, :NumTrials]
 
-    # # show trial reward probability
-    # plt.title('Trial Reward Probability', fontsize = 30)
-    # plt.plot(np.arange(0, 2*block_size), whole_block_reward_prob[0,:], label = 'Stimulus A')
-    # plt.plot(np.arange(0, 2*block_size), whole_block_reward_prob[1, :], label = 'Stimulus B')
-    # plt.xlabel('Trial', fontsize = 30)
-    # plt.ylabel('Probability', fontsize=30)
-    # plt.xticks(fontsize = 30)
-    # plt.yticks(fontsize = 30)
-    # plt.legend(fontsize = 25)
-    # plt.show()
-    # print()
 
     inputs = [
         [0., 0., 1., 1., 1., 0.],
@@ -225,7 +222,7 @@ if __name__ == '__main__':
     # generateTraining(training_file_name, with_noise=True)
     # generateTesting(testing_file_name, with_noise=True)
 
-    training_file_name = 'SimplifyTwoArmedSlowReverseWithNoise_TrainingSet-' + file_name
-    testing_file_name = 'SimplifyTwoArmedSlowReverseWithNoise_TestingSet-' + file_name
-    # generateTraining(training_file_name, with_noise=True)
+    training_file_name = 'SimplifyTwoArmedAllSlowReverseWithNoise_TrainingSet-' + file_name
+    testing_file_name = 'SimplifyTwoArmedAllSlowReverseWithNoise_TestingSet-' + file_name
+    generateTraining(training_file_name, with_noise=True)
     generateTesting(testing_file_name, with_noise=True)

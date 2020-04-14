@@ -33,37 +33,23 @@ import matplotlib.pyplot as plt
 import scipy.io as sio
 
 
-def generateTraining(filename, with_noise = True):
+def generateTraining(filename):
     '''
     Generate training data. The content of this function is wrote by Zhewei Zhang.
     :param filename: Name of the .mat file, where you want to save the training dataset. 
     :return: VOID
     '''
-    NumTrials = int(1.5e6 + 1)
-    reward_prob = np.array([0.8, 0.2]).reshape((2,1))
+    NumTrials = int(1e6 + 1)
+    reward_prob = np.array([0.8, 0.5]).reshape((2,1))
     block_size = 50
 
     # Reward probabiltiy for each trial
-    first_base = [[0.8], [0.2]]
-    first_block = np.tile(first_base, block_size - 10)
-    first_block[0:2, :] = first_block[0:2, :] + np.random.uniform(-0.05, 0.05, (2, block_size - 10)) if with_noise \
-        else first_block[0:2, :]
-    transit_first_part = [np.linspace(start=first_block[0][-1], stop=0.5, num=10),
-                          np.linspace(start=first_block[1][-1], stop=0.5, num=10)]
-    transit_first_part = np.array(transit_first_part)
-    transit_second_part = [np.linspace(start=transit_first_part[0][-1], stop=0.2, num=10),
-                           np.linspace(start=transit_first_part[1][-1], stop=0.8, num=10)]
-    transit_second_part = np.array(transit_second_part)
-    transit_second_part[:, 0:10] = transit_second_part[0:10, :] + np.random.uniform(-0.05, 0.05, (2, 10)) if with_noise \
-        else transit_second_part[0:10, :]
-    # For the trials of the second block
-    second_base = [[transit_second_part[0][-1]], [transit_second_part[1][-1]]]
-    second_block = np.tile(second_base, block_size - 10)
-    second_block = second_block + np.random.uniform(-0.05, 0.05, (2, block_size - 10)) if with_noise \
-        else second_block
-    whole_block_reward_prob = np.concatenate((first_block, transit_first_part, transit_second_part, second_block),
-                                             axis=1)
-    blk_num = NumTrials // (2 * block_size) + 1
+    blk_num = NumTrials // (2*block_size) + 1
+    whole_block_reward_prob = np.hstack(
+        (
+            np.tile(reward_prob, block_size),
+            np.tile(reward_prob[::-1], block_size)
+        ))
     all_reward_prob = np.tile(whole_block_reward_prob, blk_num)[:, :NumTrials]
 
     # # show trial reward probability
@@ -73,6 +59,7 @@ def generateTraining(filename, with_noise = True):
     # plt.xlabel('Trial', fontsize = 30)
     # plt.ylabel('Probability', fontsize=30)
     # plt.xticks(fontsize = 30)
+    # plt.ylim(0, 1)
     # plt.yticks(fontsize = 30)
     # plt.legend(fontsize = 25)
     # plt.show()
@@ -134,51 +121,31 @@ def generateTraining(filename, with_noise = True):
             break
 
 
-def generateTesting(filename, with_noise = True):
+def generateTesting(filename):
     '''
         Generate testing data. The content of this function is wrote by Zhewei Zhang.
         :param filename: Name of the .mat file, where you want to save the testing dataset. 
         :return: VOID
         '''
+    data_ST = []
+    n_input = 8
+    trial_length = 6
 
     NumTrials = 5000
-    reward_prob = np.array([0.8, 0.2]).reshape((2,1))
+    reward_prob = np.array([0.8, 0.5]).reshape((2,1))
     block_size = 70
 
-    # Reward probabiltiy for each trial
-    first_base = [[0.8], [0.2]]
-    first_block = np.tile(first_base, block_size - 10)
-    first_block[0:2, :] = first_block[0:2, :] + np.random.uniform(-0.05, 0.05, (2, block_size - 10)) if with_noise \
-        else first_block[0:2, :]
-    transit_first_part = [np.linspace(start=first_block[0][-1], stop=0.5, num=10),
-                          np.linspace(start=first_block[1][-1], stop=0.5, num=10)]
-    transit_first_part = np.array(transit_first_part)
-    transit_second_part = [np.linspace(start=transit_first_part[0][-1], stop=0.2, num=10),
-                           np.linspace(start=transit_first_part[1][-1], stop=0.8, num=10)]
-    transit_second_part = np.array(transit_second_part)
-    transit_second_part[:, 0:10] = transit_second_part[0:10, :] + np.random.uniform(-0.05, 0.05, (2, 10)) if with_noise \
-        else transit_second_part[0:10, :]
-    # For the trials of the second block
-    second_base = [[transit_second_part[0][-1]], [transit_second_part[1][-1]]]
-    second_block = np.tile(second_base, block_size - 10)
-    second_block = second_block + np.random.uniform(-0.05, 0.05, (2, block_size - 10)) if with_noise \
-        else second_block
-    whole_block_reward_prob = np.concatenate((first_block, transit_first_part, transit_second_part, second_block),
-                                             axis=1)
-    blk_num = NumTrials // (2 * block_size) + 1
-    all_reward_prob = np.tile(whole_block_reward_prob, blk_num)[:, :NumTrials]
+    info = {'NumTrials': NumTrials, 'reward_prob': reward_prob, 'block_size': block_size}
 
-    # # show trial reward probability
-    # plt.title('Trial Reward Probability', fontsize = 30)
-    # plt.plot(np.arange(0, 2*block_size), whole_block_reward_prob[0,:], label = 'Stimulus A')
-    # plt.plot(np.arange(0, 2*block_size), whole_block_reward_prob[1, :], label = 'Stimulus B')
-    # plt.xlabel('Trial', fontsize = 30)
-    # plt.ylabel('Probability', fontsize=30)
-    # plt.xticks(fontsize = 30)
-    # plt.yticks(fontsize = 30)
-    # plt.legend(fontsize = 25)
-    # plt.show()
-    # print()
+    # Reward probabiltiy for each trial
+    blk_num = NumTrials // (2 * block_size) + 1
+    whole_block_reward_prob = np.hstack(
+        (
+            np.tile(reward_prob, block_size),
+            np.tile(reward_prob[::-1], block_size)
+        )
+    )
+    all_reward_prob = np.tile(whole_block_reward_prob, blk_num)[:, :NumTrials]
 
     inputs = [
         [0., 0., 1., 1., 1., 0.],
@@ -219,13 +186,7 @@ def generateTesting(filename, with_noise = True):
 if __name__ == '__main__':
     pathname = "./data/"
     file_name = datetime.datetime.now().strftime("%Y_%m_%d")
-
-    # training_file_name = 'SimplifyTwoArmedSlowReverse_TrainingSet-' + file_name
-    # testing_file_name = 'SimplifyTwoArmedSlowReverse_TestingSet-' + file_name
-    # generateTraining(training_file_name, with_noise=True)
-    # generateTesting(testing_file_name, with_noise=True)
-
-    training_file_name = 'SimplifyTwoArmedSlowReverseWithNoise_TrainingSet-' + file_name
-    testing_file_name = 'SimplifyTwoArmedSlowReverseWithNoise_TestingSet-' + file_name
-    # generateTraining(training_file_name, with_noise=True)
-    generateTesting(testing_file_name, with_noise=True)
+    training_file_name = 'SimplifyTwoArmed_NewHigherB_TrainingSet-' + file_name
+    testing_file_name = 'SimplifyTwoArmed_NewHigherB_TestingSet-' + file_name
+    generateTraining(training_file_name)
+    generateTesting(testing_file_name)

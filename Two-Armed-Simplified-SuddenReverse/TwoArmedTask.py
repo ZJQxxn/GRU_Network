@@ -377,13 +377,12 @@ class ThreeArmedTask(Task): #TODO: change the class name to two-armed task, so a
 
 
 if __name__ == '__main__':
-    torch.set_num_threads(3)
-    torch.set_num_interop_threads(3)
+    torch.set_num_threads(4)
+    torch.set_num_interop_threads(4)
     t = ThreeArmedTask('TwoArmed_Config.json')
 
-    # t.train(save_iter=1000)
-    # t.saveModel('../save_m/SimplifyTwoArmed-75e5-model.pt')
-    # print('Save final model to {}'.format(model_name))
+    t.train(save_iter=10000)
+    t.saveModel('./save_m/SimplifyTwoArmed-NewHigherB-1e6-model.pt')
 
-    t.loadModel('./save_m/SimplifyTwoArmed-75e5-model.pt', 'TwoArmed_Config.json')
-    t.validate('SimplifyTwoArmed-validation-75e5.hdf5')
+    # t.loadModel('./save_m/higherB/Intermediate--NUM99-.pt', 'TwoArmed_Config.json')
+    # t.validate('SimplifyTwoArmed-higherB_validation-1e6.hdf5')
