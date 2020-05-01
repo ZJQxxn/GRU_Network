@@ -381,8 +381,9 @@ if __name__ == '__main__':
     torch.set_num_interop_threads(4)
     t = ThreeArmedTask('TwoArmed_Config.json')
 
-    t.train(save_iter=10000)
-    t.saveModel('./save_m/SimplifyTwoArmed-NewHigherB-1e6-model.pt')
+    # t.train(save_iter=10000)
+    # t.saveModel('./save_m/SimplifyTwoArmed-NewHigherB-1e6-model.pt')
 
-    # t.loadModel('./save_m/higherB/Intermediate--NUM99-.pt', 'TwoArmed_Config.json')
-    # t.validate('SimplifyTwoArmed-higherB_validation-1e6.hdf5')
+    t.loadModel('./save_m/new-higherB/SimplifyTwoArmed-NewHigherB-1e6-model.pt', 'TwoArmed_Config.json')
+    # t.loadModel('./save_m/new-higherB/Intermediate--NUM80-.pt', 'TwoArmed_Config.json')
+    t.validate('SimplifyTwoArmed-new_higherB_validation-1e6.hdf5')
