@@ -385,5 +385,5 @@ if __name__ == '__main__':
     # t.saveModel('./save_m/'+'RewardAffectData-OldTraining-OldNetwork--ThreeArmed-1e6-model.pt')
 
     # t.loadModel('./save_m/'+model_path+'/StackedGRU-HigherBThreeArmed-2e6-model.pt', 'ThreeArmed_Config.json')
-    t.loadModel('./save_m/'+ 'RewardAffectData-OldTraining-OldNetwork--ThreeArmed-1e6-model.pt', 'ThreeArmed_Config.json')
-    t.validate('RewardAffectData-OldTraining-OldNetwork-ThreeArmed-validation-1e6.hdf5')
+    t.loadModel('./save_m/slow-reverse/RewardAffectData-OldTraining-OldNetwork--ThreeArmed-1e6-model.pt', 'ThreeArmed_Config.json')
+    t.validate('RewardAffectData-OldTraining-OldNetwork-ThreeArmed-slow-reverse-validation-1e6.hdf5')

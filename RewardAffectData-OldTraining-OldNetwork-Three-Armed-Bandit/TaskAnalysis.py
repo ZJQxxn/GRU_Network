@@ -201,8 +201,8 @@ class TaskAnalyzer:
 
 
 if __name__ == '__main__':
-    analyzer = TaskAnalyzer('RewardAffectData-OldTraining-OldNetwork-ThreeArmed-validation-1e6.hdf5',
-                            './data/RewardAffect_ThreeArmed_TestingSet-2020_05_01-blk70-reverseblk0-noise-1.mat',
+    analyzer = TaskAnalyzer('RewardAffectData-OldTraining-OldNetwork-ThreeArmed-slow-reverse-validation-1e6.hdf5',
+                            './data/RewardAffect_ThreeArmed_TestingSet-2020_05_03-blk70-reverseblk5-noise-1.mat',
                             block_size = 70)
 
     analyzer.behaviorAnalysis()

@@ -224,18 +224,18 @@ def _generateRealSlowRewardProb(block_size = 50, reverse_block_size = 0, need_no
         raise ValueError("The reverse block size should be no less than 0!")
     if need_noise:
         reward_probability = reward_probability + np.random.uniform(-0.05, 0.05, (3, 2 * block_size))
-    # Plot for test
-    plt.figure(figsize=(15,8))
-    plt.title("Objective Reward Probability", fontsize = 20)
-    plt.plot(np.arange(0, block_size * 2), reward_probability[0, :], 'o-r', label='stimulus A')
-    plt.plot(np.arange(0, block_size * 2), reward_probability[1, :], 'o-b', label='stimulus B')
-    plt.plot(np.arange(0, block_size * 2), reward_probability[2, :], 'o-g', label='stimulus C')
-    plt.yticks(np.arange(0, 1.1, 0.2), fontsize = 20)
-    plt.ylabel("Reward Probability", fontsize = 20)
-    plt.xticks(fontsize=20)
-    plt.xlabel("Trial", fontsize=20)
-    plt.legend(loc = 9, fontsize=20, ncol = 3) # legend is located at upper center with 3 columns
-    plt.show()
+    # # Plot for test
+    # plt.figure(figsize=(15,8))
+    # plt.title("Objective Reward Probability", fontsize = 20)
+    # plt.plot(np.arange(0, block_size * 2), reward_probability[0, :], 'o-r', label='stimulus A')
+    # plt.plot(np.arange(0, block_size * 2), reward_probability[1, :], 'o-b', label='stimulus B')
+    # plt.plot(np.arange(0, block_size * 2), reward_probability[2, :], 'o-g', label='stimulus C')
+    # plt.yticks(np.arange(0, 1.1, 0.2), fontsize = 20)
+    # plt.ylabel("Reward Probability", fontsize = 20)
+    # plt.xticks(fontsize=20)
+    # plt.xlabel("Trial", fontsize=20)
+    # plt.legend(loc = 9, fontsize=20, ncol = 3) # legend is located at upper center with 3 columns
+    # plt.show()
     return reward_probability
 
 
@@ -249,9 +249,9 @@ def generateTraining(filename, block_size = 50, reverse_block_size = 0, need_noi
     reward_prob = np.array([0.8, 0.5, 0.2]).reshape((3, 1)) # TODO: take this as an argument of "_generate..."
     # Reward probability for each trial
     blk_num = NumTrials // (2*block_size) + 1
-    whole_block_reward_prob =  _generateRewardProb(block_size, reverse_block_size, need_noise)
+    # whole_block_reward_prob =  _generateRewardProb(block_size, reverse_block_size, need_noise)
     # whole_block_reward_prob =  _generateHigherBRewardProb(block_size, reverse_block_size, need_noise)
-    # whole_block_reward_prob =  _generateRealSlowRewardProb(block_size, reverse_block_size, need_noise)
+    whole_block_reward_prob =  _generateRealSlowRewardProb(block_size, reverse_block_size, need_noise)
 
     all_reward_prob = np.tile(whole_block_reward_prob, blk_num)[:, :NumTrials]
 
@@ -355,7 +355,7 @@ def generateTesting(filename, block_size = 50, reverse_block_size = 0, need_nois
 
     # Reward probabiltiy for each trial
     blk_num = NumTrials // (2 * block_size) + 1
-    whole_block_reward_prob =  _generateRewardProb(block_size, reverse_block_size, need_noise)
+    whole_block_reward_prob =  _generateRealSlowRewardProb(block_size, reverse_block_size, need_noise)
     all_reward_prob = np.tile(whole_block_reward_prob, blk_num)[:, :NumTrials]
 
     inputs = [
@@ -399,7 +399,7 @@ def generateTesting(filename, block_size = 50, reverse_block_size = 0, need_nois
 if __name__ == '__main__':
     train_blk_size = 50
     test_blk_size = 70
-    reverse_blk_size = 0
+    reverse_blk_size = 5
     need_noise = True
     pathname = "./data/"
     training_file_name = datetime.datetime.now().strftime("%Y_%m_%d") \
