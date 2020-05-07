@@ -384,6 +384,5 @@ if __name__ == '__main__':
     # t.train(save_iter=100000)
     # t.saveModel('./save_m/'+'RewardAffectData-OldTraining-OldNetwork--ThreeArmed-1e6-model.pt')
 
-    # t.loadModel('./save_m/'+model_path+'/StackedGRU-HigherBThreeArmed-2e6-model.pt', 'ThreeArmed_Config.json')
-    t.loadModel('./save_m/slow-reverse/Intermediate--NUM9-.pt', 'ThreeArmed_Config.json')
-    t.validate('RewardAffectData-NewTraining-OldNetwork-Three-Armed-slow-reverse-overfitting-validation.hdf5')
+    t.loadModel('./save_m/slow-reverse/model2/Intermediate--NUM8-.pt', 'ThreeArmed_Config.json')
+    t.validate('RewardAffectData-NewTraining-OldNetwork-Three-Armed-slow-reverse-model2-validation-1e6.hdf5')

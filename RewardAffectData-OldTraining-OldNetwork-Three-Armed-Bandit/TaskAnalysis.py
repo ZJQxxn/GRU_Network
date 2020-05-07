@@ -81,6 +81,7 @@ class TaskAnalyzer:
         # coeff = (coeff - np.mean(coeff)) / np.std(coeff)
         sbn.set(font_scale=1.6)
         labels = ['n-1', 'n-2', 'n-3', 'n-4', 'n-5']
+        plt.figure(figsize=(14,10))
         sbn.heatmap(coeff[1:,1:][::-1, ::-1], cmap="binary", linewidths=0.5, xticklabels=labels, yticklabels=labels) #TODO: reverse the matrix because the weight begins from n-5 to n-1
         plt.ylabel('CHOICE', fontsize=20)
         plt.xlabel('REWARD', fontsize=20)
@@ -90,57 +91,68 @@ class TaskAnalyzer:
             else influence_matrix.shape[1] // 1000 + 1
         coeff_set = np.zeros((split_num, 36))
         for i in range(split_num):
-            sub_influence_matrix = influence_matrix[:,i*1000:(i+1)*1000,:]
-            sub_indication_matrix = indication_matrix[:,i*1000:(i+1)*1000]
+            sub_influence_matrix = influence_matrix[:, i * 1000:(i+1) * 1000, :]
+            sub_indication_matrix = indication_matrix[:, i * 1000:(i+1) * 1000]
             for stimulus in [0, 1, 2]:
-                logstic_model = LogisticRegression().fit(sub_influence_matrix[stimulus], sub_indication_matrix[stimulus])
-                coeff_set[i, :] += np.abs(logstic_model.coef_.squeeze())
+                logstic_model = LogisticRegression(fit_intercept=False, solver="liblinear")\
+                    .fit(sub_influence_matrix[stimulus], sub_indication_matrix[stimulus])
+                coeff_set[i, :] += logstic_model.coef_.squeeze()
             coeff_set[i, :] /= 3
             coeff_set[i, :] = coeff_set[i, :] / np.linalg.norm(coeff_set[i,:])
         # Compute mean and SEM (standard deviation / sqrt of sample size) values for every coefficient weight
         coeff_mean = np.mean(coeff_set, axis = 0).reshape((6, 6))[1:, 1:] # Discard the relationship of n-6 trial
+        coeff_mean = coeff_mean[::-1, ::-1]
         coeff_SEM = sem(coeff_set, axis = 0).reshape((6, 6))[1:, 1:] # Discard the relationship of n-6 trial
+        coeff_SEM = coeff_SEM[::-1, ::-1]
         # choice - reward weight
-        plt.errorbar(np.arange(0, 5, 1), coeff_mean.diagonal()[::-1], yerr=coeff_SEM.diagonal()[::-1], #TODO: reverse the array
+        plt.errorbar(np.arange(0, 5, 1), coeff_mean.diagonal(), yerr=coeff_SEM.diagonal(),
                      lw = 2, ms = 12, fmt = '-ok', capsize = 6)
         plt.xlabel('Trial in the past', fontsize = 20)
         plt.ylabel('Choice x Reward Weight', fontsize = 20)
         plt.xticks(np.arange(0, 5, 1), ['n-1', 'n-2', 'n-3', 'n-4', 'n-5'], fontsize = 20)
+        # plt.ylim((-0.1,1))
         plt.yticks(fontsize = 20)
         plt.show()
         # past choice - immediate previous reward weight
-        plt.errorbar(np.arange(0, 5, 1), coeff_mean[:,0][::-1], yerr=coeff_SEM[:,0][::-1],
+        plt.errorbar(np.arange(0, 1, 1), coeff_mean[0, 0], yerr=coeff_SEM[0, 0],
+                     lw=2, ms=12, fmt='-ok', capsize=6)
+        plt.errorbar(np.arange(1, 5, 1), coeff_mean[1:, 0], yerr=coeff_SEM[1:, 0],
                      lw=2, ms=12, fmt='-ok', capsize=6)
         plt.xlabel('Trial in the past', fontsize=20)
         plt.ylabel('Past Choices x Immediate Previous Reward Weight', fontsize=20)
         plt.xticks(np.arange(0, 5, 1), ['n-1', 'n-2', 'n-3', 'n-4', 'n-5'], fontsize=20)
+        # plt.ylim((-0.1,1))
         plt.yticks(fontsize=20)
         plt.show()
         # immediate previous choice - past reward weight
-        plt.errorbar(np.arange(0, 5, 1), coeff_mean[0,:][::-1], yerr=coeff_SEM[0,:][::-1],
+        plt.errorbar(np.arange(0, 1, 1), coeff_mean[0, 0], yerr=coeff_SEM[0, 0],
+                     lw=2, ms=12, fmt='-ok', capsize=6)
+        plt.errorbar(np.arange(1, 5, 1), coeff_mean[0,1:], yerr=coeff_SEM[0,1:],
                      lw=2, ms=12, fmt='-ok', capsize=6)
         plt.xlabel('Trial in the past', fontsize=20)
         plt.ylabel('Immediate previous Choice x Past Rewards Weight', fontsize=20)
         plt.xticks(np.arange(0, 5, 1), ['n-1', 'n-2', 'n-3', 'n-4', 'n-5'], fontsize=20)
+        # plt.ylim((-0.1,1))
         plt.yticks(fontsize=20)
         plt.show()
 
     def _constructInfluenceMatrix(self):
         choice, reward = self._getChoiceAndReward()
         clip = choice.shape[0]
+        # clip = 140
         choice, reward = choice[:clip,:], reward[:clip, :]
         influence_matrix = np.zeros((3, clip-6, 36))
         indication_matrix = np.zeros((3, clip-6))
-        for stimulus in [0, 1, 2]:
+        for stimulus in [0, 1, 2]: # The choice is 1/2/3 while the index is 0/1/2
             for trial_index in range(6, clip):
-                indication_matrix[stimulus, trial_index-6] = int(stimulus == choice[trial_index]) # indication of this trial
+                indication_matrix[stimulus, trial_index-6] = int((stimulus + 1) == choice[trial_index]) # indication of this trial
                 for i in range(6): # n-1 to n-6 trials choices
                     for j in range(6): # n-1 to n-6 trials rewards
                         history_choice = choice[trial_index-6+i, :]
                         history_reward = reward[trial_index-6+j, :]
-                        if history_choice == stimulus and history_reward == 1:
+                        if history_choice == (stimulus+1) and history_reward == 1:
                             influence = 1
-                        elif history_choice != stimulus and history_reward == 1:
+                        elif history_choice != (stimulus+1) and history_reward == 1:
                             influence = -1
                         else:
                             influence = 0
@@ -201,7 +213,7 @@ class TaskAnalyzer:
 
 
 if __name__ == '__main__':
-    analyzer = TaskAnalyzer('RewardAffectData-OldTraining-OldNetwork-ThreeArmed-slow-reverse-validation-1e6.hdf5',
+    analyzer = TaskAnalyzer('RewardAffectData-OldTraining-OldNetwork-ThreeArmed-slow-reverse-model3-validation-1e6.hdf5',
                             './data/RewardAffect_ThreeArmed_TestingSet-2020_05_03-blk70-reverseblk5-noise-1.mat',
                             block_size = 70)
 

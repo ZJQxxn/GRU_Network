@@ -127,7 +127,7 @@ def generateTraining(block_size = 50, reverse_block_size = 0, need_noise = False
     :param filename: Name of the .mat file, where you want to save the training dataset. 
     :return: VOID
     '''
-    NumTrials = int(1e6 + 1)
+    NumTrials = int(1e6 + 2)
     reward_prob = np.array([0.8, 0.5, 0.2]).reshape((3, 1)) # TODO: take this as an argument of "_generate..."
     # Reward probability for each trial
     blk_num = NumTrials // (2*block_size) + 1
@@ -166,9 +166,41 @@ def generateTraining(block_size = 50, reverse_block_size = 0, need_noise = False
         # Determine reward
         reward = np.random.uniform(size=1) < all_reward_prob[choice, nTrial]
         reward_all.append(reward)
+
+    next_reward = np.array(reward_all[1:-1]).squeeze()
+    next_next_reward = np.array(reward_all[2:]).squeeze()
+    training_guide = [1 if next_reward[index] and next_next_reward[index] else 0 for index in range(len(next_reward))]
     reward_all = np.array(reward_all).squeeze()
-    training_guide = reward_all[1:]
-    return training_guide, np.array(choices).squeeze(), reward_all, whole_block_reward_prob
+    return np.array(training_guide).squeeze(), np.array(choices).squeeze(), reward_all, whole_block_reward_prob
+
+
+def randomGenerateTraining(block_size = 50, reverse_block_size = 0, need_noise = False):
+    '''
+    Generate training data. The content of this function is wrote by Zhewei Zhang.
+    :param filename: Name of the .mat file, where you want to save the training dataset. 
+    :return: VOID
+    '''
+    NumTrials = int(1e6 + 1)
+    reward_prob = np.array([0.8, 0.5, 0.2]).reshape((3, 1)) # TODO: take this as an argument of "_generate..."
+    # Reward probability for each trial
+    blk_num = NumTrials // (2*block_size) + 1
+    # whole_block_reward_prob =  _generateRewardProb(block_size, reverse_block_size, need_noise)
+    # whole_block_reward_prob =  _generateHigherBRewardProb(block_size, reverse_block_size, need_noise)
+    whole_block_reward_prob =  _generateRealSlowRewardProb(block_size, reverse_block_size, need_noise)
+
+    all_reward_prob = np.tile(whole_block_reward_prob, blk_num)[:, :NumTrials]
+
+
+    n_input = 10
+    trial_length = 10
+    choices = np.random.choice([0, 1, 2], NumTrials) # 0 for A and 1 for B and 2 for C
+    reward_all = []
+    for nTrial in range(NumTrials):
+        reward = np.random.uniform(size=1) < all_reward_prob[choices[nTrial], nTrial]
+        reward_all.append(reward)
+    training_guide = np.array(reward_all[1:]).squeeze()
+    return np.array(training_guide).squeeze(), np.array(choices).squeeze(), reward_all, whole_block_reward_prob
+
 
 
 
@@ -186,15 +218,27 @@ if __name__ == '__main__':
     numTrials = numBlks * whole_blk_size
     choices = choices[:numTrials]
     training_guide = training_guide[:numTrials]
-    print(np.sum(training_guide) / len(training_guide))
+    print("RAN2 training rate:", np.sum(training_guide) / len(training_guide))
 
+    # random generate training choices
+    training_guide, choices, rewards, whole_block_reward_prob = randomGenerateTraining(block_size=train_blk_size,
+                                                                                 reverse_block_size=reverse_blk_size,
+                                                                                 need_noise=need_noise)
+    training_guide = training_guide[:numTrials]
+    print("Random training rate:", np.sum(training_guide) / len(training_guide))
     # training_guide = training_guide.reshape((numBlks, -1))
     # training_rate = np.nanmean(training_guide, axis=0)
+    # plt.plot(training_rate)
+    # plt.show()
+    #
+    # random_chocies = np.random.choice([0, 1, 2], int(1e6+1))
+    #
     #
     # best_choice = np.tile(np.argmax(whole_block_reward_prob, axis = 0).reshape((1,-1)).T, numBlks).T
     # choices = choices.reshape((numBlks, -1))
     # choice_match = (choices == best_choice)
     # best_choice_rate = np.nanmean(choice_match, axis=0)
     #
+    # plt.clf()
     # plt.plot(np.nanmean(training_guide == choice_match, axis = 0))
     # plt.show()
