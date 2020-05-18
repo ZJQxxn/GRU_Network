@@ -1,11 +1,11 @@
 import h5py
 import numpy as np
-import statsmodels.api as sm
 import pandas as pd
-import patsy
 import matplotlib.pyplot as plt
 from statsmodels.tsa.ar_model import AutoReg
 from statsmodels.tsa.api import ExponentialSmoothing
+from statsmodels.graphics.tsaplots import plot_acf, plot_pacf
+from statsmodels.graphics.gofplots import qqplot_2samples
 
 
 def getFiringRate(logFileName):
@@ -62,12 +62,34 @@ def getFiringRate(logFileName):
     logFile.close()
     return firing_rate_data, choices, rewards
 
-def intrinsicAnalysis(data):
+
+def intrinsicAnalysis(data, lags):
     # TODO: the format of data
-    plt.plot(data)
+    data = data.reshape(-1)
+    print("Data shape:", data.shape)
+    # plot part of samples
+    plt.plot(data[:100])
     plt.show()
-    model = AutoReg(data, lags = 5).fit()
+    # plot auto-correlation of samples
+    plot_acf(data)
+    plt.show()
+    # plot partial auto-correlation of samples
+    plot_pacf(data)
+    plt.show()
+    # Auto-regressive
+    model = AutoReg(data, lags = lags).fit()
+    qqplot_2samples(model.resid, data[lags:])
+    plt.show()
     return model
+
+
+def trialLevelSeasonalAnalysis(data, lags):
+    pass
+
+
+def blocLevelSeasonalAnalysis(data, lags):
+    pass
+
 
 def choiceMemoryAnalysis(data):
     # TODO: the format of data
@@ -81,6 +103,9 @@ def choiceMemoryAnalysis(data):
     return res
 
 
+def rewardMemoryAnalysis(data):
+    pass
+
 
 
 if __name__ == '__main__':
@@ -89,13 +114,34 @@ if __name__ == '__main__':
     all_firing_rate, choices, rewards =getFiringRate(log_file_name)
     print("Finished preprocessing!")
 
-    # # Intrinsic timescale analysis
-    # res = intrinsicAnalysis(all_firing_rate[:, 20, 2, 1])
+    # Intrinsic timescale analysis
+    data = all_firing_rate[:, :, :, 1]
+    res = intrinsicAnalysis(data, lags = 30)
+    # print(res.diagnostic_summary())
+    # plot residual statistics
     # res.plot_diagnostics()
+    # plt.xticks(fontsize = 20)
     # plt.show()
-    # print(res.summary())
-
-    # Choice memory timescale analysis
-    res = choiceMemoryAnalysis(all_firing_rate[10, :, 0:2, 1]) # 5:7 is the time steps when making a choice
-
+    # plot prediction
+    plt.clf()
+    plt.title("Prediction")
+    prediction = res.predict(start = 1, end = 100)
+    plt.plot(prediction)
+    plt.show()
+    # plot auto-regressive coefficients
+    plt.clf()
+    plt.title("AR Coef. vs. Time Lags", fontsize = 20)
+    plt.plot(np.abs(res.params[1:]), "bo-", lw = 2, ms = 10)
+    # plt.plot(res.params[1:], "bo-", lw = 2, ms = 10)
+    plt.xticks(np.arange(len(res.params) - 1), np.arange(1, len(res.params)))
+    plt.xlabel("Time Lag", fontsize = 20)
+    plt.ylabel("AR Coef.", fontsize = 20)
+    plt.xticks(fontsize = 20)
+    plt.yticks(fontsize = 20)
+    plt.ylim(-0.1, 1.0)
+    plt.show()
     print(res.summary())
+
+    # # Choice memory timescale analysis
+    # res = choiceMemoryAnalysis(all_firing_rate[:, 20, :, 1]) # 5:7 is the time steps when making a choice
+    # print(res.summary())
