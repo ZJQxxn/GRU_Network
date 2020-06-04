@@ -8,6 +8,7 @@ from statsmodels.tsa.api import ExponentialSmoothing
 from statsmodels.graphics.tsaplots import plot_acf, plot_pacf
 from statsmodels.graphics.gofplots import qqplot_2samples
 from scipy.stats import sem
+from matplotlib_venn import venn3
 
 # ==================================================================
 #                          PRE-PROCESSING
@@ -103,7 +104,7 @@ def intrinsicAnalysis(data, lags):
     autoreg_res = np.zeros((neurons_num, lags)) # the auto-regressive coefficients for each neuron
     all_models = []
     for index in range(neurons_num):
-        neuron_data = mat_data[index, :]
+        neuron_data = mat_data[:, index]
         # filter out useless neurons
         if np.all(0 == neuron_data):
             continue
@@ -145,7 +146,7 @@ def plotIntrinsicResult(all_models, autoreg_res, lags):
     plt.ylabel("AR Coef.", fontsize=20)
     plt.xticks(fontsize=20)
     plt.yticks(fontsize=20)
-    plt.ylim(-0.1, 0.3)
+    plt.ylim(0.0, 0.6)
     plt.show()
 
 
@@ -455,10 +456,10 @@ def plotRewardARResult(model, autoreg_res, lags):
 
 
 # ==================================================================
-#                   SPLIT NEURON REGIONS
+#                   ANALYSIS FOR NEURON REGIONS
 # ==================================================================
 
-def cateogorizeNeuron(firing_data, time_step_category):
+def cateogorizeNeuron(firing_data, time_step_category, need_plot = True):
     '''
     Categorize neurons based on the activation time.
     :param firing_data: Firing rate.
@@ -481,8 +482,213 @@ def cateogorizeNeuron(firing_data, time_step_category):
         for step in time_step_category[i]:
             integrate_regions[i].extend(regions[step])
         integrate_regions[i] = list(set(integrate_regions[i]))
+    # Plot venn graph
+    if need_plot:
+        plt.title("Neuron Categories", fontsize = 20)
+        venn3(
+            [set(integrate_regions[1]), set(integrate_regions[2]), set(integrate_regions[3])],
+            set_labels = ("show stimulus", "make choice", "get reward"))
+        plt.show()
     return integrate_regions
 
+
+def regionIntrinsicAnalysis(data, lags, time_step_category):
+    '''
+    Intrinsic timescale analysis.
+    :param data: Firing data with the shape of (block num, trial num in a block, time steps, neuron num) 
+    :param lags: Time step lags for auto-regressive.
+    :return: Fitted auto-regressive models for every neuron. The auto-regressive coefficients.
+        all_models: A list with each element a fittted auto-regressive model (statsmodels.tsa.ar_model.AutoReg).
+        autoreg_res: A matrix containing auto-regressive coefficient of all the neurons with the shape of (neuron num, lags). 
+    '''
+    neurons_num = data.shape[-1]
+    mat_data = np.zeros((np.prod(data.shape[:-1]), neurons_num))
+    # data = data.reshape((-1, neurons_num))
+    for index in range(neurons_num):
+        mat_data[:, index] = data[:,:,:,index].reshape(-1)
+    print("Data shape:", mat_data.shape)
+    # ====================================
+    #         Different Region
+    # ====================================
+    neuron_region = cateogorizeNeuron(data, time_step_category, need_plot = False)
+    regions_res = {}
+    regions_model = {}
+    region_timescale = []
+    for region in neuron_region:
+        neurons_index = neuron_region[region]
+        neurons_num = len(neurons_index)
+        # Auto-regressive
+        autoreg_res = np.zeros((neurons_num, lags))  # the auto-regressive coefficients for each neuron
+        all_models = []
+        region_data = mat_data[:, neurons_index]
+        for index in range(neurons_num):
+            neuron_data = region_data[:, index]
+            # filter out useless neurons
+            if np.all(0 == neuron_data):
+                continue
+            model = AutoReg(neuron_data, lags=lags).fit()
+            autoreg_res[index, :] = np.abs(model.params[1:])
+            all_models.append(model)
+        # Filter out useless neurons
+        for index in range(neurons_num):
+            temp = autoreg_res[index, :]
+            if np.all(0 == temp):
+                autoreg_res[index, :] = np.tile(np.nan, len(temp))
+        # Find the most significant timescale
+        # print(np.min(autoreg_res, axis = 1))
+        autoreg_res = -1 / np.log(np.abs(autoreg_res))
+        # TODO: take out some significantly large timescale
+        extreme_index = np.where(autoreg_res > 100)
+        autoreg_res[extreme_index] = 0
+        region_timescale.append(np.max(autoreg_res))
+        regions_res[region] = autoreg_res
+        regions_model[region] = all_models
+    # Plot the timescale
+    region_timescale = np.array(region_timescale)
+    print("Region Timescale: ", region_timescale)
+    sort_index = np.argsort(region_timescale)
+    plt.figure(figsize=(7, 10))
+    plt.title("Intrinsic Timescale", fontsize = 20)
+    plt.plot(region_timescale[sort_index], "bo--", lw = 3, ms = 10)
+    plt.xticks(np.arange(len(region_timescale)), np.array(["reset", "show", "choose", "reward"])[sort_index],
+               fontsize = 20, rotation = 30)
+    plt.yticks(fontsize = 10)
+    plt.ylabel("Timescale", fontsize = 20)
+    plt.ylim(0, 20)
+    plt.show()
+    return regions_model, regions_res
+
+
+def regionTrialSeasonalAnalysis(data, lags, time_step_category):
+    '''
+    Intrinsic timescale analysis.
+    :param data: Firing data with the shape of (block num, trial num in a block, time steps, neuron num) 
+    :param lags: Time step lags for auto-regressive.
+    :return: Fitted auto-regressive models for every neuron. The auto-regressive coefficients.
+        all_models: A list with each element a fittted auto-regressive model (statsmodels.tsa.ar_model.AutoReg).
+        autoreg_res: A matrix containing auto-regressive coefficient of all the neurons with the shape of (neuron num, lags). 
+    '''
+    data_shape = data.shape
+    neurons_num = data.shape[-1]
+    time_step_num = data_shape[2]
+    firing_data = np.zeros(
+        (data_shape[0] * data_shape[1], time_step_num, neurons_num)
+    )
+    for i in range(neurons_num):
+        for j in range(time_step_num):
+            firing_data[:, j, i] = data[:, :, j, i].reshape(-1)
+    print("Data shape:", firing_data.shape)
+    # ====================================
+    #         Different Region
+    # ====================================
+    neuron_region = cateogorizeNeuron(data, time_step_category, need_plot = False)
+    regions_res = {}
+    regions_model = {}
+    region_timescale = []
+    for region in neuron_region:
+        neurons_index = neuron_region[region]
+        neurons_num = len(neurons_index)
+        # Auto-regressive
+        autoreg_res = np.zeros((neurons_num, time_step_num, lags))  # the auto-regressive coefficients for each neuron and time step
+        all_models = []
+        region_data = firing_data[:, :, neurons_index]
+        for i in range(neurons_num):
+            model_per_time_step = []
+            for j in range(time_step_num):
+                neuron_data = region_data[:, j, i]
+                # filter out useless neurons
+                if np.all(0 == neuron_data):
+                    continue
+                model = AutoReg(neuron_data, lags=lags).fit()
+                autoreg_res[i, j, :] = np.abs(model.params[1:])
+                model_per_time_step.append(model)
+            all_models.append(model_per_time_step)
+        autoreg_res = np.mean(np.abs(autoreg_res), axis = 1)
+        autoreg_res = -1 / np.log(np.abs(autoreg_res))
+        # TODO: take out some significantly large timescale
+        extreme_index = np.where(autoreg_res > 1)
+        autoreg_res[extreme_index] = 0
+        region_timescale.append(np.max(autoreg_res))
+        regions_res[region] = autoreg_res
+        regions_model[region] = all_models
+    # Plot the timescale
+    region_timescale = np.array(region_timescale)
+    print("Region Timescale: ", region_timescale)
+    sort_index = np.argsort(region_timescale)
+    plt.figure(figsize=(7, 10))
+    plt.title("Trial-Level Seasonal Timescale", fontsize = 20)
+    plt.plot(region_timescale[sort_index], "bo--", lw = 3, ms = 10)
+    plt.xticks(np.arange(len(region_timescale)), np.array(["reset", "show", "choose", "reward"])[sort_index],
+               fontsize = 20, rotation = 30)
+    plt.yticks(fontsize = 10)
+    plt.ylabel("Timescale", fontsize = 20)
+    plt.ylim(0.5, 1.1)
+    plt.show()
+    return regions_model, regions_res
+
+
+def regionBlockSeasonalAnalysis(data, lags, time_step_category):
+    '''
+    Intrinsic timescale analysis.
+    :param data: Firing data with the shape of (block num, trial num in a block, time steps, neuron num) 
+    :param lags: Time step lags for auto-regressive.
+    :return: Fitted auto-regressive models for every neuron. The auto-regressive coefficients.
+        all_models: A list with each element a fittted auto-regressive model (statsmodels.tsa.ar_model.AutoReg).
+        autoreg_res: A matrix containing auto-regressive coefficient of all the neurons with the shape of (neuron num, lags). 
+    '''
+    data_shape = data.shape
+    neurons_num = data_shape[-1]
+    trial_num = data_shape[1]
+    firing_data = np.zeros(
+        (data_shape[0] * trial_num, neurons_num)
+    )
+    for i in range(neurons_num):
+        trial_mean_firing_rate = np.mean(data[:, :, :, i], axis=2)
+        firing_data[:, i] = trial_mean_firing_rate.reshape(-1)
+    print("Data shape:", firing_data.shape)
+    # ====================================
+    #         Different Region
+    # ====================================
+    neuron_region = cateogorizeNeuron(data, time_step_category, need_plot = False)
+    regions_res = {}
+    regions_model = {}
+    region_timescale = []
+    for region in neuron_region:
+        neurons_index = neuron_region[region]
+        neurons_num = len(neurons_index)
+        # Auto-regressive
+        autoreg_res = np.zeros((neurons_num, lags))  # the auto-regressive coefficients for each neuron and time step
+        all_models = []
+        region_data = firing_data[:, neurons_index]
+        for i in range(neurons_num):
+            neuron_data = region_data[:, i]
+            # filter out useless neurons
+            if np.all(0 == neuron_data):
+                continue
+            model = AutoReg(neuron_data, lags=lags).fit()
+            autoreg_res[i, :] = np.abs(model.params[1:])
+        all_models.append(model)
+        autoreg_res = -1 / np.log(np.abs(autoreg_res))
+        # # TODO: take out some significantly large timescale
+        # extreme_index = np.where(autoreg_res > 1)
+        # autoreg_res[extreme_index] = 0
+        region_timescale.append(np.max(autoreg_res))
+        regions_res[region] = autoreg_res
+        regions_model[region] = all_models
+    # Plot the timescale
+    region_timescale = np.array(region_timescale)
+    print("Region Timescale: ", region_timescale)
+    sort_index = np.argsort(region_timescale)
+    plt.figure(figsize=(7, 10))
+    plt.title("Block-Level Seasonal Timescale", fontsize = 20)
+    plt.plot(region_timescale[sort_index], "bo--", lw = 3, ms = 10)
+    plt.xticks(np.arange(len(region_timescale)), np.array(["reset", "show", "choose", "reward"])[sort_index],
+               fontsize = 20, rotation = 30)
+    plt.yticks(fontsize = 10)
+    plt.ylabel("Timescale", fontsize = 20)
+    plt.ylim(0.0, 2.0)
+    plt.show()
+    return regions_model, regions_res
 
 
 
@@ -538,5 +744,33 @@ if __name__ == '__main__':
     # print(model.summary())
     # plotRewardARResult(model, autoreg_res, lags=rewardARLag)
 
-    # Categorize neurons
-    cateogorizeNeuron(all_firing_rate, time_step_category = [[0,1], [2,3,4], [5,6], [7,8], [9]])
+    # # Categorize neurons
+    # cateogorizeNeuron(all_firing_rate, time_step_category = [[0,1, 9], [2,3,4], [5,6], [7,8]])
+
+
+    # # Region intrinsic timescale analysis
+    # print("\n", "="*10, " REGION INTRINSIC ","="*10)
+    # intrinsic_lags = 20
+    # all_models, autoreg_res = regionIntrinsicAnalysis(
+    #     all_firing_rate,
+    #     time_step_category = [[0,1, 9], [2,3,4], [5,6], [7,8]],
+    #     lags = intrinsic_lags
+    # )
+
+    # # Region trial seasonal timescale analysis
+    # print("\n", "="*10, " REGION TRIAL SEASONAL ","="*10)
+    # trial_seasonal_lags = 5
+    # all_models, autoreg_res = regionTrialSeasonalAnalysis(
+    #     all_firing_rate,
+    #     time_step_category = [[0,1, 9], [2,3,4], [5,6], [7,8]],
+    #     lags = trial_seasonal_lags
+    # )
+
+    # Region trial seasonal timescale analysis
+    print("\n", "=" * 10, " REGION TRIAL SEASONAL ", "=" * 10)
+    block_seasonal_lags = 5
+    all_models, autoreg_res = regionBlockSeasonalAnalysis(
+        all_firing_rate,
+        time_step_category=[[0, 1, 9], [2, 3, 4], [5, 6], [7, 8]],
+        lags=block_seasonal_lags
+    )
