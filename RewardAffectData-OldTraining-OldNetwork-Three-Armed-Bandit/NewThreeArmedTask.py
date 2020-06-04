@@ -1,28 +1,28 @@
 ''''
-TwoStepTask.py: Implement the two-step task, including the training and validating processes.
+ThreeArmedTask.py: Implement the three-armed bandit task, including the training and validating processes.
 
 Author: Jiaqi Zhang <zjqseu@gmail.com>
-Date: Nov. 27 2019
+Date: Nov. 29 2019
 '''
-
-import sys
-sys.path.append('../Network')
-
-from Task import Task
-from TorchNetwork import TorchNetwork
-from net_tools import np2tensor, tensor2np, match_rate
-from net_tools import readConfigures #TODO: change this
-from TwoStepDataProcessor import TwoStepDataProcessor
-from TwoStepValidateLogWriter import TwoStepValidateLogWriter
-
 import copy
 import numpy as np
 import torch
+import sys
 
-class TwoStepTask(Task):
+sys.path.append('../Network/')
+from Task import Task
+# from StackedGRUNetwork import StackedGRUNetwork
+from NewTorchNetwork import TorchNetwork
+from net_tools import np2tensor, tensor2np, match_rate
+from net_tools import readConfigures
+from ThreeArmedDataProcessor import ThreeArmedDataProcessor #TODO: class name
+from ThreeArmedValidateLogWriter import ThreeArmedValidateLogWriter #TODO: class name
+
+
+class ThreeArmedTask(Task): #TODO: change the class name to two-armed task, so as other class
     '''
     Description:
-        The two-step task, cinluding training and validating processes.
+        The three-armed bandit task, including training and validating processes.
     
     Variables:
         ----------- ALWAYS EXIST ----------------
@@ -55,12 +55,14 @@ class TwoStepTask(Task):
         Initialize the task.
         :param config_file: Configuration file. Should be a JSON file.
         '''
-        super(TwoStepTask, self).__init__()
+        super(ThreeArmedTask, self).__init__()
+        # TODO: change to initialize with dict rather than the file
         self.model = TorchNetwork(config_file)
         cofig_pars = readConfigures(config_file)
-        self.data_helper = TwoStepDataProcessor(cofig_pars['data_file'], cofig_pars['validation_data_file'])
+        self.data_helper = ThreeArmedDataProcessor(cofig_pars['data_file'], cofig_pars['validation_data_file'])
+        np.random.seed()
 
-    def train(self):
+    def train(self, save_iter = 0): #TODO: save iteration
         '''
         Training.
         :return: 
@@ -70,7 +72,12 @@ class TwoStepTask(Task):
         print('='*40)
         print('START TRAINING...')
         self.train_data, self.train_guide = self.data_helper.prepareTrainingData()
-        train_loss, train_correct_rate = self.model.training(self.train_data, self.train_guide)
+        try:
+            train_loss, train_correct_rate = self.model.training(self.train_data, self.train_guide, save_iter = save_iter)
+        except KeyboardInterrupt: #TODO: check this
+            self.model.trained = True
+            self.saveModel('interrupted_model.pt')
+            return
         return train_loss, train_correct_rate
 
     def validate(self, log_filename = ''):
@@ -90,25 +97,23 @@ class TwoStepTask(Task):
         # Initialization
         self.validate_data, self.validate_data_attr = self.data_helper.prepareValidatingData()
         self.task_validate_attr = { # attributes for validating
-            'trial_length':12,
-            'block' : self.validate_data_attr['block'][0][0],
-            'trans_probs' : self.validate_data_attr['trans_probs'][0][0],
+            'trial_length':9,
+            # 'block' : self.validate_data_attr['block'],
+            # 'trans_probs' : self.validate_data_attr['trans_probs'][0][0],
             'reward_prob_1' : self.validate_data_attr['reward_prob_1'][0][0],
             'action_step' : [5,6],
-            'about_state'  : [2,3], # index of states
-            'about_choice' : [5,6,7], # index of choices
+            'about_state'  : [0,1,2], # index of showing stimulus
+            'about_choice' : [4,5,6,7], # index of choosing choices
             'about_reward' : [8,9], # index of reward
-            'interrupt_states' : [[0, 0, 0, 0, 1, 0, 0, 1, 0, 1]], # TODO: see nothing; choose A2; no reward
+            'interrupt_states' : [[0, 0, 0, 1, 1, 0, 0, 0, 0, 1]],
             'chosen_states' : [
-                [0, 0, 0, 0, 1, 0, 0, 0, 0, 1],
-                [0, 0, 0, 0, 1, 0, 0, 0, 0, 1],
-                [0, 0, 0, 0, 0, 1, 0, 0, 0, 1],
-                [0, 0, 0, 0, 0, 1, 0, 0, 0, 1],
-                [0, 0, 0, 0, 0, 1, 0, 0, 0, 1],
-                [0, 0, 0, 0, 1, 1, 0, 0, 0, 0],
-                [0, 0, 0, 0, 1, 1, 0, 0, 0, 0],
-                [0, 0, 0, 0, 1, 1, 0, 0, 0, 1],
-                ]
+                [0, 0, 0, 0, 0, 0, 0, 0, 0, 1],
+                [0, 0, 0, 0, 0, 0, 0, 0, 0, 1],
+                [0, 0, 0, 1, 1, 0, 0, 0, 0, 0],
+                [0, 0, 0, 1, 1, 0, 0, 0, 0, 0],
+                [0, 0, 0, 1, 1, 0, 0, 0, 0, 1]
+                ],
+            'hidden':self.model._initHidden()
         }
         wining_counts, completed_counts, trial_counts = 0, 0, 0
         total_loss, total_correct_rate = 0, 0
@@ -119,7 +124,7 @@ class TwoStepTask(Task):
         behavior_shape = list(self.validate_data[0].shape)
         behavior_shape.pop(0)
         if need_log:
-            self.log_writer = TwoStepValidateLogWriter(log_filename)
+            self.log_writer = ThreeArmedValidateLogWriter(log_filename)
             self.log_writer.craeteHdf5File({'behavior_shape':behavior_shape, 'neuron_shape':neuron_shape})
 
         # Validating
@@ -127,10 +132,10 @@ class TwoStepTask(Task):
             if step >= 1e800:
                 break
             trial_reward_prob = {
-                'trans_probs': self.task_validate_attr['trans_probs'][:,step],
+                # 'trans_probs': self.task_validate_attr['trans_probs'][:,step],
                 'reward_prob_1':self.task_validate_attr['reward_prob_1'][:,step]
             }
-            self._resetTrialRecords()
+            # self._resetTrialRecords()
             tmp_loss, tmp_correct_rate, raw_rec, wining, completed = self._trialValidate(trial, trial_reward_prob)
             trial_counts = trial_counts + 1
             wining_counts = wining_counts + wining
@@ -177,7 +182,7 @@ class TwoStepTask(Task):
         raw_rec = {}
         self._resetTrialRecords()
         self.validate_records.update({'states_pool': trial.tolist(), 'trial_end': False})
-        action = [0]  # init action: fixate on fixation point
+        action = [0]  # init action: fixate on fixation point [Jiaqi] 2 for fixation
         planaction_record = []
         while not self.validate_records['trial_end']:
             trial_end, sensory_inputs = self._nextInput(action, trial_reward_prob)  # compute the input
@@ -188,7 +193,7 @@ class TwoStepTask(Task):
         for i in range(predicted_trial.shape[0]):
             if len(planaction_record[i]) != 0:
                 action = planaction_record[i][0]
-                predicted_trial[i, self.task_validate_attr['about_choice']] = 0 #TODO: don't need reset the trial?
+                predicted_trial[i, self.task_validate_attr['about_choice']] = 0 #
                 predicted_trial[i, self.task_validate_attr['about_choice'][0] + action] = 1
             elif len(planaction_record[i]) == 0:
                 predicted_trial[i, self.task_validate_attr['about_choice']] = 0
@@ -200,7 +205,7 @@ class TwoStepTask(Task):
 
         if self.validate_records['reward'] != None:
             raw_rec['choice'] = self.validate_records['choice']
-            raw_rec['reward'] = self.validate_records['reward'][0]
+            raw_rec['reward'] = self.validate_records['reward']
         else:
             raw_rec['choice'] = -1
             raw_rec['reward'] = -1
@@ -228,10 +233,9 @@ class TwoStepTask(Task):
             next_sensory_inputs: Next input of this trial
         :raise BaseException: Wrong time index.
         '''
-        #TODO: understand the logic of this function
         time_step = self.validate_records['time_step'] + 1
         states_pool = self.validate_records['states_pool']
-        if len(action) != 1 or not (action[0] in (0, 1, 2)):
+        if len(action) != 1 or not (action[0] in (0, 1, 2, 3)):
             states_pool = copy.deepcopy(self.task_validate_attr['interrupt_states'])
         else:
             action = action[0]
@@ -244,29 +248,24 @@ class TwoStepTask(Task):
             elif time_step == self.task_validate_attr['action_step'][0]:  # choice has not been made
                 if action == 0:  # fixate, keep silent
                     states_pool = copy.deepcopy(self.task_validate_attr['interrupt_states'])
-                elif action == 1:
-                    state = 1 if trial_reward_prob['trans_probs'] > np.random.rand() else 2
-                elif action == 2:
-                    state = 1 if (1 - trial_reward_prob['trans_probs']) > np.random.rand() else 2
 
-                if action != 0:
+                if action != 0: # action = 0 or 1, representing A or B respectively
                     # print("block: {:6f} | choice: {:6f} | reward: {:.6f} ".format(self.block,action,reward))
-                    reward = trial_reward_prob['reward_prob_1'] > np.random.rand() if state == 1 \
-                        else (1 - trial_reward_prob['reward_prob_1']) > np.random.rand()
+                    reward = trial_reward_prob['reward_prob_1'][action-1] > np.random.rand()
                     self.validate_records.update({
-                        'common': state == action,
-                        'state':state,
+                        # 'common': state == action,
                         'choice':action,
                         'reward':reward,
                         'chose':True})
                     state_ = copy.deepcopy(self.task_validate_attr['chosen_states'])
-                    state_[0][self.task_validate_attr['about_choice'][action]] = 1
+                    state_[0][self.task_validate_attr['about_choice'][action]] = 1 # action is 1/2 and the index is 0/1
                     state_[1][self.task_validate_attr['about_choice'][action]] = 1
-                    state_[2][self.task_validate_attr['about_state'][state - 1]] = 1
-                    state_[3][self.task_validate_attr['about_state'][state - 1]] = 1
-                    state_[4][self.task_validate_attr['about_state'][state - 1]] = 1
-                    state_[5][self.task_validate_attr['about_reward'][1 - int(reward)]] = 1
-                    state_[6][self.task_validate_attr['about_reward'][1 - int(reward)]] = 1
+
+                    state_[0][self.task_validate_attr['about_state'][action-1]] = 1
+                    state_[1][self.task_validate_attr['about_state'][action-1]] = 1
+
+                    state_[2][self.task_validate_attr['about_reward'][1 - int(reward)]] = 1
+                    state_[3][self.task_validate_attr['about_reward'][1 - int(reward)]] = 1
                     states_pool = copy.deepcopy(state_)
 
             elif time_step == self.task_validate_attr['action_step'][1]:  # choice has not been made
@@ -304,7 +303,7 @@ class TwoStepTask(Task):
         :return: 
             selected_action: The estimated action.
         '''
-        hidden = self.validate_records['hidden']
+        hidden = self.task_validate_attr['hidden']
         processed_input = torch.tensor(sensory_inputs).type(torch.FloatTensor).view(1, self.model.network.batch_size, -1).requires_grad_(True)
         output, hidden = self.model.network(processed_input, hidden)
         action_options = output[0, self.task_validate_attr['about_choice']]
@@ -315,7 +314,7 @@ class TwoStepTask(Task):
         idx = torch.tensor(np.random.choice(pro_soft.size, 1, p=pro_soft))
         selected_action = [idx.data.item()]  # 0: fixation point, 1: left, 2: right, 3: other position
         # update validation records
-        self.validate_records['hidden'] = hidden
+        self.task_validate_attr['hidden'] = hidden
         self.validate_records['raw_records'].append(tensor2np(output).reshape(-1))
         self.validate_records['hidden_records'].append(tensor2np(hidden))
         self.validate_records['sensory_sequence'].append(sensory_inputs)
@@ -343,13 +342,16 @@ class TwoStepTask(Task):
                                  'states_pool': [],
                                  'completed': None,
                                  'trial_end': False,
-                                 'block': [],
+                                 # 'block': [],
                                  'reward': None,
                                  'choice': None,
                                  'chosen': None,
                                  'state': None,
-                                 'hidden': self.model._initHidden()
+                                 # 'hidden': self.model._initHidden()
                                  }
+
+    # def _MSELoss(self, estimation, true_value, sample_num):
+    #     return np.sum(np.power(np.array(estimation - true_value), 2)) / sample_num
 
     def saveModel(self, filename):
         '''
@@ -375,12 +377,13 @@ class TwoStepTask(Task):
 
 
 if __name__ == '__main__':
-    t = TwoStepTask("test_config.json")
-    train_loss, train_correct_rate = t.train()
-    # import matplotlib.pyplot as plt
-    # plt.plot(np.arange(0,500), train_correct_rate)
-    # plt.yticks(np.arange(0, 1, 0.1))
-    # plt.show()
-    # t.saveModel('./save_m/model-two-step-without-init.pt')
-    # t.loadModel('./save_m/model-two-step-75e5.pt', 'test_config.json')
-    # t.validate('20191209_1122-smp_ts.hdf5')
+    torch.set_num_threads(3)
+    torch.set_num_interop_threads(3)
+    t = ThreeArmedTask('ThreeArmed_Config.json')
+
+    t.train(save_iter=100000)
+    t.saveModel('./save_m/'+'NewLoss-RewardAffectData-OldTraining-OldNetwork--ThreeArmed-1e6-model.pt')
+
+    # t.loadModel('./save_m/sudden-reverse/model3/RewardAffectData-OldTraining-OldNetwork-ThreeArmed-1e6-model.pt', 'ThreeArmed_Config.json')
+    # t.loadModel('./save_m/slow-reverse/model3/RewardAffectData-OldTraining-OldNetwork-ThreeArmed-1e6-model.pt', 'ThreeArmed_Config.json')
+    # t.validate('RewardAffectData-OldTraining-OldNetwork-ThreeArmed-slow-reverse-model3-validation-1e6.hdf5')

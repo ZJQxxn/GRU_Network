@@ -123,7 +123,7 @@ class TaskAnalyzer:
 
 
 if __name__ == '__main__':
-    analyzer = TaskAnalyzer('RewardAffectData-NewTraining-OldNetwork-Three-Armed-slow-reverse-model2-validation-1e6.hdf5',
+    analyzer = TaskAnalyzer('NewLoss-RewardAffectData-NewTraining-OldNetwork-Three-Armed-slow-reverse-model2-validation-1e6.hdf5',
                             './data/RewardAffect_ThreeArmed_TestingSet-2020_05_03-blk70-reverseblk5-noise-1.mat',
                             block_size = 70)
 

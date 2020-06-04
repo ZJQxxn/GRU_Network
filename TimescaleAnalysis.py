@@ -2,11 +2,16 @@ import h5py
 import numpy as np
 import pandas as pd
 import matplotlib.pyplot as plt
+import seaborn as sbn
 from statsmodels.tsa.ar_model import AutoReg
 from statsmodels.tsa.api import ExponentialSmoothing
 from statsmodels.graphics.tsaplots import plot_acf, plot_pacf
 from statsmodels.graphics.gofplots import qqplot_2samples
+from scipy.stats import sem
 
+# ==================================================================
+#                          PRE-PROCESSING
+# ==================================================================
 
 def getFiringRate(logFileName):
     # Read data from HDF5 file
@@ -63,85 +68,475 @@ def getFiringRate(logFileName):
     return firing_rate_data, choices, rewards
 
 
+# ==================================================================
+#                TIMESCALE ANALYSIS WITH AUTO-REGRESSIVE
+# ==================================================================
+
 def intrinsicAnalysis(data, lags):
-    # TODO: the format of data
-    data = data.reshape(-1)
-    print("Data shape:", data.shape)
+    '''
+    Intrinsic timescale analysis.
+    :param data: Firing data with the shape of (block num, trial num in a block, time steps, neuron num) 
+    :param lags: Time step lags for auto-regressive.
+    :return: Fitted auto-regressive models for every neuron. The auto-regressive coefficients.
+        all_models: A list with each element a fittted auto-regressive model (statsmodels.tsa.ar_model.AutoReg).
+        autoreg_res: A matrix containing auto-regressive coefficient of all the neurons with the shape of (neuron num, lags). 
+    '''
+    neurons_num = data.shape[-1]
+    mat_data = np.zeros((np.prod(data.shape[:-1]), neurons_num))
+    # data = data.reshape((-1, neurons_num))
+    for index in range(neurons_num):
+        mat_data[:, index] = data[:,:,:,index].reshape(-1)
+    print("Data shape:", mat_data.shape)
+    # ====================================
+    #           An Example
+    # ====================================
     # plot part of samples
-    plt.plot(data[:100])
+    plt.plot(mat_data[:500, 0])
     plt.show()
     # plot auto-correlation of samples
-    plot_acf(data)
+    plot_acf(mat_data[:, 0])
     plt.show()
     # plot partial auto-correlation of samples
-    plot_pacf(data)
+    plot_pacf(mat_data[:, 0])
     plt.show()
     # Auto-regressive
-    model = AutoReg(data, lags = lags).fit()
-    qqplot_2samples(model.resid, data[lags:])
+    autoreg_res = np.zeros((neurons_num, lags)) # the auto-regressive coefficients for each neuron
+    all_models = []
+    for index in range(neurons_num):
+        neuron_data = mat_data[index, :]
+        # filter out useless neurons
+        if np.all(0 == neuron_data):
+            continue
+        model = AutoReg(neuron_data, lags = lags).fit()
+        autoreg_res[index, :] = np.abs(model.params[1:])
+        all_models.append(model)
+    # Filter out useless neurons
+    for index in range(neurons_num):
+        temp = autoreg_res[index, :]
+        if np.all(0 == temp):
+            autoreg_res[index, :] = np.tile(np.nan, len(temp))
+    return all_models, autoreg_res
+
+
+def plotIntrinsicResult(all_models, autoreg_res, lags):
+    '''
+    Plot intrisic timescale analysis results.
+    :param all_models: All the auto-regressive models for every node.
+    :param autoreg_res: Auto-regressive coefficient matrix.
+    :return: VOID
+    '''
+    # Plot mean and SEM of auto-regressive coefficients
+    coeff_sem = sem(autoreg_res, axis=0, nan_policy = 'omit')
+    coeff_mean = np.nanmean(autoreg_res, axis=0)
+    # # Normalization
+    # coeff_mean = coeff_mean / np.sum(coeff_mean)
+    # Plot the AR coefficient
+    plt.title("AR Coef. vs. Time Lags [Intrinsic]", fontsize=20)
+    plt.plot(coeff_mean, ms=8, lw=2)
+    plt.fill_between(np.arange(0, lags),
+                     coeff_mean - coeff_sem,
+                     coeff_mean + coeff_sem,
+                     color="#dcb2ed",
+                     alpha=0.5,
+                     linewidth=4)
+    # plt.plot(autoreg_res[2,:], "bo-", ms=8, lw=2)
+    plt.xticks(np.arange(len(autoreg_res[0])), np.arange(1, len(autoreg_res[0]) + 1))
+    plt.xlabel("Time Lag", fontsize=20)
+    plt.ylabel("AR Coef.", fontsize=20)
+    plt.xticks(fontsize=20)
+    plt.yticks(fontsize=20)
+    plt.ylim(-0.1, 0.3)
     plt.show()
-    return model
 
 
 def trialLevelSeasonalAnalysis(data, lags):
-    pass
+    '''
+        Trial-level seasonal timescale analysis.
+        :param data: Firing data with the shape of (block num, trial num in a block, time steps, neuron num) 
+        :param lags: Time step lags for auto-regressive.
+        :return: Fitted auto-regressive models for every neuron. The auto-regressive coefficients.
+            all_models: A list with each element a fittted auto-regressive model (statsmodels.tsa.ar_model.AutoReg).
+            autoreg_res: A matrix containing auto-regressive coefficient of all the neurons with the shape of (neuron num, lags). 
+        '''
+    data_shape = data.shape
+    neurons_num = data_shape[-1]
+    time_step_num = data_shape[2]
+    firing_data = np.zeros(
+        (data_shape[0] * data_shape[1], time_step_num, neurons_num)
+    )
+    for i in range(neurons_num):
+        for j in range(time_step_num):
+            firing_data[:, j, i] = data[:, :, j, i].reshape(-1)
+    print("Data shape:", firing_data.shape)
+    # ====================================
+    #           An Example
+    # ====================================
+    # plot part of samples
+    plt.plot(firing_data[:200, 5, 0])
+    plt.show()
+    # plot auto-correlation of samples
+    plot_acf(firing_data[:, 5, 0])
+    plt.show()
+    # plot partial auto-correlation of samples
+    plot_pacf(firing_data[:, 5, 0])
+    plt.show()
+    # Auto-regressive
+    autoreg_res = np.zeros((neurons_num, time_step_num, lags))  # the auto-regressive coefficients for each neuron and time step
+    all_models = []
+    for i in range(neurons_num):
+        model_per_time_step = []
+        for j in range(time_step_num):
+            neuron_data = firing_data[:, j, i]
+            # filter out useless neurons
+            if np.all(0 == neuron_data):
+                continue
+            model = AutoReg(neuron_data, lags=lags).fit()
+            autoreg_res[i, j, :] = np.abs(model.params[1:])
+            model_per_time_step.append(model)
+        all_models.append(model_per_time_step)
+    #TODO: 数据不平均，因为对于每个 time step， 筛选出的 neuron 数量不同。存在很多 0 值
+    return all_models, autoreg_res
 
 
-def blocLevelSeasonalAnalysis(data, lags):
-    pass
+def plotTrialSeasonalResult(all_models, autoreg_res, lags):
+    '''
+    Plot trial-level seasonal timescale analysis results.
+    :param all_models: All the auto-regressive models for every node.
+    :param autoreg_res: Auto-regressive coefficient matrix.
+    :return: VOID
+    '''
+    # Plot mean and SEM of auto-regressive coefficients
+    coeff_sem = sem(autoreg_res, axis=0)
+    coeff_mean = np.mean(autoreg_res, axis = 0)
+    # Plot the AR coefficient
+    plt.title("AR Coef. vs. Time Lags [Trial-Level Seasonal]", fontsize=20)
+    # for index in range(coeff_mean.shape[0]):
+    plt.plot(np.mean(coeff_mean[[0,1,9]], axis = 0), "o-", ms=8, lw=2, label = "reset trial")
+    plt.plot(np.mean(coeff_mean[[2,3,4]], axis = 0), "o-", ms=8, lw=2, label = "show stimulus")
+    plt.plot(np.mean(coeff_mean[[5,6]], axis = 0), "o-", ms=8, lw=2, label = "make choice")
+    plt.plot(np.mean(coeff_mean[[7,8]], axis = 0), "o-", ms=8, lw=2, label = "show reward")
+    # plt.fill_between(np.arange(0, lags),
+    #                 coeff_mean[[0,1,9]] - coeff_sem[[0,1,9]],
+    #                 coeff_mean[[0,1,9]] + coeff_sem[[0,1,9]],
+    #                 color="#dcb2ed",
+    #                 alpha=0.5,
+    #                 linewidth=4,
+    #                 label = "SEM"
+    #                 )
+    plt.xticks(np.arange(len(coeff_mean[0])), np.arange(1, len(coeff_mean[0]) + 1))
+    plt.xlabel("Time Lag", fontsize=20)
+    plt.ylabel("AR Coef.", fontsize=20)
+    plt.xticks(fontsize=20)
+    plt.yticks(fontsize=20)
+    plt.ylim(-0.1, 0.3)
+    plt.legend(fontsize = 20)
+    plt.show()
 
 
-def choiceMemoryAnalysis(data):
-    # TODO: the format of data
-    data = np.mean(data, axis = 1)
-    res = ExponentialSmoothing(data).fit(smoothing_level = 0.9)
-    plt.plot(data, "bo-", lw=3)
+def blockLevelSeasonalAnalysis(data, lags):
+    '''
+    Block-level seasonal timescale analysis.
+    :param data: Firing data with the shape of (block num, trial num in a block, time steps, neuron num) 
+    :param lags: Time step lags for auto-regressive.
+    :return: Fitted auto-regressive models for every neuron. The auto-regressive coefficients.
+        all_models: A list with each element a fittted auto-regressive model (statsmodels.tsa.ar_model.AutoReg).
+        autoreg_res: A matrix containing auto-regressive coefficient of all the neurons with the shape of (neuron num, lags). 
+    '''
+    data_shape = data.shape
+    neurons_num = data_shape[-1]
+    trial_num = data_shape[1]
+    firing_data = np.zeros(
+        (data_shape[0] * trial_num, neurons_num)
+    )
+    for i in range(neurons_num):
+        trial_mean_firing_rate = np.mean(data[:, :, :, i], axis = 2)
+        firing_data[:, i] = trial_mean_firing_rate.reshape(-1)
+    print("Data shape:", firing_data.shape)
+    # ====================================
+    #           An Example
+    # ====================================
+    # plot part of samples
+    plt.plot(firing_data[:, 0])
+    plt.show()
+    # plot auto-correlation of samples
+    plot_acf(firing_data[:, 0])
+    plt.show()
+    # plot partial auto-correlation of samples
+    plot_pacf(firing_data[:, 0])
+    plt.show()
+    # Auto-regressive
+    autoreg_res = np.zeros(
+        (neurons_num, lags))  # the auto-regressive coefficients for each neuron and time step
+    all_models = []
+    for i in range(neurons_num):
+        neuron_data = firing_data[:, i]
+        # filter out useless neurons
+        if np.all(0 == neuron_data):
+            continue
+        model = AutoReg(neuron_data, lags=lags).fit()
+        autoreg_res[i, :] = np.abs(model.params[1:])
+        all_models.append(model)
+    # TODO: 数据不平均，因为对于每个 time step， 筛选出的 neuron 数量不同。存在很多 0 值
+    return all_models, autoreg_res
+
+
+def plotBlockSeasonalResult(all_models, autoreg_res, lags):
+    '''
+    Plot block-level seasonal timescale analysis results.
+    :param all_models: All the auto-regressive models for every node.
+    :param autoreg_res: Auto-regressive coefficient matrix.
+    :return: VOID
+    '''
+    # Plot mean and SEM of auto-regressive coefficients
+    coeff_sem = sem(autoreg_res, axis=0)
+    coeff_mean = np.mean(autoreg_res, axis=0)
+    # Plot the AR coefficient
+    plt.title("AR Coef. vs. Time Lags [Block-Level Seasonal]", fontsize=20)
+    plt.plot(coeff_mean, ms=8, lw=2)
+    plt.fill_between(np.arange(0, lags),
+                     coeff_mean - coeff_sem,
+                     coeff_mean + coeff_sem,
+                     color="#dcb2ed",
+                     alpha=0.5,
+                     linewidth=4)
+    plt.xticks(np.arange(len(autoreg_res[0])), np.arange(1, len(autoreg_res[0]) + 1))
+    plt.xlabel("Time Lag", fontsize=20)
+    plt.ylabel("AR Coef.", fontsize=20)
+    plt.xticks(fontsize=20)
+    plt.yticks(fontsize=20)
+    plt.ylim(-0.1, 0.3)
+    plt.show()
+
+
+# ==================================================================
+#            TIMESCALE ANALYSIS WITH EXPONENTIAL SMOOTHING
+# ==================================================================
+
+def choiceMemoryAnalysis(data, choices):
+    #TODO: how to use choices
+    data_shapes = data.shape
+    neurons_num = data_shapes[-1]
+    firing_data = data.reshape((-1, neurons_num))
+    print("Data shape:", firing_data.shape)
+    # ====================================
+    #           An Example
+    # ====================================
+    # plot part of samples
+    plt.plot(firing_data[:500, 1])
+    plt.show()
+    # plot auto-correlation of samples
+    plot_acf(firing_data[:, 1])
+    plt.show()
+    # plot partial auto-correlation of samples
+    plot_pacf(firing_data[:, 1])
+    plt.show()
+    # Exponential smoothing fitted res
+    res = ExponentialSmoothing(firing_data[:, 1]).fit()
+    plt.plot(firing_data[:,1], "bo-", lw=3)
     # plt.plot(res.fittedvalues, "go--", lw = 3)
     plt.plot(res.fittedfcast[1:], "go--", lw = 3)
-    plt.ylim(0.5, 1.1)
+    plt.ylim(-0.1, 1.1)
     plt.show()
     return res
 
 
-def rewardMemoryAnalysis(data):
+def rewardMemoryAnalysis(data, rewards):
     pass
 
 
 
+# ==================================================================
+#            REWARD & CHOICE ANALYSIS WITH AUTOREGRESSIVE
+# ==================================================================
+
+def choiceARAnalysis(choices, lags = 5):
+    choices = choices.reshape(-1)
+    for index in range(len(choices) - 1):
+        if choices[index+1] > 3:
+            choices[index+1] = choices[index]
+    print("Data shape:", choices.shape)
+    # ====================================
+    #           An Example
+    # ====================================
+    # plot part of samples
+    sbn.distplot(
+        choices,
+        bins = [1, 2, 3, 4],
+        kde = False,
+        hist_kws = {
+            "align":"mid",
+            "linewidth": 3,
+            "alpha": 1
+        }
+    )
+    plt.xticks([1.5, 2.5, 3.5], ["A", "B", "C"], fontsize = 20)
+    plt.yticks(fontsize = 12)
+    plt.xlabel("Choices", fontsize = 20)
+    plt.ylabel("# Trials", fontsize = 20)
+    plt.show()
+    # plot auto-correlation of samples
+    plot_acf(choices)
+    plt.show()
+    # plot partial auto-correlation of samples
+    plot_pacf(choices)
+    plt.show()
+    # Auto-regressive
+    # autoreg_res = np.zeros((neurons_num, lags))  # the auto-regressive coefficients for each neuron
+    # all_models = []
+    model = AutoReg(choices, lags=lags).fit()
+    autoreg_res = np.abs(model.params[1:])
+    return model, autoreg_res
+
+
+def plotChoiceARResult(model, autoreg_res, lags):
+    '''
+    Plot choice AR analysis results.
+    :param all_models: All the auto-regressive models for every node.
+    :param autoreg_res: Auto-regressive coefficient matrix.
+    :return: VOID
+    '''
+    # Plot mean and SEM of auto-regressive coefficients
+    plt.title("AR Coef. vs. Time Lags [Choice]", fontsize=20)
+    plt.plot(autoreg_res, ms=8, lw=2)
+    plt.xticks(np.arange(len(autoreg_res)), np.arange(1, len(autoreg_res) + 1))
+    plt.xlabel("Time Lag", fontsize=20)
+    plt.ylabel("AR Coef.", fontsize=20)
+    plt.xticks(fontsize=20)
+    plt.yticks(fontsize=20)
+    plt.ylim(0.0, 1.0)
+    plt.show()
+
+
+def rewardARAnalysis(rewards, lags = 5):
+    rewards = rewards.reshape(-1)
+    print("Data shape:", rewards.shape)
+    # ====================================
+    #           An Example
+    # ====================================
+    # plot part of samples
+    plt.bar([0, 1], [np.sum(rewards == 0), np.sum(rewards == 1)], width = 1, align='edge')
+    plt.xticks([0.5, 1.5], ["Not Rewarded", "Rewarded"], fontsize = 20)
+    plt.yticks(fontsize = 12)
+    # plt.xlabel("R", fontsize = 20)
+    plt.ylabel("# Trials", fontsize = 20)
+    plt.show()
+    # plot auto-correlation of samples
+    plot_acf(rewards)
+    plt.show()
+    # plot partial auto-correlation of samples
+    plot_pacf(rewards)
+    plt.show()
+    # Auto-regressive
+    # autoreg_res = np.zeros((neurons_num, lags))  # the auto-regressive coefficients for each neuron
+    # all_models = []
+    model = AutoReg(rewards, lags=lags).fit()
+    autoreg_res = np.abs(model.params[1:])
+    return model, autoreg_res
+
+
+def plotRewardARResult(model, autoreg_res, lags):
+    '''
+    Plot choice AR analysis results.
+    :param all_models: All the auto-regressive models for every node.
+    :param autoreg_res: Auto-regressive coefficient matrix.
+    :return: VOID
+    '''
+    # Plot mean and SEM of auto-regressive coefficients
+    plt.title("AR Coef. vs. Time Lags [Reward]", fontsize=20)
+    plt.plot(autoreg_res, ms=8, lw=2)
+    plt.xticks(np.arange(len(autoreg_res)), np.arange(1, len(autoreg_res) + 1))
+    plt.xlabel("Time Lag", fontsize=20)
+    plt.ylabel("AR Coef.", fontsize=20)
+    plt.xticks(fontsize=20)
+    plt.yticks(fontsize=20)
+    plt.ylim(0.0, 1.0)
+    plt.show()
+
+
+
+# ==================================================================
+#                   SPLIT NEURON REGIONS
+# ==================================================================
+
+def cateogorizeNeuron(firing_data, time_step_category):
+    '''
+    Categorize neurons based on the activation time.
+    :param firing_data: Firing rate.
+    :return: A dict represent regions of each neuron.
+    '''
+    data_shape = firing_data.shape
+    firing_data = firing_data.reshape(
+        (-1, data_shape[2], data_shape[3])
+    )
+    regions = {}
+    for index in range(data_shape[2]):
+        time_step_data = firing_data[:, index, :]
+        regions[index] = []
+        for n in range(data_shape[3]):
+            if (np.sum(time_step_data[:, n] != 0) / len(time_step_data[:, n])) > 0.9:
+                regions[index].append(n)
+    integrate_regions = {}
+    for i in range(len(time_step_category)):
+        integrate_regions[i] = []
+        for step in time_step_category[i]:
+            integrate_regions[i].extend(regions[step])
+        integrate_regions[i] = list(set(integrate_regions[i]))
+    return integrate_regions
+
+
+
+
+
 if __name__ == '__main__':
-    path = "RewardAffectData-OldTraining-OldNetwork-Three-Armed-Bandit/"
-    log_file_name = path + "RewardAffectData-OldTraining-OldNetwork-ThreeArmed-sudden-reverse-model1-validation-1e6.hdf5"
+    config = "ThreeArmed-Old"
+    # Pre-processing
+    if config == "ThreeArmed-Old":
+        path = "RewardAffectData-OldTraining-OldNetwork-Three-Armed-Bandit/"
+        log_file_name = path + "RewardAffectData-OldTraining-OldNetwork-ThreeArmed-sudden-reverse-model1-validation-1e6.hdf5"
+    elif config == "TwoArmed":
+        path = "Two-Armed-Bandit-SlowReverse/"
+        log_file_name = path + "SimplifyTwoArmedSlowReverseNoNoise-validation-15e6.hdf5"
+    else:
+        raise ValueError("Undefined task name!")
     all_firing_rate, choices, rewards =getFiringRate(log_file_name)
+    print("Firing data shape is ", all_firing_rate.shape)
     print("Finished preprocessing!")
 
-    # Intrinsic timescale analysis
-    data = all_firing_rate[:, :, :, 1]
-    res = intrinsicAnalysis(data, lags = 30)
-    # print(res.diagnostic_summary())
-    # plot residual statistics
-    # res.plot_diagnostics()
-    # plt.xticks(fontsize = 20)
-    # plt.show()
-    # plot prediction
-    plt.clf()
-    plt.title("Prediction")
-    prediction = res.predict(start = 1, end = 100)
-    plt.plot(prediction)
-    plt.show()
-    # plot auto-regressive coefficients
-    plt.clf()
-    plt.title("AR Coef. vs. Time Lags", fontsize = 20)
-    plt.plot(np.abs(res.params[1:]), "bo-", lw = 2, ms = 10)
-    # plt.plot(res.params[1:], "bo-", lw = 2, ms = 10)
-    plt.xticks(np.arange(len(res.params) - 1), np.arange(1, len(res.params)))
-    plt.xlabel("Time Lag", fontsize = 20)
-    plt.ylabel("AR Coef.", fontsize = 20)
-    plt.xticks(fontsize = 20)
-    plt.yticks(fontsize = 20)
-    plt.ylim(-0.1, 1.0)
-    plt.show()
-    print(res.summary())
+    # # Intrinsic timescale analysis
+    # print("\n", "="*10, " INTRINSIC ","="*10)
+    # intrinsic_lags = 20
+    # all_models, autoreg_res = intrinsicAnalysis(all_firing_rate, lags = intrinsic_lags)
+    # plotIntrinsicResult(all_models, autoreg_res, intrinsic_lags)
+
+    # # Trial-level seasonal timescale analysis
+    # print("\n", "="*10, " TRIAL SEASONAL ","="*10)
+    # trial_level_seasonal_lags = 5
+    # all_models, autoreg_res = trialLevelSeasonalAnalysis(all_firing_rate, lags = trial_level_seasonal_lags)
+    # plotTrialSeasonalResult(all_models, autoreg_res, trial_level_seasonal_lags)
+
+    # # Block-level seasonal timescale analysis
+    # print("\n", "="*10, " BLOCK SEASONAL ","="*10)
+    # block_level_seasonal_lags = 5
+    # all_models, autoreg_res = blockLevelSeasonalAnalysis(all_firing_rate, lags=block_level_seasonal_lags)
+    # plotBlockSeasonalResult(all_models, autoreg_res, block_level_seasonal_lags)
 
     # # Choice memory timescale analysis
-    # res = choiceMemoryAnalysis(all_firing_rate[:, 20, :, 1]) # 5:7 is the time steps when making a choice
+    # res = choiceMemoryAnalysis(all_firing_rate, choices)
     # print(res.summary())
+
+    # # Choice AR analysis
+    # choiceARLag = 10
+    # print("\n", "=" * 10, " CHOICE AR ", "=" * 10)
+    # model, autoreg_res = choiceARAnalysis(choices, lags = choiceARLag)
+    # print(model.summary())
+    # plotChoiceARResult(model, autoreg_res, lags = choiceARLag)
+
+    # # Reward AR analysis
+    # rewardARLag = 10
+    # print("\n", "=" * 10, " REWARD AR ", "=" * 10)
+    # model, autoreg_res = rewardARAnalysis(rewards, lags=rewardARLag)
+    # print(model.summary())
+    # plotRewardARResult(model, autoreg_res, lags=rewardARLag)
+
+    # Categorize neurons
+    cateogorizeNeuron(all_firing_rate, time_step_category = [[0,1], [2,3,4], [5,6], [7,8], [9]])
