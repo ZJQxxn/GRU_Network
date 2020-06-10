@@ -141,7 +141,7 @@ def plotIntrinsicResult(all_models, autoreg_res, lags):
                      alpha=0.5,
                      linewidth=4)
     # plt.plot(autoreg_res[2,:], "bo-", ms=8, lw=2)
-    plt.xticks(np.arange(len(autoreg_res[0])), np.arange(1, len(autoreg_res[0]) + 1))
+    plt.xticks([0, 4, 9, 14, 19, 24, 29, 34, 39, 44], [1, 5, 10, 15, 20, 25, 30, 35, 40, 45])# AR(45)
     plt.xlabel("Time Lag", fontsize=20)
     plt.ylabel("AR Coef.", fontsize=20)
     plt.xticks(fontsize=20)
@@ -514,6 +514,7 @@ def regionIntrinsicAnalysis(data, lags, time_step_category):
     regions_res = {}
     regions_model = {}
     region_timescale = []
+    significant_ratio = []
     for region in neuron_region:
         neurons_index = neuron_region[region]
         neurons_num = len(neurons_index)
@@ -536,16 +537,22 @@ def regionIntrinsicAnalysis(data, lags, time_step_category):
                 autoreg_res[index, :] = np.tile(np.nan, len(temp))
         # Find the most significant timescale
         # print(np.min(autoreg_res, axis = 1))
-        autoreg_res = -1 / np.log(np.abs(autoreg_res))
-        # TODO: take out some significantly large timescale
-        extreme_index = np.where(autoreg_res > 100)
-        autoreg_res[extreme_index] = 0
-        region_timescale.append(np.max(autoreg_res))
+        amplitude = np.arange(lags) + 1
+        autoreg_res = -amplitude / np.log(np.abs(autoreg_res))
+        # # TODO: take out some significantly large timescale
+        # extreme_index = np.where(autoreg_res > 100)
+        # autoreg_res[extreme_index] = 0
+        # region_timescale.append(np.max(autoreg_res))
+        # # TODO: find significant neuron; larger than median
+        # median_timescale = np.median(autoreg_res)
+        # significant_ratio.append(np.sum(np.max(autoreg_res, axis = 1) > median_timescale) / neurons_num)
+        region_timescale.append(np.median(autoreg_res))
         regions_res[region] = autoreg_res
         regions_model[region] = all_models
     # Plot the timescale
     region_timescale = np.array(region_timescale)
     print("Region Timescale: ", region_timescale)
+    # print("Region Significant Neurons Ratio: ", significant_ratio)
     sort_index = np.argsort(region_timescale)
     plt.figure(figsize=(7, 10))
     plt.title("Intrinsic Timescale", fontsize = 20)
@@ -554,7 +561,7 @@ def regionIntrinsicAnalysis(data, lags, time_step_category):
                fontsize = 20, rotation = 30)
     plt.yticks(fontsize = 10)
     plt.ylabel("Timescale", fontsize = 20)
-    plt.ylim(0, 20)
+    # plt.ylim(0.3, 0.4)
     plt.show()
     return regions_model, regions_res
 
@@ -604,11 +611,13 @@ def regionTrialSeasonalAnalysis(data, lags, time_step_category):
                 model_per_time_step.append(model)
             all_models.append(model_per_time_step)
         autoreg_res = np.mean(np.abs(autoreg_res), axis = 1)
-        autoreg_res = -1 / np.log(np.abs(autoreg_res))
-        # TODO: take out some significantly large timescale
-        extreme_index = np.where(autoreg_res > 1)
-        autoreg_res[extreme_index] = 0
-        region_timescale.append(np.max(autoreg_res))
+        amplitude = np.arange(lags) + 1
+        autoreg_res = -amplitude / np.log(np.abs(autoreg_res))
+        # # TODO: take out some significantly large timescale
+        # extreme_index = np.where(autoreg_res > 1)
+        # autoreg_res[extreme_index] = 0
+        # region_timescale.append(np.max(autoreg_res))
+        region_timescale.append(np.median(autoreg_res))
         regions_res[region] = autoreg_res
         regions_model[region] = all_models
     # Plot the timescale
@@ -622,7 +631,7 @@ def regionTrialSeasonalAnalysis(data, lags, time_step_category):
                fontsize = 20, rotation = 30)
     plt.yticks(fontsize = 10)
     plt.ylabel("Timescale", fontsize = 20)
-    plt.ylim(0.5, 1.1)
+    # plt.ylim(0.5, 1.1)
     plt.show()
     return regions_model, regions_res
 
@@ -668,11 +677,13 @@ def regionBlockSeasonalAnalysis(data, lags, time_step_category):
             model = AutoReg(neuron_data, lags=lags).fit()
             autoreg_res[i, :] = np.abs(model.params[1:])
         all_models.append(model)
-        autoreg_res = -1 / np.log(np.abs(autoreg_res))
+        amplitude = np.arange(lags) + 1
+        autoreg_res = -amplitude / np.log(np.abs(autoreg_res))
         # # TODO: take out some significantly large timescale
         # extreme_index = np.where(autoreg_res > 1)
         # autoreg_res[extreme_index] = 0
-        region_timescale.append(np.max(autoreg_res))
+        # region_timescale.append(np.max(autoreg_res))
+        region_timescale.append(np.median(autoreg_res))
         regions_res[region] = autoreg_res
         regions_model[region] = all_models
     # Plot the timescale
@@ -686,10 +697,16 @@ def regionBlockSeasonalAnalysis(data, lags, time_step_category):
                fontsize = 20, rotation = 30)
     plt.yticks(fontsize = 10)
     plt.ylabel("Timescale", fontsize = 20)
-    plt.ylim(0.0, 2.0)
+    # plt.ylim(0.0, 2.0)
     plt.show()
     return regions_model, regions_res
 
+
+# ==================================================================
+#                   BEHAVORAL TIMESCALE　ANALYSIS
+# ==================================================================
+def behaveTimescale(rewards, choices):
+    pass
 
 
 
@@ -710,7 +727,7 @@ if __name__ == '__main__':
 
     # # Intrinsic timescale analysis
     # print("\n", "="*10, " INTRINSIC ","="*10)
-    # intrinsic_lags = 20
+    # intrinsic_lags = 45
     # all_models, autoreg_res = intrinsicAnalysis(all_firing_rate, lags = intrinsic_lags)
     # plotIntrinsicResult(all_models, autoreg_res, intrinsic_lags)
 
@@ -748,23 +765,23 @@ if __name__ == '__main__':
     # cateogorizeNeuron(all_firing_rate, time_step_category = [[0,1, 9], [2,3,4], [5,6], [7,8]])
 
 
-    # # Region intrinsic timescale analysis
-    # print("\n", "="*10, " REGION INTRINSIC ","="*10)
-    # intrinsic_lags = 20
-    # all_models, autoreg_res = regionIntrinsicAnalysis(
-    #     all_firing_rate,
-    #     time_step_category = [[0,1, 9], [2,3,4], [5,6], [7,8]],
-    #     lags = intrinsic_lags
-    # )
+    # Region intrinsic timescale analysis
+    print("\n", "="*10, " REGION INTRINSIC ","="*10)
+    intrinsic_lags = 20
+    all_models, autoreg_res = regionIntrinsicAnalysis(
+        all_firing_rate,
+        time_step_category = [[0,1, 9], [2,3,4], [5,6], [7,8]],
+        lags = intrinsic_lags
+    )
 
-    # # Region trial seasonal timescale analysis
-    # print("\n", "="*10, " REGION TRIAL SEASONAL ","="*10)
-    # trial_seasonal_lags = 5
-    # all_models, autoreg_res = regionTrialSeasonalAnalysis(
-    #     all_firing_rate,
-    #     time_step_category = [[0,1, 9], [2,3,4], [5,6], [7,8]],
-    #     lags = trial_seasonal_lags
-    # )
+    # Region trial seasonal timescale analysis
+    print("\n", "="*10, " REGION TRIAL SEASONAL ","="*10)
+    trial_seasonal_lags = 5
+    all_models, autoreg_res = regionTrialSeasonalAnalysis(
+        all_firing_rate,
+        time_step_category = [[0,1, 9], [2,3,4], [5,6], [7,8]],
+        lags = trial_seasonal_lags
+    )
 
     # Region trial seasonal timescale analysis
     print("\n", "=" * 10, " REGION TRIAL SEASONAL ", "=" * 10)
