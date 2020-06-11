@@ -9,6 +9,7 @@ from statsmodels.graphics.tsaplots import plot_acf, plot_pacf
 from statsmodels.graphics.gofplots import qqplot_2samples
 from scipy.stats import sem
 from matplotlib_venn import venn3
+import json
 
 # ==================================================================
 #                          PRE-PROCESSING
@@ -703,10 +704,72 @@ def regionBlockSeasonalAnalysis(data, lags, time_step_category):
 
 
 # ==================================================================
-#                   BEHAVORAL TIMESCALE　ANALYSIS
+#                   BEHAVORIAL TIMESCALE　ANALYSIS
 # ==================================================================
 def behaveTimescale(rewards, choices):
     pass
+
+# ==================================================================
+#                   INTEGRATED MODEL ESTIMATION
+# ==================================================================
+
+def integratedEstimation(data, param_file):
+    '''
+    Firing rate estimation with the integrated model including intrinsic, trial-level seasonal, block-level seasonal,
+    reward, and choice timescale.
+    :param data: All the firing rate data.
+    :param param_file: CSV filename for all the parameters.
+    :return: 
+    '''
+    pass
+
+
+# ==================================================================
+#                   SAVE ANALYSIS RESULT FOR INTEGRATING MODEL
+# ==================================================================
+
+def basicAnalyisAndSave(all_firing_rate, choices, rewards):
+    # Intrinsic timescale analysis
+    print("\n", "=" * 10, " INTRINSIC ", "=" * 10)
+    intrinsic_lags = 45
+    all_models, intrinsic_res = intrinsicAnalysis(all_firing_rate, lags=intrinsic_lags)
+    with open("intrinsic_AR_coeff.npy", 'wb') as file:
+        np.save(file, intrinsic_res)
+    print('Finished saving!')
+
+    # Trial-level seasonal timescale analysis
+    print("\n", "=" * 10, " TRIAL SEASONAL ", "=" * 10)
+    trial_level_seasonal_lags = 5
+    all_models, trial_seasonal_res = trialLevelSeasonalAnalysis(all_firing_rate, lags=trial_level_seasonal_lags)
+    with open("trial_sesonal_AR_coeff.npy", 'wb') as file:
+        np.save(file, trial_seasonal_res)
+    print('Finished saving!')
+
+    # Block-level seasonal timescale analysis
+    print("\n", "=" * 10, " BLOCK SEASONAL ", "=" * 10)
+    block_level_seasonal_lags = 5
+    all_models, block_seasonal_res = blockLevelSeasonalAnalysis(all_firing_rate, lags=block_level_seasonal_lags)
+    with open("block_seasonal_AR_coeff.npy", 'wb') as file:
+        np.save(file, block_seasonal_res)
+    print('Finished saving!')
+
+    # Choice AR analysis
+    choiceARLag = 10
+    print("\n", "=" * 10, " CHOICE AR ", "=" * 10)
+    model, choice_res = choiceARAnalysis(choices, lags=choiceARLag)
+    with open("choice_AR_coeff.npy", 'wb') as file:
+        np.save(file, choice_res)
+    print('Finished saving!')
+
+    # Reward AR analysis
+    rewardARLag = 10
+    print("\n", "=" * 10, " REWARD AR ", "=" * 10)
+    model, reward_res = rewardARAnalysis(rewards, lags=rewardARLag)
+    with open("reward_AR_coeff.npy", 'wb') as file:
+        np.save(file, reward_res)
+    print('Finished saving!')
+
+
 
 
 
@@ -765,29 +828,34 @@ if __name__ == '__main__':
     # cateogorizeNeuron(all_firing_rate, time_step_category = [[0,1, 9], [2,3,4], [5,6], [7,8]])
 
 
-    # Region intrinsic timescale analysis
-    print("\n", "="*10, " REGION INTRINSIC ","="*10)
-    intrinsic_lags = 20
-    all_models, autoreg_res = regionIntrinsicAnalysis(
-        all_firing_rate,
-        time_step_category = [[0,1, 9], [2,3,4], [5,6], [7,8]],
-        lags = intrinsic_lags
-    )
+    # # Region intrinsic timescale analysis
+    # print("\n", "="*10, " REGION INTRINSIC ","="*10)
+    # intrinsic_lags = 20
+    # all_models, autoreg_res = regionIntrinsicAnalysis(
+    #     all_firing_rate,
+    #     time_step_category = [[0,1, 9], [2,3,4], [5,6], [7,8]],
+    #     lags = intrinsic_lags
+    # )
+    #
+    # # Region trial seasonal timescale analysis
+    # print("\n", "="*10, " REGION TRIAL SEASONAL ","="*10)
+    # trial_seasonal_lags = 5
+    # all_models, autoreg_res = regionTrialSeasonalAnalysis(
+    #     all_firing_rate,
+    #     time_step_category = [[0,1, 9], [2,3,4], [5,6], [7,8]],
+    #     lags = trial_seasonal_lags
+    # )
+    #
+    # # Region trial seasonal timescale analysis
+    # print("\n", "=" * 10, " REGION TRIAL SEASONAL ", "=" * 10)
+    # block_seasonal_lags = 5
+    # all_models, autoreg_res = regionBlockSeasonalAnalysis(
+    #     all_firing_rate,
+    #     time_step_category=[[0, 1, 9], [2, 3, 4], [5, 6], [7, 8]],
+    #     lags=block_seasonal_lags
+    # )
 
-    # Region trial seasonal timescale analysis
-    print("\n", "="*10, " REGION TRIAL SEASONAL ","="*10)
-    trial_seasonal_lags = 5
-    all_models, autoreg_res = regionTrialSeasonalAnalysis(
-        all_firing_rate,
-        time_step_category = [[0,1, 9], [2,3,4], [5,6], [7,8]],
-        lags = trial_seasonal_lags
-    )
-
-    # Region trial seasonal timescale analysis
-    print("\n", "=" * 10, " REGION TRIAL SEASONAL ", "=" * 10)
-    block_seasonal_lags = 5
-    all_models, autoreg_res = regionBlockSeasonalAnalysis(
-        all_firing_rate,
-        time_step_category=[[0, 1, 9], [2, 3, 4], [5, 6], [7, 8]],
-        lags=block_seasonal_lags
-    )
+    # # Integrated model firing rate analysis
+    # basicAnalyisAndSave(all_firing_rate, choices, rewards)
+    print("\n", "=" * 10, " INTEGRATED MODEL ", "=" * 10)
+    integratedEstimation(all_firing_rate, )
