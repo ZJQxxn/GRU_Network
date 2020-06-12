@@ -1,4 +1,5 @@
 import h5py
+import json
 import numpy as np
 import pandas as pd
 import matplotlib.pyplot as plt
@@ -9,7 +10,11 @@ from statsmodels.graphics.tsaplots import plot_acf, plot_pacf
 from statsmodels.graphics.gofplots import qqplot_2samples
 from scipy.stats import sem
 from matplotlib_venn import venn3
-import json
+from sklearn.linear_model import LinearRegression, Lasso
+from sklearn.model_selection import train_test_split
+from sklearn.metrics import mean_squared_error
+
+
 
 # ==================================================================
 #                          PRE-PROCESSING
@@ -713,15 +718,80 @@ def behaveTimescale(rewards, choices):
 #                   INTEGRATED MODEL ESTIMATION
 # ==================================================================
 
-def integratedEstimation(data, param_file):
+def integratedEstimation(data, choices, rewards):
     '''
-    Firing rate estimation with the integrated model including intrinsic, trial-level seasonal, block-level seasonal,
-    reward, and choice timescale.
+    Firing rate estimation with the integrated model including intrinsic, trial-level seasonal, reward, and choice 
+    timescale (auto-regressive coefficient). Notes: block-level seasonal timescale is not-used here.
     :param data: All the firing rate data.
-    :param param_file: CSV filename for all the parameters.
-    :return: 
+    :param choices: All choices.
+    :param rewards: All rewards.
+    :return: The estimation error.
     '''
-    pass
+    # Read in pre-computed parameters
+    intrinsic_AR_coeff = np.load("intrinsic_AR_coeff.npy")
+    trial_seasonal_AR_coeff = np.load("trial_seasonal_AR_coeff.npy")
+    choice_AR_coeff = np.load("choice_AR_coeff.npy")
+    reward_AR_coeff = np.load("reward_AR_coeff.npy")
+    # Pre-processing
+    rewards = rewards.reshape(-1)
+    choices = choices.reshape(-1)
+    for index in range(len(choices) - 1):
+        if choices[index+1] > 3:
+            choices[index+1] = choices[index]
+    for index in range(len(rewards) - 1):
+        if rewards[index + 1] > 3:
+            rewards[index + 1] = rewards[index]
+    # Reshape (average all the neurons)
+    original_shape = data.shape
+    data = data.reshape((-1, original_shape[2], original_shape[3]))
+    data = np.nanmean(data, axis = 2) # (#trials, #time steps)
+    time_step_mean = np.nanmean(data, axis = 0)
+    intrinsic_AR_coeff = np.nanmean(intrinsic_AR_coeff, axis = 0) # (#lags)
+    trial_seasonal_AR_coeff = np.nanmean(trial_seasonal_AR_coeff, axis = 0) # (#time step, #lags)
+    # The number of lags for every AR
+    intrinsic_lags = intrinsic_AR_coeff.shape[0]
+    trial_seasonal_lags = trial_seasonal_AR_coeff.shape[1]
+    choice_lags = choice_AR_coeff.shape[0]
+    reward_lags = reward_AR_coeff.shape[0]
+    # Construct the dataset (training, testing)
+    trial_num = data.shape[0]
+    time_step_num = data.shape[1]
+    X = np.zeros((np.prod(data.shape), 4))
+    Y = data.reshape(-1)
+    # Fitting firing rate with AR components
+    # TODO: carefully check this
+    for trial_index in range(trial_num):
+        for time_index in range(time_step_num):
+            sample_index = trial_index * time_step_num + time_index
+            # intrinsic component
+            history_index = sample_index if sample_index <= intrinsic_lags else intrinsic_lags
+            X[sample_index, 0] = intrinsic_AR_coeff[:history_index] @ Y[sample_index - history_index: sample_index] \
+                if 0 != history_index else 0
+            # trial-level seasonal component
+            history_index = trial_index if trial_index <= trial_seasonal_lags else trial_seasonal_lags
+            X[sample_index, 1] = trial_seasonal_AR_coeff[time_index, :history_index] @ data[trial_index - history_index: trial_index, time_index] \
+                if 0 != history_index else 0
+            # reward component
+            history_index = trial_index if trial_index <= reward_lags else reward_lags
+            X[sample_index, 2] = (reward_AR_coeff[:history_index] @ rewards[trial_index - history_index:trial_index]) * time_step_mean[time_index] \
+                if 0 != history_index else 0
+            # choice component
+            history_index = trial_index if trial_index <= choice_lags else choice_lags
+            X[sample_index, 3] = (choice_AR_coeff[:history_index] @ choices[trial_index - history_index:trial_index]) * time_step_mean[time_index]\
+                if 0 != history_index else 0
+    time_step_mean = np.tile(time_step_mean.reshape((-1, 1)), trial_num).T
+    Y = Y - time_step_mean.reshape(-1)
+    # Fit the firing rate
+    X_train, X_test, Y_train, Y_test = train_test_split(X, Y, test_size = 0.2)
+    model = LinearRegression()
+    model.fit(X_train, Y_train)
+    LR_coeff = np.abs(model.coef_) / np.sum(np.sum(model.coef_))
+    print("Timescale coefficient: ", LR_coeff)
+    # print("$R^2$: ", model.score(X_test, Y_test))
+    Y_pred = model.predict(X_test)
+    print("Mean Y value:", np.nanmean(np.abs(Y_test[np.where(Y_test != 0)])))
+    print("MSE: ", mean_squared_error(Y_test, Y_pred))
+
 
 
 # ==================================================================
@@ -741,7 +811,7 @@ def basicAnalyisAndSave(all_firing_rate, choices, rewards):
     print("\n", "=" * 10, " TRIAL SEASONAL ", "=" * 10)
     trial_level_seasonal_lags = 5
     all_models, trial_seasonal_res = trialLevelSeasonalAnalysis(all_firing_rate, lags=trial_level_seasonal_lags)
-    with open("trial_sesonal_AR_coeff.npy", 'wb') as file:
+    with open("trial_seasonal_AR_coeff.npy", 'wb') as file:
         np.save(file, trial_seasonal_res)
     print('Finished saving!')
 
@@ -858,4 +928,4 @@ if __name__ == '__main__':
     # # Integrated model firing rate analysis
     # basicAnalyisAndSave(all_firing_rate, choices, rewards)
     print("\n", "=" * 10, " INTEGRATED MODEL ", "=" * 10)
-    integratedEstimation(all_firing_rate, )
+    integratedEstimation(all_firing_rate, choices, rewards)
