@@ -4,7 +4,9 @@ import numpy as np
 import pandas as pd
 import matplotlib.pyplot as plt
 import seaborn as sbn
+from statsmodels.tsa.statespace.varmax import VARMAX
 from statsmodels.tsa.ar_model import AutoReg
+from statsmodels.tsa.arima_model import ARMA
 from statsmodels.tsa.api import ExponentialSmoothing
 from statsmodels.graphics.tsaplots import plot_acf, plot_pacf
 from statsmodels.graphics.gofplots import qqplot_2samples
@@ -711,8 +713,89 @@ def regionBlockSeasonalAnalysis(data, lags, time_step_category):
 # ==================================================================
 #                   BEHAVORIAL TIMESCALE　ANALYSIS
 # ==================================================================
-def behaveTimescale(rewards, choices):
-    pass
+
+def behavorialTimescaleVAR(rewards, choices):
+    print( "="*15, "Behavioral with VARMAX ", "="*15)
+    # Pre-processing
+    data_shape = choices.shape
+    choices = choices.reshape(-1)
+    rewards = rewards.reshape(-1)
+    for index in range(len(choices) - 1):
+        if choices[index + 1] > 3:
+            choices[index + 1] = choices[index]
+    for index in range(len(rewards) - 1):
+        if rewards[index + 1] > 3:
+            rewards[index + 1] = rewards[index]
+    choices = choices.reshape(data_shape)
+    rewards = rewards.reshape(data_shape)
+    # Compute average reward percentage and best choice percentage
+    reward_percentage = np.mean(rewards, axis = 0)
+    reward_percentage = np.tile(reward_percentage, data_shape[0])
+    best_choice_indication = np.hstack((np.tile(1, data_shape[1] // 2), np.tile(3, data_shape[1] // 2))).reshape(-1, 1)
+    best_choice_indication = np.tile(best_choice_indication, data_shape[0]).T
+    best_choice_percentage = np.mean(choices == best_choice_indication, axis = 0)
+    best_choice_percentage = np.tile(best_choice_percentage, data_shape[0])
+    choices = np.array(choices == best_choice_indication, dtype = np.int)
+    # VARMAX analysis with exogenous variables
+    stack_var = np.hstack(
+        (
+        reward_percentage.reshape((-1, 1)), best_choice_percentage.reshape((-1, 1))
+        )
+    )
+    stack_exo = np.hstack(
+        (
+            rewards.reshape((-1, 1)), choices.reshape((-1, 1))
+        )
+    )
+    model = VARMAX(stack_var, order = (1, 0), exog = stack_exo) # TODO：choice should be binary;
+    model = model.fit(maxiter = 1000, disp = False)
+    # print(model.summary())
+    # Normalization for reward behavioral timescale
+    reward_coeff = np.abs(model.params[[2, 6]])
+    reward_coeff = reward_coeff / np.sum(reward_coeff)
+    print("Reward Coefficient: ", reward_coeff)
+    # Normalization for choice behavioral timescale
+    choice_coeff = np.abs(model.params[[5, 9]])
+    choice_coeff = choice_coeff / np.sum(choice_coeff)
+    print("Choice Coefficient: ", choice_coeff)
+
+
+def behavorialTimescaleAR(rewards, choices):
+    print( "="*15, "Behavioral with ARMA ", "="*15)
+    # Pre-processing
+    data_shape = choices.shape
+    choices = choices.reshape(-1)
+    rewards = rewards.reshape(-1)
+    for index in range(len(choices) - 1):
+        if choices[index + 1] > 3:
+            choices[index + 1] = choices[index]
+    for index in range(len(rewards) - 1):
+        if rewards[index + 1] > 3:
+            rewards[index + 1] = rewards[index]
+    choices = choices.reshape(data_shape)
+    rewards = rewards.reshape(data_shape)
+    # Compute average reward percentage and best choice percentage
+    reward_percentage = np.mean(rewards, axis=0)
+    reward_percentage = np.tile(reward_percentage, data_shape[0])
+    best_choice_indication = np.hstack((np.tile(1, data_shape[1] // 2), np.tile(3, data_shape[1] // 2))).reshape(-1, 1)
+    best_choice_indication = np.tile(best_choice_indication, data_shape[0]).T
+    best_choice_percentage = np.mean(choices == best_choice_indication, axis=0)
+    best_choice_percentage = np.tile(best_choice_percentage, data_shape[0])
+    choices = np.array(choices == best_choice_indication, dtype=np.int)
+    # ARMA analysis for reward
+    model = ARMA(reward_percentage.reshape((-1, 1)), order = (1, 0), exog = rewards.reshape((-1, 1)))
+    model = model.fit(disp=False)
+    # print(model.summary())
+    reward_coeff = np.abs(model.params[[2, 1]])
+    reward_coeff = reward_coeff / np.sum(reward_coeff)
+    print("Reward Coeff: ", reward_coeff)
+    # ARMA analysis for choices
+    model = ARMA(best_choice_percentage.reshape((-1, 1)), order = (1, 0), exog = choices.reshape((-1, 1)))
+    model = model.fit(disp=False)
+    # print(model.summary())
+    choice_coeff = np.abs(model.params[[2, 1]])
+    choice_coeff = choice_coeff / np.sum(choice_coeff)
+    print("Choice Coeff: ", choice_coeff)
 
 # ==================================================================
 #                   INTEGRATED MODEL ESTIMATION
@@ -791,6 +874,7 @@ def integratedEstimation(data, choices, rewards):
     Y_pred = model.predict(X_test)
     print("Mean Y value:", np.nanmean(np.abs(Y_test[np.where(Y_test != 0)])))
     print("MSE: ", mean_squared_error(Y_test, Y_pred))
+    # print("Raw MSE: ", mean_squared_error(Y_test, np.sum(X_test, axis = 1)))
 
 
 
@@ -926,6 +1010,10 @@ if __name__ == '__main__':
     # )
 
     # # Integrated model firing rate analysis
-    # basicAnalyisAndSave(all_firing_rate, choices, rewards)
-    print("\n", "=" * 10, " INTEGRATED MODEL ", "=" * 10)
-    integratedEstimation(all_firing_rate, choices, rewards)
+    # # basicAnalyisAndSave(all_firing_rate, choices, rewards)
+    # print("\n", "=" * 10, " INTEGRATED MODEL ", "=" * 10)
+    # integratedEstimation(all_firing_rate, choices, rewards)
+
+    # Behavioral timescale analysis
+    behavorialTimescaleVAR(rewards, choices)
+    behavorialTimescaleAR(rewards, choices)
