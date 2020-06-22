@@ -15,7 +15,7 @@ from matplotlib_venn import venn3
 from sklearn.linear_model import LinearRegression, Lasso
 from sklearn.model_selection import train_test_split
 from sklearn.metrics import mean_squared_error
-
+from scipy.stats import spearmanr
 
 
 # ==================================================================
@@ -81,7 +81,7 @@ def getFiringRate(logFileName):
 #                TIMESCALE ANALYSIS WITH AUTO-REGRESSIVE
 # ==================================================================
 
-def intrinsicAnalysis(data, lags):
+def intrinsicAnalysis(data, lags, need_plot = True):
     '''
     Intrinsic timescale analysis.
     :param data: Firing data with the shape of (block num, trial num in a block, time steps, neuron num) 
@@ -99,15 +99,16 @@ def intrinsicAnalysis(data, lags):
     # ====================================
     #           An Example
     # ====================================
-    # plot part of samples
-    plt.plot(mat_data[:500, 0])
-    plt.show()
-    # plot auto-correlation of samples
-    plot_acf(mat_data[:, 0])
-    plt.show()
-    # plot partial auto-correlation of samples
-    plot_pacf(mat_data[:, 0])
-    plt.show()
+    if need_plot:
+        # plot part of samples
+        plt.plot(mat_data[:500, 0])
+        plt.show()
+        # plot auto-correlation of samples
+        plot_acf(mat_data[:, 0])
+        plt.show()
+        # plot partial auto-correlation of samples
+        plot_pacf(mat_data[:, 0])
+        plt.show()
     # Auto-regressive
     autoreg_res = np.zeros((neurons_num, lags)) # the auto-regressive coefficients for each neuron
     all_models = []
@@ -158,7 +159,7 @@ def plotIntrinsicResult(all_models, autoreg_res, lags):
     plt.show()
 
 
-def trialLevelSeasonalAnalysis(data, lags):
+def trialLevelSeasonalAnalysis(data, lags, need_plot = True):
     '''
         Trial-level seasonal timescale analysis.
         :param data: Firing data with the shape of (block num, trial num in a block, time steps, neuron num) 
@@ -180,15 +181,16 @@ def trialLevelSeasonalAnalysis(data, lags):
     # ====================================
     #           An Example
     # ====================================
-    # plot part of samples
-    plt.plot(firing_data[:200, 5, 0])
-    plt.show()
-    # plot auto-correlation of samples
-    plot_acf(firing_data[:, 5, 0])
-    plt.show()
-    # plot partial auto-correlation of samples
-    plot_pacf(firing_data[:, 5, 0])
-    plt.show()
+    if need_plot:
+        # plot part of samples
+        plt.plot(firing_data[:200, 5, 0])
+        plt.show()
+        # plot auto-correlation of samples
+        plot_acf(firing_data[:, 5, 0])
+        plt.show()
+        # plot partial auto-correlation of samples
+        plot_pacf(firing_data[:, 5, 0])
+        plt.show()
     # Auto-regressive
     autoreg_res = np.zeros((neurons_num, time_step_num, lags))  # the auto-regressive coefficients for each neuron and time step
     all_models = []
@@ -242,7 +244,7 @@ def plotTrialSeasonalResult(all_models, autoreg_res, lags):
     plt.show()
 
 
-def blockLevelSeasonalAnalysis(data, lags):
+def blockLevelSeasonalAnalysis(data, lags, need_plot = True):
     '''
     Block-level seasonal timescale analysis.
     :param data: Firing data with the shape of (block num, trial num in a block, time steps, neuron num) 
@@ -264,15 +266,16 @@ def blockLevelSeasonalAnalysis(data, lags):
     # ====================================
     #           An Example
     # ====================================
-    # plot part of samples
-    plt.plot(firing_data[:, 0])
-    plt.show()
-    # plot auto-correlation of samples
-    plot_acf(firing_data[:, 0])
-    plt.show()
-    # plot partial auto-correlation of samples
-    plot_pacf(firing_data[:, 0])
-    plt.show()
+    if need_plot:
+        # plot part of samples
+        plt.plot(firing_data[:, 0])
+        plt.show()
+        # plot auto-correlation of samples
+        plot_acf(firing_data[:, 0])
+        plt.show()
+        # plot partial auto-correlation of samples
+        plot_pacf(firing_data[:, 0])
+        plt.show()
     # Auto-regressive
     autoreg_res = np.zeros(
         (neurons_num, lags))  # the auto-regressive coefficients for each neuron and time step
@@ -318,47 +321,10 @@ def plotBlockSeasonalResult(all_models, autoreg_res, lags):
 
 
 # ==================================================================
-#            TIMESCALE ANALYSIS WITH EXPONENTIAL SMOOTHING
-# ==================================================================
-
-def choiceMemoryAnalysis(data, choices):
-    #TODO: how to use choices
-    data_shapes = data.shape
-    neurons_num = data_shapes[-1]
-    firing_data = data.reshape((-1, neurons_num))
-    print("Data shape:", firing_data.shape)
-    # ====================================
-    #           An Example
-    # ====================================
-    # plot part of samples
-    plt.plot(firing_data[:500, 1])
-    plt.show()
-    # plot auto-correlation of samples
-    plot_acf(firing_data[:, 1])
-    plt.show()
-    # plot partial auto-correlation of samples
-    plot_pacf(firing_data[:, 1])
-    plt.show()
-    # Exponential smoothing fitted res
-    res = ExponentialSmoothing(firing_data[:, 1]).fit()
-    plt.plot(firing_data[:,1], "bo-", lw=3)
-    # plt.plot(res.fittedvalues, "go--", lw = 3)
-    plt.plot(res.fittedfcast[1:], "go--", lw = 3)
-    plt.ylim(-0.1, 1.1)
-    plt.show()
-    return res
-
-
-def rewardMemoryAnalysis(data, rewards):
-    pass
-
-
-
-# ==================================================================
 #            REWARD & CHOICE ANALYSIS WITH AUTOREGRESSIVE
 # ==================================================================
 
-def choiceARAnalysis(choices, lags = 5):
+def choiceARAnalysis(choices, lags = 5, need_plot = True):
     choices = choices.reshape(-1)
     for index in range(len(choices) - 1):
         if choices[index+1] > 3:
@@ -367,28 +333,29 @@ def choiceARAnalysis(choices, lags = 5):
     # ====================================
     #           An Example
     # ====================================
-    # plot part of samples
-    sbn.distplot(
-        choices,
-        bins = [1, 2, 3, 4],
-        kde = False,
-        hist_kws = {
-            "align":"mid",
-            "linewidth": 3,
-            "alpha": 1
-        }
-    )
-    plt.xticks([1.5, 2.5, 3.5], ["A", "B", "C"], fontsize = 20)
-    plt.yticks(fontsize = 12)
-    plt.xlabel("Choices", fontsize = 20)
-    plt.ylabel("# Trials", fontsize = 20)
-    plt.show()
-    # plot auto-correlation of samples
-    plot_acf(choices)
-    plt.show()
-    # plot partial auto-correlation of samples
-    plot_pacf(choices)
-    plt.show()
+    if need_plot:
+        # plot part of samples
+        sbn.distplot(
+            choices,
+            bins = [1, 2, 3, 4],
+            kde = False,
+            hist_kws = {
+                "align":"mid",
+                "linewidth": 3,
+                "alpha": 1
+            }
+        )
+        plt.xticks([1.5, 2.5, 3.5], ["A", "B", "C"], fontsize = 20)
+        plt.yticks(fontsize = 12)
+        plt.xlabel("Choices", fontsize = 20)
+        plt.ylabel("# Trials", fontsize = 20)
+        plt.show()
+        # plot auto-correlation of samples
+        plot_acf(choices)
+        plt.show()
+        # plot partial auto-correlation of samples
+        plot_pacf(choices)
+        plt.show()
     # Auto-regressive
     # autoreg_res = np.zeros((neurons_num, lags))  # the auto-regressive coefficients for each neuron
     # all_models = []
@@ -416,25 +383,26 @@ def plotChoiceARResult(model, autoreg_res, lags):
     plt.show()
 
 
-def rewardARAnalysis(rewards, lags = 5):
+def rewardARAnalysis(rewards, lags = 5, need_plot = True):
     rewards = rewards.reshape(-1)
     print("Data shape:", rewards.shape)
     # ====================================
     #           An Example
     # ====================================
-    # plot part of samples
-    plt.bar([0, 1], [np.sum(rewards == 0), np.sum(rewards == 1)], width = 1, align='edge')
-    plt.xticks([0.5, 1.5], ["Not Rewarded", "Rewarded"], fontsize = 20)
-    plt.yticks(fontsize = 12)
-    # plt.xlabel("R", fontsize = 20)
-    plt.ylabel("# Trials", fontsize = 20)
-    plt.show()
-    # plot auto-correlation of samples
-    plot_acf(rewards)
-    plt.show()
-    # plot partial auto-correlation of samples
-    plot_pacf(rewards)
-    plt.show()
+    if need_plot:
+        # plot part of samples
+        plt.bar([0, 1], [np.sum(rewards == 0), np.sum(rewards == 1)], width = 1, align = 'edge')
+        plt.xticks([0.5, 1.5], ["Not Rewarded", "Rewarded"], fontsize = 20)
+        plt.yticks(fontsize = 12)
+        # plt.xlabel("R", fontsize = 20)
+        plt.ylabel("# Trials", fontsize = 20)
+        plt.show()
+        # plot auto-correlation of samples
+        plot_acf(rewards)
+        plt.show()
+        # plot partial auto-correlation of samples
+        plot_pacf(rewards)
+        plt.show()
     # Auto-regressive
     # autoreg_res = np.zeros((neurons_num, lags))  # the auto-regressive coefficients for each neuron
     # all_models = []
@@ -797,6 +765,115 @@ def behavorialTimescaleAR(rewards, choices):
     choice_coeff = choice_coeff / np.sum(choice_coeff)
     print("Choice Coeff: ", choice_coeff)
 
+
+
+# ==================================================================
+#                     TIMESCALE ANALYSIS
+# ==================================================================
+
+def timesclaeCorrelation(all_firing_rate, rewards, choices):
+    # Intrinsic timescale analysis
+    print("\n", "=" * 10, " INTRINSIC ", "=" * 10)
+    intrinsic_lags = 45
+    _, intrinsic_autoreg_res = intrinsicAnalysis(all_firing_rate, lags = intrinsic_lags, need_plot = False)
+    # Trial-level seasonal timescale analysis
+    print("\n", "="*10, " TRIAL SEASONAL ","="*10)
+    trial_level_seasonal_lags = 5
+    _, trial_seasonal_autoreg_res = trialLevelSeasonalAnalysis(all_firing_rate, lags = trial_level_seasonal_lags, need_plot = False)
+    # Block-level seasonal timescale analysis
+    print("\n", "="*10, " BLOCK SEASONAL ","="*10)
+    block_level_seasonal_lags = 5
+    _, block_seasonal_autoreg_res = blockLevelSeasonalAnalysis(all_firing_rate, lags=block_level_seasonal_lags, need_plot = False)
+    #TODO: only correlation between intrinsic and seasonal timescale can be plotted
+    # Exclude neurons without intrinsic timescale (nan)
+    include_neurons_index = []
+    for index in range(intrinsic_autoreg_res.shape[0]):
+        if np.any(np.isnan(intrinsic_autoreg_res[index, :])):
+            continue
+        else:
+            include_neurons_index.append(index)
+    intrinsic_autoreg_res = intrinsic_autoreg_res[include_neurons_index, :]
+    block_seasonal_autoreg_res = block_seasonal_autoreg_res[include_neurons_index, :]
+    trial_seasonal_autoreg_res = trial_seasonal_autoreg_res[include_neurons_index, :, :]
+    trial_seasonal_autoreg_res = np.nanmean(trial_seasonal_autoreg_res, axis = 1)
+    # ==============================================================
+    # Correlation between intrinsic and block-seasonal timescale
+    # ==============================================================
+    print("="*10, "Intrinsic vs. Block-Seasonal", "="*10)
+    amplitude = np.arange(intrinsic_lags) + 1
+    intrinsic_autoreg_res = -amplitude / np.log(np.abs(intrinsic_autoreg_res))
+    intrinsic_timescale = np.nanmedian(intrinsic_autoreg_res, axis = 1)
+    amplitude = np.arange(block_level_seasonal_lags) + 1
+    block_seasonal_autoreg_res = -amplitude / np.log(np.abs(block_seasonal_autoreg_res))
+    block_seasonal_timescale = np.nanmedian(block_seasonal_autoreg_res, axis=1)
+    # LR line plot
+    model = LinearRegression()
+    model.fit(intrinsic_timescale.reshape(-1, 1), block_seasonal_timescale.reshape(-1, 1))
+    coeff = model.coef_.item()
+    intercept = model.intercept_.item()
+    # Plot scatter and line plot
+    plt.scatter(intrinsic_timescale, block_seasonal_timescale)
+    plt.xlabel("$\\tau_{intrinsic}$", fontsize = 20)
+    plt.xticks(fontsize = 15)
+    plt.ylabel("$\\tau_{block-seasonal}$", fontsize = 20)
+    plt.yticks(fontsize=15)
+    plt.plot(
+        [np.min(intrinsic_timescale), np.max(intrinsic_timescale)],
+        [np.min(intrinsic_timescale) * coeff + intercept, np.max(intrinsic_timescale) * coeff + intercept],
+        "r-", lw = 3)
+    plt.show()
+    spearman_correlation = spearmanr(intrinsic_timescale, block_seasonal_timescale)
+    print("Spearman Correlation:", spearman_correlation)
+    # ==============================================================
+    # Correlation between intrinsic and trial-seasonal timescale
+    # ==============================================================
+    print("="*10, "Intrinsic vs. Trial-Seasonal", "="*10)
+    amplitude = np.arange(trial_level_seasonal_lags) + 1
+    trial_seasonal_autoreg_res = -amplitude / np.log(np.abs(trial_seasonal_autoreg_res))
+    trial_seasonal_timescale = np.nanmedian(trial_seasonal_autoreg_res, axis=1)
+    # LR line plot
+    model = LinearRegression()
+    model.fit(intrinsic_timescale.reshape(-1, 1), trial_seasonal_timescale.reshape(-1, 1))
+    coeff = model.coef_.item()
+    intercept = model.intercept_.item()
+    # Plot scatter and line plot
+    plt.scatter(intrinsic_timescale, trial_seasonal_timescale)
+    plt.xlabel("$\\tau_{intrinsic}$", fontsize=20)
+    plt.xticks(fontsize=15)
+    plt.ylabel("$\\tau_{trial-seasonal}$", fontsize=20)
+    plt.yticks(fontsize=15)
+    plt.plot(
+        [np.min(intrinsic_timescale), np.max(intrinsic_timescale)],
+        [np.min(intrinsic_timescale) * coeff + intercept, np.max(intrinsic_timescale) * coeff + intercept],
+        "r-", lw=3)
+    plt.show()
+    spearman_correlation = spearmanr(intrinsic_timescale, trial_seasonal_timescale)
+    print("Spearman Correlation: ", spearman_correlation)
+    # ==============================================================
+    # Correlation between block-seasonal and trial-seasonal timescale
+    # ==============================================================
+    print("=" * 10, "Block-Seasonal vs. Trial-Seasonal", "=" * 10)
+    # LR line plot
+    model = LinearRegression()
+    model.fit(block_seasonal_timescale.reshape(-1, 1), trial_seasonal_timescale.reshape(-1, 1))
+    coeff = model.coef_.item()
+    intercept = model.intercept_.item()
+    # Plot scatter and line plot
+    plt.scatter(block_seasonal_timescale, trial_seasonal_timescale)
+    plt.xlabel("$\\tau_{block-seasonal}$", fontsize=20)
+    plt.xticks(fontsize=15)
+    plt.ylabel("$\\tau_{trial-seasonal}$", fontsize=20)
+    plt.yticks(fontsize=15)
+    plt.plot(
+        [np.min(block_seasonal_timescale), np.max(block_seasonal_timescale)],
+        [np.min(block_seasonal_timescale) * coeff + intercept, np.max(block_seasonal_timescale) * coeff + intercept],
+        "r-", lw=3)
+    plt.show()
+    spearman_correlation = spearmanr(block_seasonal_timescale, trial_seasonal_timescale)
+    print("Spearman Correlation: ", spearman_correlation)
+
+
+
 # ==================================================================
 #                   INTEGRATED MODEL ESTIMATION
 # ==================================================================
@@ -875,7 +952,6 @@ def integratedEstimation(data, choices, rewards):
     print("Mean Y value:", np.nanmean(np.abs(Y_test[np.where(Y_test != 0)])))
     print("MSE: ", mean_squared_error(Y_test, Y_pred))
     # print("Raw MSE: ", mean_squared_error(Y_test, np.sum(X_test, axis = 1)))
-
 
 
 # ==================================================================
@@ -1014,6 +1090,9 @@ if __name__ == '__main__':
     # print("\n", "=" * 10, " INTEGRATED MODEL ", "=" * 10)
     # integratedEstimation(all_firing_rate, choices, rewards)
 
-    # Behavioral timescale analysis
-    behavorialTimescaleVAR(rewards, choices)
-    behavorialTimescaleAR(rewards, choices)
+    # # Behavioral timescale analysis
+    # behavorialTimescaleVAR(rewards, choices)
+    # behavorialTimescaleAR(rewards, choices)
+
+    # Timescale Correlation
+    timesclaeCorrelation(all_firing_rate, rewards, choices)
