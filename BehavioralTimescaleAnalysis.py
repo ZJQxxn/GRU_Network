@@ -16,6 +16,9 @@ import matplotlib.pyplot as plt
 import h5py
 from scipy.io import loadmat
 import scipy.optimize
+import scipy.stats
+import csv
+import pickle
 
 
 
@@ -55,8 +58,8 @@ def negativeLogLikelihood(param, choices, rewards, return_trajectory = False):
         value_trajectory.append(overall_value)
         # negative log likelihood
         weighted_overall_value = omega * overall_value
-        exp_overall_value = np.exp(weighted_overall_value)
-        log_prob = weighted_overall_value[choice] - np.sum(exp_overall_value)
+        exp_overall_value = np.exp(weighted_overall_value) + 1e-5
+        log_prob = weighted_overall_value[choice] - np.log(np.sum(exp_overall_value))
         nll += (- log_prob)
         prob_trajectory.append(exp_overall_value / np.sum(exp_overall_value))
     if not return_trajectory:
@@ -112,7 +115,7 @@ def estimationError(param, choices, rewards, true_reward_prob, return_trajectory
         return (estimation_error, value_trajectory, prob_trajectory)
 
 
-def MLE(logFilename, dataFilename):
+def MLE(logFilename, dataFilename, block_size = 70):
     '''
     Maximize likelihood estimation for learning the paramteters.
     :param logFilename: Filename of the validation log.
@@ -153,10 +156,14 @@ def MLE(logFilename, dataFilename):
     estimation_choices = np.array([np.argmax(each) for each in estimation_prob]) + 1
     correct_rate = np.sum(estimation_choices == choices) / len(choices)
     print("Estimation correct rate : ", correct_rate)
-    #TODO: use the estimation for the same analysis as three-armed-task
+    # Write to file
+    np.save("Behavioral-Analysis-Result/MLE_choice_estimation.npy", estimation_prob)
+    np.save("Behavioral-Analysis-Result/MLE_parameter_estimation.npy", res.x)
+    # Plot the estimated choices
+    analysis(estimation_choices, reward_prob, "MLE", block_size)
 
 
-def MSE(logFilename, dataFilename):
+def MEE(logFilename, dataFilename, block_size = 70):
     '''
     Minimize the square error for learrning the parameters.
     :param logFilename: Filename of the validation log.
@@ -197,7 +204,89 @@ def MSE(logFilename, dataFilename):
     estimation_choices = np.array([np.argmax(each) for each in estimation_prob]) + 1
     correct_rate = np.sum(estimation_choices == choices) / len(choices)
     print("Estimation correct rate : ", correct_rate)
-    # TODO: use the estimation for the same analysis as three-armed-task
+    # Write to file
+    np.save("Behavioral-Analysis-Result/MEE_choice_estimation.npy", estimation_prob)
+    np.save("Behavioral-Analysis-Result/MEE_parameter_estimation.npy", res.x)
+    # Plot the estimated choices
+    analysis(estimation_choices, reward_prob, "MEE", block_size, )
+
+
+def analysis(choices, reward_probability, method, block_size = 70):
+    # Compute objective highest reward probability
+    reward_probability = reward_probability[:,:2*block_size]
+    objective_highest = []
+    trial_num = reward_probability.shape[1]
+    for i in range(trial_num):
+        trial_reward = reward_probability[:, i]
+        max_ind = np.argwhere(trial_reward == np.amax(trial_reward))
+        max_ind = max_ind.flatten()
+        if 1 == len(max_ind.shape):  # only one stimulus has the highest reward probability
+            objective_highest.append([max_ind[0], trial_reward[max_ind[0]]])
+        elif 2 == len(max_ind.shape):  # two stimulus has the highest reward probability
+            # 3 for A/B, 4 for A/C, 5 for B/C
+            highest_reward = trial_reward[0] if 0 in max_ind else trial_reward[1]
+            objective_highest.append([np.sum(max_ind) + 2, trial_reward[0], highest_reward])
+        else:  # all the stimulus has the same reward probability
+            objective_highest.append([6, trial_reward[0]])
+    objective_highest = np.array(objective_highest)
+    # Compute experienced reward probability
+    trial_num = choices.shape[0]
+    block_num = trial_num // (block_size * 2)
+    block_reward_prob = reward_probability[:, :2*block_size]
+    experienced_reward_prob = np.zeros((block_size * 2, block_num)) # Experienced reward probability as a (number of trials in one block, number of blocks) matrix
+    for index, choice in enumerate(choices):
+        index_in_block = index % (2 * block_size)
+        block_index = index // (2 * block_size)
+        if block_index >= block_num:
+            break
+        if choice.item() > 3:
+            experienced_reward_prob[index_in_block, block_index] = np.nan
+        else:
+            experienced_reward_prob[index_in_block, block_index] = block_reward_prob[choice.item() - 1, index_in_block]
+    # Compute random reward probability
+    random_reward = np.array(
+        [block_reward_prob[np.random.choice([0, 1, 2], 1), index % block_reward_prob.shape[1]] for index in
+         range(experienced_reward_prob.shape[0] * experienced_reward_prob.shape[1])]) \
+        .reshape(experienced_reward_prob.shape)
+    # ================== PLOT PROBABILITY ==================
+    mean_experienced_reward_prob = np.nanmean(experienced_reward_prob, axis=1)  # average value
+    SEM_experienced_reward_prob = scipy.stats.sem(experienced_reward_prob, axis=1)  # SEM
+    # Show H_sch
+    for i in range(2 * block_size):
+        temp = objective_highest[i, :]
+        if temp[0] == 0:
+            color = 'red'
+        elif temp[0] == 1:
+            color = 'blue'
+        elif temp[0] == 2:
+            color = 'green'
+        else:
+            color = 'cyan'
+        plt.scatter(i, temp[1], color=color)
+    plt.title("Experienced Reward Prob. vs. Random Reward Prob.", fontsize=20)
+    plt.plot(np.arange(0, block_size * 2), objective_highest[:, 1], 'k-', ms=8)
+    # Plot experienced reward probability
+    plt.plot(np.arange(0, block_size * 2), mean_experienced_reward_prob, 's-m',
+             label="Experienced Reward Prob ({})".format(method), ms=8, lw=2)
+    plt.fill_between(np.arange(0, block_size * 2),
+                     mean_experienced_reward_prob - SEM_experienced_reward_prob,
+                     mean_experienced_reward_prob + SEM_experienced_reward_prob,
+                     color = "#dcb2ed",
+                     alpha = 0.8,
+                     linewidth = 4)
+    plt.plot(np.mean(random_reward, axis=1), 'b--', alpha=0.5,
+             label="Random Reward Prob.", lw=2)
+    plt.ylim((0.0, 0.85))
+    plt.yticks(fontsize=20)
+    plt.ylabel("Reward Probability", fontsize=20)
+    plt.xticks(fontsize=20)
+    plt.xlabel("Trial", fontsize=20)
+    plt.legend(loc="best", fontsize=20)
+    plt.show()
+
+
+def correlation():
+    pass
 
 
 if __name__ == '__main__':
@@ -208,8 +297,8 @@ if __name__ == '__main__':
 
     # # MLE for parameter estimation
     print("="*10, " MLE ", "="*10)
-    MLE(validation_log_filename, testing_data_filename)
+    MLE(validation_log_filename, testing_data_filename, block_size = 70)
 
     # MSE for parameter estimation
     print("="*10, " MSE ", "="*10)
-    MSE(validation_log_filename, testing_data_filename)
+    MEE(validation_log_filename, testing_data_filename, block_size = 70)
