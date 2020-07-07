@@ -193,10 +193,10 @@ class HistoryTrialAnalysis:
 
 
 if __name__ == '__main__':
-    analyzer = HistoryTrialAnalysis('RewardAffectData-OldTraining-OldNetwork-Three-Armed-Bandit/RewardAffectData-OldTraining-OldNetwork-ThreeArmed-sudden-reverse-model1-validation-1e6.hdf5',
-                            'RewardAffectData-OldTraining-OldNetwork-Three-Armed-Bandit/data/RewardAffect_ThreeArmed_TestingSet-2020_05_01-blk70-reverseblk0-noise-1.mat',
-                            'RewardAffectData-NewTraining-OldNetwork-Three-Armed-Bandit/RewardAffectData-NewTraining-OldNetwork-Three-Armed-sudden-reverse-model1-validation-1e6.hdf5',
-                            'RewardAffectData-NewTraining-OldNetwork-Three-Armed-Bandit/data/RewardAffect_ThreeArmed_TestingSet-2020_05_01-blk70-reverseblk0-noise-1.mat',
+    analyzer = HistoryTrialAnalysis('../RewardAffectData-OldTraining-OldNetwork-Three-Armed-Bandit/RewardAffectData-OldTraining-OldNetwork-ThreeArmed-sudden-reverse-model1-validation-1e6.hdf5',
+                            '../RewardAffectData-OldTraining-OldNetwork-Three-Armed-Bandit/data/RewardAffect_ThreeArmed_TestingSet-2020_05_01-blk70-reverseblk0-noise-1.mat',
+                            '../RewardAffectData-NewTraining-OldNetwork-Three-Armed-Bandit/RewardAffectData-NewTraining-OldNetwork-Three-Armed-sudden-reverse-model1-validation-1e6.hdf5',
+                            '../RewardAffectData-NewTraining-OldNetwork-Three-Armed-Bandit/data/RewardAffect_ThreeArmed_TestingSet-2020_05_01-blk70-reverseblk0-noise-1.mat',
                             block_size = 70)
 
     analyzer.influenceAnalysis()

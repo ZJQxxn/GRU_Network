@@ -1007,10 +1007,10 @@ if __name__ == '__main__':
     config = "ThreeArmed-Old"
     # Pre-processing
     if config == "ThreeArmed-Old":
-        path = "RewardAffectData-OldTraining-OldNetwork-Three-Armed-Bandit/"
+        path = "../RewardAffectData-OldTraining-OldNetwork-Three-Armed-Bandit/"
         log_file_name = path + "RewardAffectData-OldTraining-OldNetwork-ThreeArmed-sudden-reverse-model1-validation-1e6.hdf5"
     elif config == "TwoArmed":
-        path = "Two-Armed-Bandit-SlowReverse/"
+        path = "../Two-Armed-Bandit-SlowReverse/"
         log_file_name = path + "SimplifyTwoArmedSlowReverseNoNoise-validation-15e6.hdf5"
     else:
         raise ValueError("Undefined task name!")

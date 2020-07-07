@@ -430,7 +430,7 @@ def correlation():
 
 if __name__ == '__main__':
     # Configurations
-    path = "RewardAffectData-OldTraining-OldNetwork-Three-Armed-Bandit/"
+    path = "../RewardAffectData-OldTraining-OldNetwork-Three-Armed-Bandit/"
     validation_log_filename = path + "RewardAffectData-OldTraining-OldNetwork-ThreeArmed-slow-reverse-model1-validation-1e6.hdf5"
     testing_data_filename = path + "data/RewardAffect_ThreeArmed_TestingSet-2020_05_03-blk70-reverseblk5-noise-1.mat"
 

@@ -195,15 +195,15 @@ if __name__ == '__main__':
     config = "ThreeArmed-New"
     # Pre-processing
     if config == "ThreeArmed-Old":
-        path = "RewardAffectData-OldTraining-OldNetwork-Three-Armed-Bandit/"
+        path = "../RewardAffectData-OldTraining-OldNetwork-Three-Armed-Bandit/"
         log_file_name = path + "RewardAffectData-OldTraining-OldNetwork-ThreeArmed-sudden-reverse-model1-validation-1e6.hdf5"
         data_file_name = path + "data/RewardAffect_ThreeArmed_TestingSet-2020_05_01-blk70-reverseblk0-noise-1.mat"
     elif config == "TwoArmed":
-        path = "Two-Armed-Bandit-SlowReverse/"
+        path = "../Two-Armed-Bandit-SlowReverse/"
         log_file_name = path + "SimplifyTwoArmedSlowReverseNoNoise-validation-15e6.hdf5"
         data_file_name = path + "data/SimplifyTwoArmedSlowReverseWithNoise_TestingSet-2020_04_07-1.mat"
     elif config == "ThreeArmed-New":
-        path = "RewardAffectData-NewTraining-OldNetwork-Three-Armed-Bandit/"
+        path = "../RewardAffectData-NewTraining-OldNetwork-Three-Armed-Bandit/"
         log_file_name = path + "RewardAffectData-NewTraining-OldNetwork-Three-Armed-slow-reverse-model2-validation-1e6.hdf5"
         data_file_name = path + "data/RewardAffect_ThreeArmed_TestingSet-2020_05_03-blk70-reverseblk5-noise-1.mat"
     else:
