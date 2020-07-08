@@ -19,7 +19,11 @@ import scipy.optimize
 import scipy.stats
 import csv
 import pickle
+from itertools import product
 
+import sys
+sys.path.append('./')
+from TimescaleAnalysis import choiceARAnalysis, rewardARAnalysis
 
 # =========================================================
 #               MAXIMUM LIKELIHOOD ESTIMATION
@@ -422,8 +426,27 @@ def analysis(choices, true_choices, reward_probability, method, block_size = 70)
 
 
 def correlation():
-    #TODO: multiple behavioral timescale
-    pass
+    # Configuration
+    pathname = "./reward-profile-log/"
+    blk_size_list = [50, 60, 70, 80, 90, 100, 110, 120, 130, 140, 150]
+    reverse_blk_size_list = [0, 5, 10, 15, 20]
+    need_noise_list = [True, False]
+    for (blk_size, reverse_blk_size, need_noise) in product(blk_size_list, reverse_blk_size_list, need_noise_list):
+        file_name = "ThreeArmed-blk{}-reverseblk{}-{}".format(
+            blk_size, reverse_blk_size, "noise" if need_noise else "no_noise"
+        )
+        behavior = np.load(pathname + "{}-behavior.npy".format(file_name))
+        choices = behavior[: 0]
+        rewards = behavior[: 1]
+
+        print()
+    # Read in data of multiple tasks
+
+    # Neural choice/reward timescale analysis
+
+    # Behavioral choice/reward timescale analysis
+
+    # Correlation analysis
 
 
 
@@ -434,14 +457,17 @@ if __name__ == '__main__':
     validation_log_filename = path + "RewardAffectData-OldTraining-OldNetwork-ThreeArmed-slow-reverse-model1-validation-1e6.hdf5"
     testing_data_filename = path + "data/RewardAffect_ThreeArmed_TestingSet-2020_05_03-blk70-reverseblk5-noise-1.mat"
 
-    # MLE for parameter estimation
-    print("="*10, " MLE ", "="*10)
-    MLE(validation_log_filename, testing_data_filename, block_size = 70)
-
-    # MSE for parameter estimation
-    print("="*10, " MSE ", "="*10)
-    MEE(validation_log_filename, testing_data_filename, block_size = 70)
+    # # MLE for parameter estimation
+    # print("="*10, " MLE ", "="*10)
+    # MLE(validation_log_filename, testing_data_filename, block_size = 70)
+    #
+    # # MSE for parameter estimation
+    # print("="*10, " MSE ", "="*10)
+    # MEE(validation_log_filename, testing_data_filename, block_size = 70)
 
     # # MLE without choices for parameter estimation
     # print("=" * 10, " MLE without choices ", "=" * 10)
     # MLEWithoutChoice(validation_log_filename, testing_data_filename, block_size=70)
+
+    # Correlation between neural and behavioral timescale
+    correlation()
