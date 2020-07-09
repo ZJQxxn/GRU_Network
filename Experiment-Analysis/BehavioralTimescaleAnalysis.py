@@ -20,6 +20,7 @@ import scipy.stats
 import csv
 import pickle
 from itertools import product
+from sklearn.linear_model import LinearRegression
 
 import sys
 sys.path.append('./')
@@ -427,26 +428,123 @@ def analysis(choices, true_choices, reward_probability, method, block_size = 70)
 
 def correlation():
     # Configuration
-    pathname = "./reward-profile-log/"
+    smooth_factor = 1e-6 # dealing with the condition where divided by 0
     blk_size_list = [50, 60, 70, 80, 90, 100, 110, 120, 130, 140, 150]
     reverse_blk_size_list = [0, 5, 10, 15, 20]
     need_noise_list = [True, False]
+    all_neural_choice_timescale = []
+    all_neural_reward_timescale = []
+    all_behavioral_choice_timescale = []
+    all_behavioral_reward_timescale = []
+    print("=" * 15)
     for (blk_size, reverse_blk_size, need_noise) in product(blk_size_list, reverse_blk_size_list, need_noise_list):
-        file_name = "ThreeArmed-blk{}-reverseblk{}-{}".format(
+        # Format filenames
+        log_filename = "./reward-profile-log/ThreeArmed-blk{}-reverseblk{}-{}".format(
             blk_size, reverse_blk_size, "noise" if need_noise else "no_noise"
         )
-        behavior = np.load(pathname + "{}-behavior.npy".format(file_name))
-        choices = behavior[: 0]
-        rewards = behavior[: 1]
+        data_filename = "./reward-profile-data/ThreeArmed-blk{}-reverseblk{}-{}".format(
+            blk_size, reverse_blk_size, "noise" if need_noise else "no_noise"
+        )
+        print(log_filename)
 
-        print()
-    # Read in data of multiple tasks
+        # Read in data of multiple tasks
+        reward_prob = loadmat("{}.mat".format(data_filename))['data_ST_Brief'][0][0][0]
+        behavior = np.load("{}-behavior.npy".format(log_filename))
+        choices = behavior[:, 0]
+        rewards = behavior[:, 1]
+        num_trials = len(choices)
+        if choices[0] > 3: # if the first trial is not completed
+            choices[0] = np.random.choice([1, 2, 3], 1)
+            rewards[0] = int(np.random.uniform(0, 1, 1) < reward_prob[int(choices[0])-1][0])
+        for index in range(1, num_trials):
+            if choices[index] > 3:  # unfinished trial
+                choices[index] = choices[index - 1]
+                rewards[index] = int(np.random.uniform(0, 1, 1) < reward_prob[int(choices[index]) - 1][index])
+        print("Finished reading and pre-processing.")
 
-    # Neural choice/reward timescale analysis
+        # Neural choice/reward timescale analysis
+        lags = 5
+        _, neural_choice_coeff = choiceARAnalysis(choices, lags = lags, need_plot = False)
+        _, neural_reward_coeff = rewardARAnalysis(rewards, lags = lags, need_plot=False)
+        amplitude = np.arange(lags) + 1
+        neural_choice_coeff = -amplitude / np.log(np.abs(neural_choice_coeff))
+        neural_choice_timescale = np.nanmax(neural_choice_coeff) # TODO: use median rather than maximum
+        neural_reward_coeff = -amplitude / np.log(np.abs(neural_reward_coeff))
+        neural_reward_timescale = np.nanmax(neural_reward_coeff) # TODO: use median rather than maximum
+        all_neural_choice_timescale.append(neural_choice_timescale)
+        all_neural_reward_timescale.append(neural_reward_timescale)
+        print("Finished neural timescale analysis.")
 
-    # Behavioral choice/reward timescale analysis
+        # Behavioral choice/reward timescale analysis
+        bounds = [[0, 1], [0, 1], [0, 1], [None, None]]
+        cons = []  # construct the bounds in the form of constraints
+        for par in range(len(bounds) - 1):
+            l = {'type': 'ineq', 'fun': lambda x: x[par] - bounds[par][0]}
+            u = {'type': 'ineq', 'fun': lambda x: bounds[par][1] - x[par]}
+            cons.append(l)
+            cons.append(u)
+        params = np.array([0.5, 0.5, 0.5, 1])
+        func = lambda parameter: negativeLogLikelihood(parameter, choices, rewards)
+        success = False
+        retry_num = 0
+        while not success and retry_num < 5:
+            res = scipy.optimize.minimize(
+                func,
+                x0=params,
+                method="SLSQP",
+                bounds=bounds,
+                tol=1e-8,  # improve convergence
+                constraints = cons
+            )
+            success = res.success
+            if not success:
+                retry_num += 1
+                print("Fail. Retry...")
+        print("Estimated Parameter (alpha, beta, gamma, omega): ", res.x)
+        behavioral_reward_timescale = (1 + smooth_factor) / (res.x[0] + smooth_factor)
+        behavioral_choice_timescale = (1 + smooth_factor) / (res.x[1] + smooth_factor)
+        all_behavioral_reward_timescale.append(behavioral_reward_timescale)
+        all_behavioral_choice_timescale.append(behavioral_choice_timescale)
+        print("Finish behaviroal timescale analysis.")
+        print("="*15 + "\n")
 
     # Correlation analysis
+    all_neural_choice_timescale = np.array(all_neural_choice_timescale)
+    all_neural_reward_timescale = np.array(all_neural_reward_timescale)
+    all_behavioral_choice_timescale = np.array(all_behavioral_choice_timescale)
+    all_behavioral_reward_timescale = np.array(all_behavioral_reward_timescale)
+    model = LinearRegression()
+    model.fit(all_neural_reward_timescale.reshape(-1, 1), all_behavioral_reward_timescale.reshape(-1, 1))
+    coeff = model.coef_.item()
+    intercept = model.intercept_.item()
+    # Plot scatter and line plot for reward timescales
+    plt.scatter(all_neural_reward_timescale, all_behavioral_reward_timescale)
+    plt.xlabel("$\\tau_{reward}(neural)$", fontsize=20)
+    plt.xticks(fontsize=15)
+    plt.ylabel("$\\tau_{reward}(behavioral)$", fontsize=20)
+    plt.yticks(fontsize=15)
+    plt.plot(
+        [np.min(all_neural_reward_timescale), np.max(all_neural_reward_timescale)],
+        [np.min(all_neural_reward_timescale) * coeff + intercept, np.max(all_neural_reward_timescale) * coeff + intercept],
+        "r-", lw=3)
+    plt.show()
+    correlation = scipy.stats.spearmanr(all_neural_reward_timescale, all_behavioral_reward_timescale)
+    print("Reward Spearman Correlation:", correlation)
+    # Plot scatter and line plot for choice timescales
+    plt.clf()
+    plt.scatter(all_neural_choice_timescale, all_behavioral_choice_timescale)
+    plt.xlabel("$\\tau_{choice}(neural)$", fontsize=20)
+    plt.xticks(fontsize=15)
+    plt.ylabel("$\\tau_{choice}(behavioral)$", fontsize=20)
+    plt.yticks(fontsize=15)
+    plt.plot(
+        [np.min(all_neural_choice_timescale), np.max(all_neural_choice_timescale)],
+        [np.min(all_neural_choice_timescale) * coeff + intercept,
+         np.max(all_neural_choice_timescale) * coeff + intercept],
+        "r-", lw=3)
+    plt.show()
+    correlation = scipy.stats.spearmanr(all_neural_choice_timescale, all_behavioral_choice_timescale)
+    print("Choice Spearman Correlation:", correlation)
 
 
 
