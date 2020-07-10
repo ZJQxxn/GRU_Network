@@ -88,6 +88,9 @@ def MLE(logFilename, dataFilename, block_size = 70):
     rewards = logFile['reward'].value.squeeze()
     num_trials = len(choices)
     reward_prob = loadmat(dataFilename)['data_ST_Brief'][0][0][0]
+    if choices[0] > 3:  # if the first trial is not completed
+        choices[0] = np.random.choice([1, 2, 3], 1)
+        rewards[0] = int(np.random.uniform(0, 1, 1) < reward_prob[int(choices[0]) - 1][0])
     for index in range(1, num_trials):
         if choices[index] > 3: # unfinished trial
             choices[index] = choices[index - 1]
@@ -194,6 +197,9 @@ def MEE(logFilename, dataFilename, block_size = 70):
     rewards = logFile['reward'].value.squeeze()
     num_trials = len(choices)
     reward_prob = loadmat(dataFilename)['data_ST_Brief'][0][0][0]
+    if choices[0] > 3:  # if the first trial is not completed
+        choices[0] = np.random.choice([1, 2, 3], 1)
+        rewards[0] = int(np.random.uniform(0, 1, 1) < reward_prob[int(choices[0]) - 1][0])
     for index in range(1, num_trials):
         if choices[index] > 3:  # unfinished trial
             choices[index] = choices[index - 1]
@@ -556,14 +562,14 @@ def correlation():
 if __name__ == '__main__':
     # Configurations
     path = "../RewardAffectData-OldTraining-OldNetwork-Three-Armed-Bandit/"
-    validation_log_filename = path + "RewardAffectData-OldTraining-OldNetwork-ThreeArmed-slow-reverse-model1-validation-1e6.hdf5"
+    validation_log_filename = path + "RewardAffectData-OldTraining-OldNetwork-ThreeArmed-slow-reverse-model3-validation-1e6.hdf5"
     testing_data_filename = path + "data/RewardAffect_ThreeArmed_TestingSet-2020_05_03-blk70-reverseblk5-noise-1.mat"
 
     # # MLE for parameter estimation
     # print("="*10, " MLE ", "="*10)
     # MLE(validation_log_filename, testing_data_filename, block_size = 70)
-    #
-    # # MSE for parameter estimation
+
+    # # MEE for parameter estimation
     # print("="*10, " MSE ", "="*10)
     # MEE(validation_log_filename, testing_data_filename, block_size = 70)
 
@@ -571,5 +577,5 @@ if __name__ == '__main__':
     # print("=" * 10, " MLE without choices ", "=" * 10)
     # MLEWithoutChoice(validation_log_filename, testing_data_filename, block_size=70)
 
-    # Correlation between neural and behavioral timescale
-    correlation()
+    # # Correlation between neural and behavioral timescale
+    # correlation()

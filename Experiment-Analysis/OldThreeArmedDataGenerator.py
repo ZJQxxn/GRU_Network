@@ -177,8 +177,10 @@ if __name__ == '__main__':
         logFile = h5py.File("temp.hdf5", 'r')
         choice = logFile['choice']
         reward = logFile['reward']
+        firing_rate = logFile['neuron']
         summary = np.hstack((choice, reward))
         np.save("./reward-profile-log/{}-behavior.npy".format(testing_file_name), summary)
+        np.save("./reward-profile-log/{}-firing_rate.npy".format(testing_file_name), firing_rate)
         print("Finished extracting behaviors.\n")
     np.save("./reward-profile-log/all-winning-rate.npy", np.array(all_wining_rate))
     np.save("./reward-profile-log/all-complete-rate.npy", np.array(all_complete_rate))
