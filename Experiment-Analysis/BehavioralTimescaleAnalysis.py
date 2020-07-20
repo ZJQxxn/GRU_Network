@@ -515,16 +515,16 @@ def correlation():
         all_behavioral_choice_timescale.append(behavioral_choice_timescale)
         print("Finish behaviroal timescale analysis.")
         print("="*15 + "\n")
-        all_neural_choice_timescale = np.array(all_neural_choice_timescale)
-        all_neural_reward_timescale = np.array(all_neural_reward_timescale)
-        all_behavioral_choice_timescale = np.array(all_behavioral_choice_timescale)
-        all_behavioral_reward_timescale = np.array(all_behavioral_reward_timescale)
-        np.save("all_neural_choice_timescale.npy", all_neural_choice_timescale)
-        np.save("all_neural_reward_timescale.npy", all_neural_reward_timescale)
-        np.save("all_behavioral_choice_timescale.npy", all_behavioral_choice_timescale)
-        np.save("all_behavioral_reward_timescale.npy", all_behavioral_reward_timescale)
-        return (all_neural_choice_timescale, all_neural_reward_timescale,
-                all_behavioral_choice_timescale, all_behavioral_reward_timescale)
+    all_neural_choice_timescale = np.array(all_neural_choice_timescale)
+    all_neural_reward_timescale = np.array(all_neural_reward_timescale)
+    all_behavioral_choice_timescale = np.array(all_behavioral_choice_timescale)
+    all_behavioral_reward_timescale = np.array(all_behavioral_reward_timescale)
+    np.save("all_neural_choice_timescale.npy", all_neural_choice_timescale)
+    np.save("all_neural_reward_timescale.npy", all_neural_reward_timescale)
+    np.save("all_behavioral_choice_timescale.npy", all_behavioral_choice_timescale)
+    np.save("all_behavioral_reward_timescale.npy", all_behavioral_reward_timescale)
+    return (all_neural_choice_timescale, all_neural_reward_timescale,
+            all_behavioral_choice_timescale, all_behavioral_reward_timescale)
 
 
 def plotCorrelation(all_neural_choice_timescale, all_neural_reward_timescale,
@@ -587,11 +587,11 @@ if __name__ == '__main__':
     # MLEWithoutChoice(validation_log_filename, testing_data_filename, block_size=70)
 
     # # Correlation between neural and behavioral timescale
-    (all_neural_choice_timescale, all_neural_reward_timescale,
-     all_behavioral_choice_timescale, all_behavioral_reward_timescale) = correlation()
-    # all_neural_choice_timescale = np.load("new_training-all_neural_choice_timescale.npy")
-    # all_neural_reward_timescale = np.load("new_training-all_neural_reward_timescale.npy")
-    # all_behavioral_choice_timescale = np.load("new_training-all_behavioral_choice_timescale.npy")
-    # all_behavioral_reward_timescale = np.load("new_training-all_behavioral_reward_timescale.npy")
-    # plotCorrelation(all_neural_choice_timescale, all_neural_reward_timescale,
-    #                 all_behavioral_choice_timescale, all_behavioral_reward_timescale)
+    # (all_neural_choice_timescale, all_neural_reward_timescale,
+    #  all_behavioral_choice_timescale, all_behavioral_reward_timescale) = correlation()
+    all_neural_choice_timescale = np.load("new_training_median-all_neural_choice_timescale.npy")
+    all_neural_reward_timescale = np.load("new_training_median-all_neural_reward_timescale.npy")
+    all_behavioral_choice_timescale = np.load("new_training_median-all_behavioral_choice_timescale.npy")
+    all_behavioral_reward_timescale = np.load("new_training_median-all_behavioral_reward_timescale.npy")
+    plotCorrelation(all_neural_choice_timescale, all_neural_reward_timescale,
+                    all_behavioral_choice_timescale, all_behavioral_reward_timescale)
