@@ -474,9 +474,11 @@ def correlation():
         _, neural_reward_coeff = rewardARAnalysis(rewards, lags = lags, need_plot=False)
         amplitude = np.arange(lags) + 1
         neural_choice_coeff = -amplitude / np.log(np.abs(neural_choice_coeff))
-        neural_choice_timescale = np.nanmax(neural_choice_coeff) # TODO: use median rather than maximum
+        # neural_choice_timescale = np.nanmax(neural_choice_coeff) # TODO: use median rather than maximum
+        neural_choice_timescale = np.nanmedian(neural_choice_coeff) # TODO: use median rather than maximum
         neural_reward_coeff = -amplitude / np.log(np.abs(neural_reward_coeff))
-        neural_reward_timescale = np.nanmax(neural_reward_coeff) # TODO: use median rather than maximum
+        # neural_reward_timescale = np.nanmax(neural_reward_coeff) # TODO: use median rather than maximum
+        neural_reward_timescale = np.nanmedian(neural_reward_coeff) # TODO: use median rather than maximum
         all_neural_choice_timescale.append(neural_choice_timescale)
         all_neural_reward_timescale.append(neural_reward_timescale)
         print("Finished neural timescale analysis.")
@@ -513,21 +515,28 @@ def correlation():
         all_behavioral_choice_timescale.append(behavioral_choice_timescale)
         print("Finish behaviroal timescale analysis.")
         print("="*15 + "\n")
+        all_neural_choice_timescale = np.array(all_neural_choice_timescale)
+        all_neural_reward_timescale = np.array(all_neural_reward_timescale)
+        all_behavioral_choice_timescale = np.array(all_behavioral_choice_timescale)
+        all_behavioral_reward_timescale = np.array(all_behavioral_reward_timescale)
+        np.save("all_neural_choice_timescale.npy", all_neural_choice_timescale)
+        np.save("all_neural_reward_timescale.npy", all_neural_reward_timescale)
+        np.save("all_behavioral_choice_timescale.npy", all_behavioral_choice_timescale)
+        np.save("all_behavioral_reward_timescale.npy", all_behavioral_reward_timescale)
+        return (all_neural_choice_timescale, all_neural_reward_timescale,
+                all_behavioral_choice_timescale, all_behavioral_reward_timescale)
 
+
+def plotCorrelation(all_neural_choice_timescale, all_neural_reward_timescale,
+                    all_behavioral_choice_timescale, all_behavioral_reward_timescale):
     # Correlation analysis
-    all_neural_choice_timescale = np.array(all_neural_choice_timescale)
-    all_neural_reward_timescale = np.array(all_neural_reward_timescale)
-    all_behavioral_choice_timescale = np.array(all_behavioral_choice_timescale)
-    all_behavioral_reward_timescale = np.array(all_behavioral_reward_timescale)
-    np.save("all_neural_choice_timescale.npy", all_neural_choice_timescale)
-    np.save("all_neural_reward_timescale.npy", all_neural_reward_timescale)
-    np.save("all_behavioral_choice_timescale.npy", all_behavioral_choice_timescale)
-    np.save("all_behavioral_reward_timescale.npy", all_behavioral_reward_timescale)
     model = LinearRegression()
     model.fit(all_neural_reward_timescale.reshape(-1, 1), all_behavioral_reward_timescale.reshape(-1, 1))
     coeff = model.coef_.item()
     intercept = model.intercept_.item()
     # Plot scatter and line plot for reward timescales
+    correlation = scipy.stats.spearmanr(all_neural_reward_timescale, all_behavioral_reward_timescale)
+    print("Reward Spearman Correlation:", correlation)
     plt.scatter(all_neural_reward_timescale, all_behavioral_reward_timescale)
     plt.xlabel("$\\tau_{reward}(neural)$", fontsize=20)
     plt.xticks(fontsize=15)
@@ -535,12 +544,14 @@ def correlation():
     plt.yticks(fontsize=15)
     plt.plot(
         [np.min(all_neural_reward_timescale), np.max(all_neural_reward_timescale)],
-        [np.min(all_neural_reward_timescale) * coeff + intercept, np.max(all_neural_reward_timescale) * coeff + intercept],
+        [np.min(all_neural_reward_timescale) * coeff + intercept,
+         np.max(all_neural_reward_timescale) * coeff + intercept],
         "r-", lw=3)
     plt.show()
-    correlation = scipy.stats.spearmanr(all_neural_reward_timescale, all_behavioral_reward_timescale)
-    print("Reward Spearman Correlation:", correlation)
+    # plt.savefig("reward-correlation.pdf")
     # Plot scatter and line plot for choice timescales
+    correlation = scipy.stats.spearmanr(all_neural_choice_timescale, all_behavioral_choice_timescale)
+    print("Choice Spearman Correlation:", correlation)
     plt.clf()
     plt.scatter(all_neural_choice_timescale, all_behavioral_choice_timescale)
     plt.xlabel("$\\tau_{choice}(neural)$", fontsize=20)
@@ -553,16 +564,14 @@ def correlation():
          np.max(all_neural_choice_timescale) * coeff + intercept],
         "r-", lw=3)
     plt.show()
-    correlation = scipy.stats.spearmanr(all_neural_choice_timescale, all_behavioral_choice_timescale)
-    print("Choice Spearman Correlation:", correlation)
-
+    # plt.savefig("choice-correlation.pdf")
 
 
 
 if __name__ == '__main__':
     # Configurations
-    path = "../RewardAffectData-OldTraining-OldNetwork-Three-Armed-Bandit/"
-    validation_log_filename = path + "RewardAffectData-OldTraining-OldNetwork-ThreeArmed-slow-reverse-model3-validation-1e6.hdf5"
+    path = "../RewardAffectData-NewTraining-OldNetwork-Three-Armed-Bandit/"
+    validation_log_filename = path + "RewardAffectData-NewTraining-OldNetwork-Three-Armed-slow-reverse-model3-validation-1e6.hdf5"
     testing_data_filename = path + "data/RewardAffect_ThreeArmed_TestingSet-2020_05_03-blk70-reverseblk5-noise-1.mat"
 
     # # MLE for parameter estimation
@@ -578,4 +587,11 @@ if __name__ == '__main__':
     # MLEWithoutChoice(validation_log_filename, testing_data_filename, block_size=70)
 
     # # Correlation between neural and behavioral timescale
-    # correlation()
+    (all_neural_choice_timescale, all_neural_reward_timescale,
+     all_behavioral_choice_timescale, all_behavioral_reward_timescale) = correlation()
+    # all_neural_choice_timescale = np.load("new_training-all_neural_choice_timescale.npy")
+    # all_neural_reward_timescale = np.load("new_training-all_neural_reward_timescale.npy")
+    # all_behavioral_choice_timescale = np.load("new_training-all_behavioral_choice_timescale.npy")
+    # all_behavioral_reward_timescale = np.load("new_training-all_behavioral_reward_timescale.npy")
+    # plotCorrelation(all_neural_choice_timescale, all_neural_reward_timescale,
+    #                 all_behavioral_choice_timescale, all_behavioral_reward_timescale)

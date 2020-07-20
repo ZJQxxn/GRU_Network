@@ -50,7 +50,8 @@ class ThreeArmedTask(Task): #TODO: change the class name to two-armed task, so a
         _trialValidate: Do validate for a trial.
     '''
 
-    def __init__(self, config_file):
+    def __init__(self, config_file, exogenous_data = None):
+        #TODO: exogenous data for  behavioral timescale analysis
         '''
         Initialize the task.
         :param config_file: Configuration file. Should be a JSON file.
@@ -58,8 +59,10 @@ class ThreeArmedTask(Task): #TODO: change the class name to two-armed task, so a
         super(ThreeArmedTask, self).__init__()
         # TODO: change to initialize with dict rather than the file
         self.model = TorchNetwork(config_file)
-        cofig_pars = readConfigures(config_file)
-        self.data_helper = ThreeArmedDataProcessor(cofig_pars['data_file'], cofig_pars['validation_data_file'])
+        config_pars = readConfigures(config_file)
+        if exogenous_data is not None:
+            config_pars['validation_data_file'] = exogenous_data
+        self.data_helper = ThreeArmedDataProcessor(config_pars['data_file'], config_pars['validation_data_file'])
         np.random.seed()
 
     def train(self, save_iter = 0): #TODO: save iteration
@@ -165,6 +168,7 @@ class ThreeArmedTask(Task): #TODO: change the class name to two-armed task, so a
         print('Winning rate : {},  Completed rate : {}'.format(wining_counts / trial_counts, completed_counts / trial_counts))
         if need_log:
             self.log_writer.closeHdf5File()
+        return (wining_counts / trial_counts, completed_counts / trial_counts)
 
     def _trialValidate(self, trial, trial_reward_prob):
         '''
