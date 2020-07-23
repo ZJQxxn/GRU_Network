@@ -40,8 +40,10 @@ def negativeLogLikelihood(param, choices, rewards, return_trajectory = False):
     '''
     alpha = param[0]
     beta = param[1]
-    gamma = param[2]
-    omega = param[3]
+    # gamma = param[2]
+    gamma = 0.5 #TODO: fix gamma
+    # omega = param[3]
+    omega = param[2]
     choices_num = 3 # TODO: for three-armed-bandit task; generalize later
     trials_num = len(rewards)
 
@@ -75,7 +77,7 @@ def negativeLogLikelihood(param, choices, rewards, return_trajectory = False):
          return (nll, value_trajectory, prob_trajectory)
 
 
-def MLE(logFilename, dataFilename, block_size = 70):
+def MLE(logFilename, dataFilename, block_size = 70, save_res = True):
     '''
     Maximize likelihood estimation for learning the paramteters.
     :param logFilename: Filename of the validation log.
@@ -97,14 +99,16 @@ def MLE(logFilename, dataFilename, block_size = 70):
             rewards[index] = int(np.random.uniform(0, 1, 1) < reward_prob[int(choices[index] - 1)][index])
     print("Number of trials (samples): %d" % num_trials)
     # Create parameters with constraints
-    bounds = [[0, 1], [0, 1], [0, 1], [None, None]]
+    # bounds = [[0, 1], [0, 1], [0, 1], [None, None]]
+    bounds = [[0, 1], [0, 1], [None, None]]
     cons = []  # construct the bounds in the form of constraints
     for par in range(len(bounds) - 1):
         l = {'type': 'ineq', 'fun': lambda x: x[par] - bounds[par][0]}
         u = {'type': 'ineq', 'fun': lambda x: bounds[par][1] - x[par]}
         cons.append(l)
         cons.append(u)
-    params = np.array([0.5, 0.5, 0.5, 1])
+    # params = np.array([0.5, 0.5, 0.5, 1])
+    params = np.array([0.5, 0.5, 1])
     func = lambda parameter: negativeLogLikelihood(parameter, choices, rewards)
     success = False
     if not success:
@@ -128,8 +132,9 @@ def MLE(logFilename, dataFilename, block_size = 70):
     correct_rate = np.sum(estimation_choices == np.argmax(reward_prob, axis = 0) + 1) / len(choices)
     print("Estimation correct rate (estimation == best choice): ", correct_rate)
     # Write to file
-    np.save("Behavioral-Analysis-Result/MLE_choice_estimation.npy", estimation_prob)
-    np.save("Behavioral-Analysis-Result/MLE_parameter_estimation.npy", res.x)
+    if save_res:
+        np.save("Behavioral-Analysis-Result/MLE_choice_estimation.npy", estimation_prob)
+        np.save("Behavioral-Analysis-Result/MLE_parameter_estimation.npy", res.x)
     # Plot the estimated choices
     analysis(estimation_choices, choices, reward_prob, "MLE", block_size)
 
@@ -570,13 +575,13 @@ def plotCorrelation(all_neural_choice_timescale, all_neural_reward_timescale,
 
 if __name__ == '__main__':
     # Configurations
-    path = "../RewardAffectData-NewTraining-OldNetwork-Three-Armed-Bandit/"
-    validation_log_filename = path + "RewardAffectData-NewTraining-OldNetwork-Three-Armed-slow-reverse-model3-validation-1e6.hdf5"
+    path = "../RewardAffectData-OldTraining-OldNetwork-Three-Armed-Bandit/"
+    validation_log_filename = path + "RewardAffectData-OldTraining-OldNetwork-ThreeArmed-slow-reverse-model3-validation-1e6.hdf5"
     testing_data_filename = path + "data/RewardAffect_ThreeArmed_TestingSet-2020_05_03-blk70-reverseblk5-noise-1.mat"
 
-    # # MLE for parameter estimation
-    # print("="*10, " MLE ", "="*10)
-    # MLE(validation_log_filename, testing_data_filename, block_size = 70)
+    # MLE for parameter estimation
+    print("="*10, " MLE ", "="*10)
+    MLE(validation_log_filename, testing_data_filename, block_size = 70, save_res=False)
 
     # # MEE for parameter estimation
     # print("="*10, " MSE ", "="*10)
@@ -586,12 +591,12 @@ if __name__ == '__main__':
     # print("=" * 10, " MLE without choices ", "=" * 10)
     # MLEWithoutChoice(validation_log_filename, testing_data_filename, block_size=70)
 
-    # # Correlation between neural and behavioral timescale
-    # (all_neural_choice_timescale, all_neural_reward_timescale,
-    #  all_behavioral_choice_timescale, all_behavioral_reward_timescale) = correlation()
-    all_neural_choice_timescale = np.load("new_training_median-all_neural_choice_timescale.npy")
-    all_neural_reward_timescale = np.load("new_training_median-all_neural_reward_timescale.npy")
-    all_behavioral_choice_timescale = np.load("new_training_median-all_behavioral_choice_timescale.npy")
-    all_behavioral_reward_timescale = np.load("new_training_median-all_behavioral_reward_timescale.npy")
-    plotCorrelation(all_neural_choice_timescale, all_neural_reward_timescale,
-                    all_behavioral_choice_timescale, all_behavioral_reward_timescale)
+    # # # Correlation between neural and behavioral timescale
+    # # (all_neural_choice_timescale, all_neural_reward_timescale,
+    # #  all_behavioral_choice_timescale, all_behavioral_reward_timescale) = correlation()
+    # all_neural_choice_timescale = np.load("new_training_median-all_neural_choice_timescale.npy")
+    # all_neural_reward_timescale = np.load("new_training_median-all_neural_reward_timescale.npy")
+    # all_behavioral_choice_timescale = np.load("new_training_median-all_behavioral_choice_timescale.npy")
+    # all_behavioral_reward_timescale = np.load("new_training_median-all_behavioral_reward_timescale.npy")
+    # plotCorrelation(all_neural_choice_timescale, all_neural_reward_timescale,
+    #                 all_behavioral_choice_timescale, all_behavioral_reward_timescale)

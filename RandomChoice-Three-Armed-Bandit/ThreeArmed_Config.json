@@ -1,0 +1,18 @@
+{
+  "name": "three-armed bandit",
+  "in_dim": 10,
+  "cuda_enabled": 0,
+  "init_noise_amp": 0.0,
+  "gradient_clip": 0.25,
+  "optimizer": "Adam",
+  "data_file": "./data/RandomChoice_ThreeArmed_TrainingSet-2020_07_23-blk50-reverseblk5-noise-1.mat",
+  "data_attr": "info",
+  "validation_data_file": "./data/RandomChoice_ThreeArmed_TestingSet-2020_07_23-blk70-reverseblk5-noise-1.mat",
+  "log_path": "./log_m/ST/",
+  "load_model": "",
+  "train_num": 1e6,
+  "reset_hidden": 0,
+  "lr": 1e-4,
+  "record": 1,
+  "batch_size": 1
+}
