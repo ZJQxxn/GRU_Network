@@ -167,7 +167,7 @@ class TaskAnalyzer:
 
     def _getBlockRewrdProbability(self):
         mat = loadmat(self.validationFileName)
-        reward_prob = mat['data_ST_Brief']['reward_prob_1'][0, 0][:,:140]
+        reward_prob = mat['data_ST_Brief']['reward_prob_1'][0, 0][:,:(2*self.block_size)]
         del mat
         return reward_prob
 
@@ -214,9 +214,9 @@ class TaskAnalyzer:
 
 
 if __name__ == '__main__':
-    analyzer = TaskAnalyzer('RewardAffectData-OldTraining-OldNetwork-ThreeArmed-slow-reverse-model3-validation-1e6.hdf5',
-                            './data/RewardAffect_ThreeArmed_TestingSet-2020_05_03-blk70-reverseblk5-noise-1.mat',
-                            block_size = 70)
+    analyzer = TaskAnalyzer('ThreeReverse-severe_reverse_three_block-ThreeArmed-validation-15e6.hdf5',
+                            './data/ThreeReverse_ThreeArmed_TestingSet-2020_07_24-severe_three_block-1.mat',
+                            block_size = 75)
 
     analyzer.behaviorAnalysis()
     # analyzer.influenceAnalysis()

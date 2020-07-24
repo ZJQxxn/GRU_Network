@@ -388,5 +388,5 @@ if __name__ == '__main__':
     # t.train(save_iter=100000)
     # t.saveModel('./save_m/'+'ThreeReverse-ThreeArmed-1e6-model.pt')
 
-    t.loadModel('./save_m/random-choice/Intermediate--NUM13-.pt', 'ThreeArmed_Config.json')
-    t.validate('ThreeReverse-ThreeArmed-validation-1e6.hdf5') #TODO: need new analysis for this task
+    t.loadModel('./save_m/severe-reverse-three-block/ThreeReverse-ThreeArmed-severe_reverse-15e6-model.pt', 'ThreeArmed_Config.json')
+    t.validate('ThreeReverse-severe_reverse_three_block-ThreeArmed-validation-15e6.hdf5')

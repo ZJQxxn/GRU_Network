@@ -447,6 +447,7 @@ def correlation():
     all_neural_reward_timescale = []
     all_behavioral_choice_timescale = []
     all_behavioral_reward_timescale = []
+    all_success = []
     print("=" * 15)
     for (blk_size, reverse_blk_size, need_noise) in product(blk_size_list, reverse_blk_size_list, need_noise_list):
         # Format filenames
@@ -513,6 +514,7 @@ def correlation():
             if not success:
                 retry_num += 1
                 print("Fail. Retry...")
+        all_success.append(success)
         print("Estimated Parameter (alpha, beta, gamma, omega): ", res.x)
         behavioral_reward_timescale = (1 + smooth_factor) / (res.x[0] + smooth_factor)
         behavioral_choice_timescale = (1 + smooth_factor) / (res.x[1] + smooth_factor)
@@ -524,12 +526,15 @@ def correlation():
     all_neural_reward_timescale = np.array(all_neural_reward_timescale)
     all_behavioral_choice_timescale = np.array(all_behavioral_choice_timescale)
     all_behavioral_reward_timescale = np.array(all_behavioral_reward_timescale)
+    all_success = np.array(all_success)
     np.save("all_neural_choice_timescale.npy", all_neural_choice_timescale)
     np.save("all_neural_reward_timescale.npy", all_neural_reward_timescale)
     np.save("all_behavioral_choice_timescale.npy", all_behavioral_choice_timescale)
     np.save("all_behavioral_reward_timescale.npy", all_behavioral_reward_timescale)
+    np.save("all_success.npy", all_success)
     return (all_neural_choice_timescale, all_neural_reward_timescale,
-            all_behavioral_choice_timescale, all_behavioral_reward_timescale)
+            all_behavioral_choice_timescale, all_behavioral_reward_timescale,
+            all_success)
 
 
 def correlationFirstTimescale():
@@ -542,6 +547,7 @@ def correlationFirstTimescale():
     all_neural_reward_timescale = []
     all_behavioral_choice_timescale = []
     all_behavioral_reward_timescale = []
+    all_success = []
     print("=" * 15)
     for (blk_size, reverse_blk_size, need_noise) in product(blk_size_list, reverse_blk_size_list, need_noise_list):
         # Format filenames
@@ -607,6 +613,7 @@ def correlationFirstTimescale():
             if not success:
                 retry_num += 1
                 print("Fail. Retry...")
+        all_success.append(success)
         print("Estimated Parameter (alpha, beta, gamma, omega): ", res.x)
         behavioral_reward_timescale = (1 + smooth_factor) / (res.x[0] + smooth_factor)
         behavioral_choice_timescale = (1 + smooth_factor) / (res.x[1] + smooth_factor)
@@ -618,16 +625,28 @@ def correlationFirstTimescale():
     all_neural_reward_timescale = np.array(all_neural_reward_timescale)
     all_behavioral_choice_timescale = np.array(all_behavioral_choice_timescale)
     all_behavioral_reward_timescale = np.array(all_behavioral_reward_timescale)
+    all_success = np.array(all_success)
     np.save("first_timescale_all_neural_choice_timescale.npy", all_neural_choice_timescale)
     np.save("first_timescale_all_neural_reward_timescale.npy", all_neural_reward_timescale)
     np.save("first_timescale_all_behavioral_choice_timescale.npy", all_behavioral_choice_timescale)
     np.save("first_timescale_all_behavioral_reward_timescale.npy", all_behavioral_reward_timescale)
+    np.save("first_timescale_all_success.npy", all_success)
     return (all_neural_choice_timescale, all_neural_reward_timescale,
-            all_behavioral_choice_timescale, all_behavioral_reward_timescale)
+            all_behavioral_choice_timescale, all_behavioral_reward_timescale,
+            all_success)
 
 
 def plotCorrelation(all_neural_choice_timescale, all_neural_reward_timescale,
-                    all_behavioral_choice_timescale, all_behavioral_reward_timescale):
+                    all_behavioral_choice_timescale, all_behavioral_reward_timescale, is_success = None):
+    # Extract indices of tasks that successfully obtain the behavioral timescales via IRL
+    if is_success is not None:
+        success_index = np.where(is_success == True)
+    else:
+        success_index = np.arange(len(is_success))
+    all_neural_choice_timescale = all_neural_choice_timescale[success_index]
+    all_neural_reward_timescale = all_neural_reward_timescale[success_index]
+    all_behavioral_choice_timescale = all_behavioral_choice_timescale[success_index]
+    all_behavioral_reward_timescale = all_behavioral_reward_timescale[success_index]
     # Correlation analysis
     model = LinearRegression()
     model.fit(all_neural_reward_timescale.reshape(-1, 1), all_behavioral_reward_timescale.reshape(-1, 1))
@@ -686,13 +705,18 @@ if __name__ == '__main__':
     # MLEWithoutChoice(validation_log_filename, testing_data_filename, block_size=70)
 
     # # Correlation between neural and behavioral timescale
+
     # (all_neural_choice_timescale, all_neural_reward_timescale,
-    #     all_behavioral_choice_timescale, all_behavioral_reward_timescale) = correlation()
-    (all_neural_choice_timescale, all_neural_reward_timescale,
-     all_behavioral_choice_timescale, all_behavioral_reward_timescale) = correlationFirstTimescale()
-    # all_neural_choice_timescale = np.load("first_timescale_all_neural_choice_timescale.npy")
-    # all_neural_reward_timescale = np.load("first_timescale_all_neural_reward_timescale.npy")
-    # all_behavioral_choice_timescale = np.load("first_timescale_all_behavioral_choice_timescale.npy")
-    # all_behavioral_reward_timescale = np.load("first_timescale_all_behavioral_reward_timescale.npy")
-    # plotCorrelation(all_neural_choice_timescale, all_neural_reward_timescale,
-    #                 all_behavioral_choice_timescale, all_behavioral_reward_timescale)
+    #     all_behavioral_choice_timescale, all_behavioral_reward_timescale, all_success) = correlation()
+
+    # (all_neural_choice_timescale, all_neural_reward_timescale,
+    #  all_behavioral_choice_timescale, all_behavioral_reward_timescale, all_success) = correlationFirstTimescale()
+
+    all_neural_choice_timescale = np.load("first_timescale_all_neural_choice_timescale.npy")
+    all_neural_reward_timescale = np.load("first_timescale_all_neural_reward_timescale.npy")
+    all_behavioral_choice_timescale = np.load("first_timescale_all_behavioral_choice_timescale.npy")
+    all_behavioral_reward_timescale = np.load("first_timescale_all_behavioral_reward_timescale.npy")
+    all_success = np.load("first_timescale_all_success.npy")
+
+    plotCorrelation(all_neural_choice_timescale, all_neural_reward_timescale,
+                    all_behavioral_choice_timescale, all_behavioral_reward_timescale, is_success = all_success)
