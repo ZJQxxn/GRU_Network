@@ -385,9 +385,8 @@ if __name__ == '__main__':
     torch.set_num_interop_threads(3)
     t = ThreeArmedTask('ThreeArmed_Config.json')
 
-    t.train(save_iter=10)
-    t.saveModel('./save_m/'+'ThreeReverse-ThreeArmed-1e6-model.pt')
+    # t.train(save_iter=100000)
+    # t.saveModel('./save_m/'+'ThreeReverse-ThreeArmed-1e6-model.pt')
 
-    # # t.loadModel('./save_m/sudden-reverse/model3/RewardAffectData-OldTraining-OldNetwork-ThreeArmed-1e6-model.pt', 'ThreeArmed_Config.json')
-    # t.loadModel('./save_m/slow-reverse/model3/RewardAffectData-OldTraining-OldNetwork-ThreeArmed-1e6-model.pt', 'ThreeArmed_Config.json')
-    # t.validate('RewardAffectData-OldTraining-OldNetwork-ThreeArmed-slow-reverse-model3-validation-1e6.hdf5')
+    t.loadModel('./save_m/random-choice/Intermediate--NUM13-.pt', 'ThreeArmed_Config.json')
+    t.validate('ThreeReverse-ThreeArmed-validation-1e6.hdf5') #TODO: need new analysis for this task

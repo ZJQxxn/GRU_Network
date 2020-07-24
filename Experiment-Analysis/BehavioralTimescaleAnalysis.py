@@ -40,10 +40,10 @@ def negativeLogLikelihood(param, choices, rewards, return_trajectory = False):
     '''
     alpha = param[0]
     beta = param[1]
-    # gamma = param[2]
-    gamma = 0.5 #TODO: fix gamma
-    # omega = param[3]
-    omega = param[2]
+    gamma = param[2]
+    # gamma = 0.5 #TODO: fix gamma
+    omega = param[3]
+    # omega = param[2]
     choices_num = 3 # TODO: for three-armed-bandit task; generalize later
     trials_num = len(rewards)
 
@@ -669,8 +669,8 @@ def plotCorrelation(all_neural_choice_timescale, all_neural_reward_timescale,
 
 if __name__ == '__main__':
     # Configurations
-    path = "../RewardAffectData-NewTraining-OldNetwork-Three-Armed-Bandit/"
-    validation_log_filename = path + "RewardAffectData-NewTraining-OldNetwork-Three-Armed-slow-reverse-model3-validation-1e6.hdf5"
+    path = "../RewardAffectData-OldTraining-OldNetwork-Three-Armed-Bandit/"
+    validation_log_filename = path + "RewardAffectData-OldTraining-OldNetwork-ThreeArmed-slow-reverse-model3-validation-1e6.hdf5"
     testing_data_filename = path + "data/RewardAffect_ThreeArmed_TestingSet-2020_05_03-blk70-reverseblk5-noise-1.mat"
 
     # # MLE for parameter estimation
@@ -688,12 +688,11 @@ if __name__ == '__main__':
     # # Correlation between neural and behavioral timescale
     # (all_neural_choice_timescale, all_neural_reward_timescale,
     #     all_behavioral_choice_timescale, all_behavioral_reward_timescale) = correlation()
-
     (all_neural_choice_timescale, all_neural_reward_timescale,
      all_behavioral_choice_timescale, all_behavioral_reward_timescale) = correlationFirstTimescale()
-    # all_neural_choice_timescale = np.load("new_training_median-all_neural_choice_timescale.npy")
-    # all_neural_reward_timescale = np.load("new_training_median-all_neural_reward_timescale.npy")
-    # all_behavioral_choice_timescale = np.load("new_training_median-all_behavioral_choice_timescale.npy")
-    # all_behavioral_reward_timescale = np.load("new_training_median-all_behavioral_reward_timescale.npy")
+    # all_neural_choice_timescale = np.load("first_timescale_all_neural_choice_timescale.npy")
+    # all_neural_reward_timescale = np.load("first_timescale_all_neural_reward_timescale.npy")
+    # all_behavioral_choice_timescale = np.load("first_timescale_all_behavioral_choice_timescale.npy")
+    # all_behavioral_reward_timescale = np.load("first_timescale_all_behavioral_reward_timescale.npy")
     # plotCorrelation(all_neural_choice_timescale, all_neural_reward_timescale,
     #                 all_behavioral_choice_timescale, all_behavioral_reward_timescale)

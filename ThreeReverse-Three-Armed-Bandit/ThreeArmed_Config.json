@@ -7,7 +7,7 @@
   "optimizer": "Adam",
   "data_file": "./data/ThreeReverse_ThreeArmed_TrainingSet-2020_07_23-1.mat",
   "data_attr": "info",
-  "validation_data_file": "./data/ThreeReverse_ThreeArmed_TestingSet-2020_07_23-1.mat",
+  "validation_data_file": "./data/ThreeReverse_ThreeArmed_TestingSet-2020_07_23-2.mat",
   "log_path": "./log_m/ST/",
   "load_model": "",
   "train_num": 1.5e6,

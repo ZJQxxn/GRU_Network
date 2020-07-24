@@ -12,6 +12,7 @@ from sklearn.linear_model import LogisticRegression
 
 
 class TaskAnalyzer:
+    #TODO: revise for three-reverse task
 
     def __init__(self, logFileName, validationFileName, block_size = 150):
         self.block_size = block_size
