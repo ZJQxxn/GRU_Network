@@ -232,11 +232,11 @@ def generateTrainingNextTwoReward(filename):
     NumTrials = int(1.5e6 + 2)
     reward_prob = np.array([0.8, 0.5, 0.2]).reshape((3, 1))
     # Reward probability for each trial
-    whole_block_size = 200
+    whole_block_size = 150
     blk_num = NumTrials // (whole_block_size) + 1
 
     # whole_block_reward_prob =  _generateRewardProb()
-    whole_block_reward_prob = _generateSevereReverseRewardProb()
+    whole_block_reward_prob = _generateSevereThreeBlockRewardProb()
 
     all_reward_prob = np.tile(whole_block_reward_prob, blk_num)[:, :NumTrials]
 
@@ -343,7 +343,7 @@ def generateTesting(filename):
     blk_num = NumTrials // (whole_block_size) + 1
 
     # whole_block_reward_prob =  _generateRewardProb()
-    whole_block_reward_prob = _generateSevereReverseRewardProb()
+    whole_block_reward_prob = _generateSevereThreeBlockRewardProb()
 
     all_reward_prob = np.tile(whole_block_reward_prob, blk_num)[:, :NumTrials]
 
@@ -389,6 +389,7 @@ if __name__ == '__main__':
     pathname = "./data/"
     training_file_name = 'ThreeReverse_ThreeArmed_TrainingSet-' + datetime.datetime.now().strftime("%Y_%m_%d")
     testing_file_name = 'ThreeReverse_ThreeArmed_TestingSet-' + datetime.datetime.now().strftime("%Y_%m_%d")
-    generateTraining(training_file_name + "-severe_three_block")
-    generateTesting(testing_file_name + "-severe_three_block")
+    # generateTraining(training_file_name + "-severe_three_block")
+    generateTrainingNextTwoReward(training_file_name + "-severe_three_block-next_two_reward")
+    generateTesting(testing_file_name + "-severe_three_block-next_two_reward")
 

@@ -214,8 +214,8 @@ class TaskAnalyzer:
 
 
 if __name__ == '__main__':
-    analyzer = TaskAnalyzer('ThreeReverse-severe_reverse_three_block-ThreeArmed-validation-15e6.hdf5',
-                            './data/ThreeReverse_ThreeArmed_TestingSet-2020_07_24-severe_three_block-1.mat',
+    analyzer = TaskAnalyzer('ThreeReverse-severe_reverse_three_block_next_two_rewarwd-ThreeArmed-validation-15e6.hdf5',
+                            './data/ThreeReverse_ThreeArmed_TestingSet-2020_07_25-severe_three_block-next_two_reward-1.mat',
                             block_size = 75)
 
     analyzer.behaviorAnalysis()

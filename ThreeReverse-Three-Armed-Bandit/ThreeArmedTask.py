@@ -388,5 +388,11 @@ if __name__ == '__main__':
     # t.train(save_iter=100000)
     # t.saveModel('./save_m/'+'ThreeReverse-ThreeArmed-1e6-model.pt')
 
-    t.loadModel('./save_m/severe-reverse-three-block/ThreeReverse-ThreeArmed-severe_reverse-15e6-model.pt', 'ThreeArmed_Config.json')
-    t.validate('ThreeReverse-severe_reverse_three_block-ThreeArmed-validation-15e6.hdf5')
+    t.loadModel('./save_m/severe-reverse-three-block-next-two-reward/Intermediate--NUM11-.pt', 'ThreeArmed_Config.json')
+    t.validate('ThreeReverse-severe_reverse_three_block_next_two_rewarwd-ThreeArmed-validation-15e6.hdf5')
+
+
+    # random-choice : 7-23-2
+    # severe-reverse: 7-23-1
+    # previous-one-reward: 7-24-1
+    # severe-three-block: 7-24-severe-three-block
