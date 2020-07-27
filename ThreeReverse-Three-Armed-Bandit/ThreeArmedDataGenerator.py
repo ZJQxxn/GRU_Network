@@ -94,34 +94,7 @@ def _generateSevereReverseRewardProb():
     return reward_probability
 
 
-def _generateSevereThreeBlockRewardProb():
-    #TODO: fix the generating process for now
-    '''
-           Compute the reward probability for each trial.
-           :param reward_type: The type of reward probabiliy, either 'fixed' or 'reverse'.
-           :return: A matrix with shape of (3, numTrials).
-    '''
-    # TODO: reverse among three stimulus, rather than only A and C
-    first_block = np.tile(np.array([0.8, 0.5, 0.2]).reshape((3,1)), 50)
-    second_block = np.tile(np.array([0.5, 0.2, 0.8]).reshape((3,1)), 50)
-    third_bloc = np.tile(np.array([0.2, 0.8, 0.5]).reshape((3,1)), 50)
 
-
-    reward_probability = np.hstack((first_block, second_block, third_bloc))
-    # # Plot for test
-    # trial_num = reward_probability.shape[1]
-    # plt.figure(figsize=(15,8))
-    # plt.title("Objective Reward Probability", fontsize = 20)
-    # plt.plot(np.arange(0, trial_num), reward_probability[0, :], 'o-r', label='stimulus A')
-    # plt.plot(np.arange(0, trial_num), reward_probability[1, :], 'o-b', label='stimulus B')
-    # plt.plot(np.arange(0, trial_num), reward_probability[2, :], 'o-g', label='stimulus C')
-    # plt.yticks(np.arange(0, 1.1, 0.2), fontsize = 20)
-    # plt.ylabel("Reward Probability", fontsize = 20)
-    # plt.xticks(fontsize=20)
-    # plt.xlabel("Trial", fontsize=20)
-    # plt.legend(loc = 9, fontsize=20, ncol = 3) # legend is located at upper center with 3 columns
-    # plt.show()
-    return reward_probability
 
 
 def generateTraining(filename):
