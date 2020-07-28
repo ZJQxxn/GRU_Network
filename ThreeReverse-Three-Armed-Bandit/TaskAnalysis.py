@@ -218,5 +218,5 @@ if __name__ == '__main__':
                             './data/ThreeReverse_ThreeArmed_TestingSet-2020_07_25-severe_three_block-next_two_reward-1.mat',
                             block_size = 75)
 
-    analyzer.behaviorAnalysis()
-    # analyzer.influenceAnalysis()
+    # analyzer.behaviorAnalysis()
+    analyzer.influenceAnalysis()

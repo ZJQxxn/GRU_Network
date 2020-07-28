@@ -100,7 +100,7 @@ def MLE(logFilename, dataFilename, block_size = 70, save_res = True):
     print("Number of trials (samples): %d" % num_trials)
     # Create parameters with constraints
     # bounds = [[0, 1], [0, 1], [0, 1], [None, None]]
-    bounds = [[0, 1], [0, 1], [None, None]]
+    bounds = [[0, 1], [0, 1], [0, 1], [None, None]]
     cons = []  # construct the bounds in the form of constraints
     for par in range(len(bounds) - 1):
         l = {'type': 'ineq', 'fun': lambda x: x[par] - bounds[par][0]}
@@ -108,7 +108,7 @@ def MLE(logFilename, dataFilename, block_size = 70, save_res = True):
         cons.append(l)
         cons.append(u)
     # params = np.array([0.5, 0.5, 0.5, 1])
-    params = np.array([0.5, 0.5, 1])
+    params = np.array([0.5, 0.5, 0.5, 1])
     func = lambda parameter: negativeLogLikelihood(parameter, choices, rewards)
     success = False
     if not success:
@@ -437,7 +437,7 @@ def analysis(choices, true_choices, reward_probability, method, block_size = 70)
     plt.show()
 
 
-def correlation(task_name = None):
+def correlation(task_name = None, method = "MEE"):
     if task_name is None:
         raise ValueError("Please specify the task!")
     # Configuration
@@ -500,7 +500,12 @@ def correlation(task_name = None):
             cons.append(l)
             cons.append(u)
         params = np.array([0.5, 0.5, 0.5, 1])
-        func = lambda parameter: negativeLogLikelihood(parameter, choices, rewards)
+        if "MEE" == method:
+            func = lambda parameter: negativeLogLikelihood(parameter, choices, rewards)
+        elif "MLE" == method:
+            func = lambda parameter: estimationError(parameter, choices, rewards, reward_prob)
+        else:
+            raise ValueError("Undefined method!")
         success = False
         retry_num = 0
         while not success and retry_num < 5:
@@ -529,11 +534,11 @@ def correlation(task_name = None):
     all_behavioral_choice_timescale = np.array(all_behavioral_choice_timescale)
     all_behavioral_reward_timescale = np.array(all_behavioral_reward_timescale)
     all_success = np.array(all_success)
-    np.save("{}-all_neural_choice_timescale.npy".format(task_name), all_neural_choice_timescale)
-    np.save("{}-all_neural_reward_timescale.npy".format(task_name), all_neural_reward_timescale)
-    np.save("{}-all_behavioral_choice_timescale.npy".format(task_name), all_behavioral_choice_timescale)
-    np.save("{}-all_behavioral_reward_timescale.npy".format(task_name), all_behavioral_reward_timescale)
-    np.save("{}-all_success.npy".format(task_name), all_success)
+    np.save("{}-{}-all_neural_choice_timescale.npy".format(task_name, method), all_neural_choice_timescale)
+    np.save("{}-{}-all_neural_reward_timescale.npy".format(task_name, method), all_neural_reward_timescale)
+    np.save("{}-{}-all_behavioral_choice_timescale.npy".format(task_name, method), all_behavioral_choice_timescale)
+    np.save("{}-{}-all_behavioral_reward_timescale.npy".format(task_name, method), all_behavioral_reward_timescale)
+    np.save("{}-{}-all_success.npy".format(task_name, method), all_success)
     return (all_neural_choice_timescale, all_neural_reward_timescale,
             all_behavioral_choice_timescale, all_behavioral_reward_timescale,
             all_success)
@@ -649,6 +654,12 @@ def plotCorrelation(all_neural_choice_timescale, all_neural_reward_timescale,
     all_neural_reward_timescale = all_neural_reward_timescale[success_index]
     all_behavioral_choice_timescale = all_behavioral_choice_timescale[success_index]
     all_behavioral_reward_timescale = all_behavioral_reward_timescale[success_index]
+
+    percentile = np.percentile(all_behavioral_choice_timescale, 80)
+    used_choice__index = np.where(all_behavioral_choice_timescale < percentile)
+    all_behavioral_choice_timescale = all_behavioral_choice_timescale[used_choice__index]
+    all_neural_choice_timescale = all_neural_choice_timescale[used_choice__index]
+
     # Correlation analysis
     model = LinearRegression()
     model.fit(all_neural_reward_timescale.reshape(-1, 1), all_behavioral_reward_timescale.reshape(-1, 1))
@@ -696,11 +707,11 @@ if __name__ == '__main__':
 
     # # MLE for parameter estimation
     # print("="*10, " MLE ", "="*10)
-    # MLE(validation_log_filename, testing_data_filename, block_size = 70, save_res=False)
+    # MLE(validation_log_filename, testing_data_filename, block_size = 75, save_res=False)
 
-    # # MEE for parameter estimation
-    # print("="*10, " MSE ", "="*10)
-    # MEE(validation_log_filename, testing_data_filename, block_size = 75)
+    # MEE for parameter estimation
+    print("="*10, " MSE ", "="*10)
+    MEE(validation_log_filename, testing_data_filename, block_size = 75)
 
     # # MLE without choices for parameter estimation
     # print("=" * 10, " MLE without choices ", "=" * 10)
@@ -709,15 +720,18 @@ if __name__ == '__main__':
     # # Correlation between neural and behavioral timescale
 
     # (all_neural_choice_timescale, all_neural_reward_timescale,
-    #     all_behavioral_choice_timescale, all_behavioral_reward_timescale, all_success) = correlation(task_name="ThreeReverse")
+    #     all_behavioral_choice_timescale, all_behavioral_reward_timescale, all_success) = correlation(
+    #     task_name="ThreeReverse",
+    #     method = "MEE"
+    # )
 
     # (all_neural_choice_timescale, all_neural_reward_timescale,
     #  all_behavioral_choice_timescale, all_behavioral_reward_timescale, all_success) = correlationFirstTimescale(task_name="ThreeReverse")
 
-    all_neural_choice_timescale = np.load("ThreeReverse-all_neural_choice_timescale.npy")
-    all_neural_reward_timescale = np.load("ThreeReverse-all_neural_reward_timescale.npy")
-    all_behavioral_choice_timescale = np.load("ThreeReverse-all_behavioral_choice_timescale.npy")
-    all_behavioral_reward_timescale = np.load("ThreeReverse-all_behavioral_reward_timescale.npy")
+    all_neural_choice_timescale = np.load("ThreeReverse-MEE-all_neural_choice_timescale.npy")
+    all_neural_reward_timescale = np.load("ThreeReverse-MEE-all_neural_reward_timescale.npy")
+    all_behavioral_choice_timescale = np.load("ThreeReverse-MEE-all_behavioral_choice_timescale.npy")
+    all_behavioral_reward_timescale = np.load("ThreeReverse-MEE-all_behavioral_reward_timescale.npy")
     all_success = np.load("ThreeReverse-all_success.npy")
 
     plotCorrelation(all_neural_choice_timescale, all_neural_reward_timescale,
